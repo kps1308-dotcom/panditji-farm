@@ -1,0 +1,2678 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Panditji Dairy Farm | Operations & Admin Console</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f3f6f3; color: #143525; }
+    .panel { background: #ffffff; border: 1px solid #d8e5dc; border-radius: 14px; padding: 18px; box-shadow: 0 4px 14px rgba(20,53,37,0.04); }
+    .btn { background: #185237; color: #ffffff; padding: 8px 14px; border-radius: 9px; font-weight: 600; font-size: 13px; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+    .btn:hover { background: #123e2a; }
+    .btn-secondary { background: #e8f1eb; color: #185237; padding: 8px 14px; border-radius: 9px; font-weight: 600; font-size: 13px; cursor: pointer; }
+    .btn-secondary:hover { background: #dceade; }
+    .btn-wa { background: #25D366; color: #ffffff; padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-wa:hover { background: #1ebd59; }
+    input, select, textarea { border: 1px solid #c9d8ce; border-radius: 8px; padding: 8px 10px; width: 100%; background: #ffffff; font-size: 13px; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #185237; box-shadow: 0 0 0 2px rgba(24,82,55,0.15); }
+    label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #53695d; display: block; margin-bottom: 4px; }
+    .nav-btn { padding: 9px 12px; border-radius: 8px; text-align: left; font-weight: 600; font-size: 13px; color: #cbe0d3; transition: 0.15s; width: 100%; }
+    .nav-btn:hover, .nav-btn.active { background: #235d40; color: #ffffff; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e7eee9; }
+    th { color: #53695d; background: #f8faf8; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .badge { padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; }
+    .badge-planned { background: #fef3c7; color: #92400e; }
+    .badge-delivered { background: #d1fae5; color: #065f46; }
+    .badge-skipped { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .tag-bubble { border: 1px solid #b7cebf; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 600; cursor: pointer; }
+    .tag-bubble.active { background: #185237; color: white; border-color: #185237; }
+    .tab-toggle { background: #e2ede5; border-radius: 8px; padding: 3px; display: inline-flex; gap: 3px; }
+    .tab-toggle button { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; transition: 0.15s; color: #235d40; }
+    .tab-toggle button.active { background: #185237; color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="bg-[#123826] text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-30 shadow-md">
+  <div class="flex items-center gap-3">
+    <div class="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center font-bold text-emerald-300 border border-emerald-400/30">PJ</div>
+    <div>
+      <h1 class="text-base font-bold tracking-tight">Panditji Dairy Farm</h1>
+      <p class="text-xs text-emerald-200">Mamidipally · IIT Kandi · Sangareddy · Central Operations</p>
+    </div>
+  </div>
+  <div class="flex items-center gap-3 text-xs">
+    <button class="bg-[#1b4d35] hover:bg-[#235d40] px-3 py-1.5 rounded-lg border border-emerald-500/30 flex items-center gap-1.5" onclick="openCloudModal()">
+      <span>☁️ Supabase Cloud</span>
+      <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 inline-block" title="Cloud Active"></span>
+    </button>
+    <button class="bg-[#1b4d35] hover:bg-[#235d40] px-3 py-1.5 rounded-lg border border-emerald-500/30 font-semibold flex items-center gap-1.5" onclick="openAgentManageModal()">
+      <span>👮 Manage Agents</span>
+    </button>
+    <button class="bg-emerald-800/80 hover:bg-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-400/30 font-semibold flex items-center gap-1.5" onclick="openWaConfigModal()">
+      <span>⚙️ WhatsApp API</span>
+      <span id="waApiStatusDot" class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+    </button>
+    <a href="agent.html" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg font-bold">📱 Open Agent App</a>
+    <span class="text-emerald-200 font-semibold">📞 7993394025</span>
+  </div>
+</header>
+
+<div class="min-h-screen md:flex">
+  <!-- Sidebar -->
+  <aside class="bg-[#16432e] p-3 md:w-56 flex md:flex-col flex-wrap gap-1 border-r border-[#1f543a] shrink-0">
+    <button class="nav-btn active" onclick="show('overview', this)">▦ Operations &amp; Balance</button>
+    <button class="nav-btn" onclick="show('vendors', this)">🐄 Vendors &amp; Intake</button>
+    <button class="nav-btn" onclick="show('customers', this)">👥 Customers &amp; Search</button>
+    <button class="nav-btn" onclick="show('dispatch', this)">🚚 Route Dispatch</button>
+    <button class="nav-btn" onclick="show('agentView', this)">📱 Agent Mobile View</button>
+    <button class="nav-btn" onclick="show('stickers', this)">🏷️ Pre-Cut A4 Stickers</button>
+    <button class="nav-btn" onclick="show('bottles', this)">🍾 Glass Bottle Ledger</button>
+    <button class="nav-btn" onclick="show('billing', this)">🧾 Monthly Invoices</button>
+    <hr class="border-[#23583d] my-2">
+    <button class="nav-btn text-xs text-emerald-200" onclick="exportData()">💾 Backup JSON</button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="p-4 md:p-6 flex-1 max-w-7xl mx-auto space-y-5">
+
+    <!-- VIEW: OVERVIEW WITH MILK RECONCILIATION -->
+    <section id="overview" class="view space-y-4">
+      <div class="panel flex flex-wrap items-center justify-between gap-3 bg-white">
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="tab-toggle">
+            <button id="toggleDayBtn" class="active" onclick="switchOverviewScope('day')">📅 By Day</button>
+            <button id="toggleMonthBtn" onclick="switchOverviewScope('month')">🗓️ By Month</button>
+          </div>
+          <div id="daySelectorWrap" class="flex items-center gap-2">
+            <input type="date" id="ovDate" class="text-xs w-auto py-1.5" onchange="renderOverviewMetrics()">
+          </div>
+          <div id="monthSelectorWrap" class="hidden flex items-center gap-2">
+            <input type="month" id="ovMonth" class="text-xs w-auto py-1.5" onchange="renderOverviewMetrics()">
+          </div>
+          <select id="ovShift" class="text-xs w-auto py-1.5 font-bold" onchange="renderOverviewMetrics()">
+            <option value="ALL">All Shifts (Whole Day)</option>
+            <option value="Morning">Morning Batch</option>
+            <option value="Evening">Evening Batch</option>
+          </select>
+        </div>
+        <div class="text-xs text-gray-500 font-medium" id="scopeNotice">Live Milk Inflow vs. Outflow</div>
+      </div>
+
+      <!-- Milk Balance Reconciliation Banner -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="panel border-l-4 border-blue-600">
+          <div class="text-xs text-gray-500 uppercase font-semibold">Milk Received (Vendors)</div>
+          <div id="kMilkIn" class="text-2xl font-black mt-1 text-blue-800">0.0 L</div>
+          <div class="text-[11px] text-gray-500 mt-0.5" id="kMilkInCost">Procurement: ₹0</div>
+        </div>
+        <div class="panel border-l-4 border-emerald-600">
+          <div class="text-xs text-gray-500 uppercase font-semibold">Milk Dispatched (Customers)</div>
+          <div id="kMilkOut" class="text-2xl font-black mt-1 text-emerald-800">0.0 L</div>
+          <div class="text-[11px] text-emerald-700 font-semibold mt-0.5" id="kMilkOutRev">Sales: ₹0</div>
+        </div>
+        <div class="panel border-l-4 border-amber-500 bg-amber-50/20">
+          <div class="text-xs text-gray-700 uppercase font-bold">Tank Balance (Remaining)</div>
+          <div id="kMilkBalance" class="text-2xl font-black mt-1 text-amber-900">0.0 L</div>
+          <div class="text-[11px] text-gray-600 mt-0.5" id="kMilkBalanceStatus">Chill tank surplus</div>
+        </div>
+        <div class="panel border-l-4 border-green-700">
+          <div class="text-xs text-gray-500 uppercase font-semibold">Net Milk Margin</div>
+          <div id="kNetProfit" class="text-2xl font-black mt-1 text-emerald-950">₹0</div>
+          <div class="text-[11px] text-emerald-800 font-semibold mt-0.5" id="kNetProfitSub">Revenue - Procurement</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-bold text-sm text-[#143525]">Today's Real-Time Dispatch Status</h3>
+          <span class="text-xs text-gray-500" id="todayLabel"></span>
+        </div>
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer / H.No</th>
+                <th>Area / Locality</th>
+                <th>Milk Type</th>
+                <th>Volume</th>
+                <th>Assigned Agent</th>
+                <th>Status</th>
+                <th>Bottles Recd</th>
+                <th>WhatsApp Status</th>
+              </tr>
+            </thead>
+            <tbody id="overviewList"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: VENDORS & PROCUREMENT -->
+    <!-- VIEW: VENDORS & PROCUREMENT -->
+    <section id="vendors" class="view hidden space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold">Vendor Inflow &amp; Procurement Management</h2>
+          <p class="text-xs text-gray-500">Record daily milk intake (e.g. Mani - 4L @ ₹80/L), track supplier bills, and view itemized statements</p>
+        </div>
+      </div>
+
+      <!-- Log Milk Intake Form -->
+      <form class="panel grid sm:grid-cols-3 lg:grid-cols-6 gap-3" onsubmit="addProcurement(event)">
+        <h3 class="font-bold text-sm sm:col-span-3 lg:col-span-6 border-b pb-2 text-[#143525]">+ Record Milk Procurement</h3>
+        <div>
+          <label>Date</label>
+          <input type="date" id="pDate" required>
+        </div>
+        <div>
+          <label>Shift</label>
+          <select id="pShift">
+            <option value="Morning">Morning</option>
+            <option value="Evening">Evening</option>
+          </select>
+        </div>
+        <div>
+          <label>Vendor</label>
+          <select id="pVendorSelect" onchange="autoFillVendorRate()" required></select>
+        </div>
+        <div>
+          <label>Quantity (Litres)</label>
+          <input type="number" step="0.5" min="0.5" id="pLitres" value="4" required oninput="calcProcurementTotal()">
+        </div>
+        <div>
+          <label>Rate / Litre (₹)</label>
+          <input type="number" step="1" min="1" id="pRate" value="80" required oninput="calcProcurementTotal()">
+        </div>
+        <div>
+          <label>Total Amount (₹)</label>
+          <input type="number" id="pTotal" value="320" readonly class="bg-gray-100 font-bold text-emerald-900">
+        </div>
+        <div class="sm:col-span-3 lg:col-span-6 flex justify-end">
+          <button class="btn px-8">Save Intake Entry</button>
+        </div>
+      </form>
+
+      <!-- Manage Vendors & Vendor Directory -->
+      <div class="grid lg:grid-cols-3 gap-4">
+        <!-- Add Vendor Form -->
+        <form class="panel space-y-3" onsubmit="addVendor(event)">
+          <h3 class="font-bold text-sm border-b pb-2 text-[#143525]">+ Register New Vendor</h3>
+          <div>
+            <label>Vendor Name</label>
+            <input id="vName" placeholder="e.g. Mani" required>
+          </div>
+          <div>
+            <label>Mobile Number</label>
+            <input id="vPhone" pattern="[0-9]{10}" placeholder="9849011223" required>
+          </div>
+          <div>
+            <label>Village / Location</label>
+            <input id="vLoc" placeholder="e.g. Mamidipally" required>
+          </div>
+          <div>
+            <label>Default Rate (₹/L)</label>
+            <input type="number" id="vDefaultRate" value="80" required>
+          </div>
+          <button class="btn w-full">Save Vendor</button>
+        </form>
+
+        <!-- Vendor Directory Table with Bill Action -->
+        <div class="panel lg:col-span-2 overflow-x-auto">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-sm text-[#143525]">Active Dairy Vendors</h3>
+            <span class="text-xs text-gray-500">Click Statement to view itemized supplier bill</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Vendor Name</th>
+                <th>Village</th>
+                <th>Mobile</th>
+                <th>Rate / L</th>
+                <th>Supplied (L)</th>
+                <th>Total Bill (₹)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="vendorDirectoryRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Procurement Intake Register with Delete Entry -->
+      <div class="panel overflow-x-auto">
+        <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
+          <div>
+            <h3 class="font-bold text-sm text-[#143525]">Milk Procurement History Log</h3>
+            <p class="text-xs text-gray-500">Every intake record can be checked or deleted if entered by mistake</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="mb-0 text-xs text-gray-600">Filter Vendor:</label>
+            <select id="vendorHistoryFilter" class="w-auto py-1 text-xs" onchange="renderProcurementRows()">
+              <option value="ALL">All Vendors</option>
+            </select>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date &amp; Shift</th>
+              <th>Vendor</th>
+              <th>Volume (L)</th>
+              <th>Rate / L</th>
+              <th>Total Cost</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="procurementRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW: CUSTOMERS & SEARCH -->
+    <section id="customers" class="view hidden space-y-4">
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <h2 class="text-lg font-bold">Customer Directory &amp; Search</h2>
+        <div class="w-full md:w-80">
+          <input type="text" id="custSearch" placeholder="🔍 Search H.No, Name, Location, Mobile..." oninput="renderCustomers()">
+        </div>
+      </div>
+
+      <!-- Add Customer Form -->
+      <form class="panel grid sm:grid-cols-3 lg:grid-cols-4 gap-3" onsubmit="addCustomer(event)">
+        <h3 class="font-bold text-sm sm:col-span-3 lg:col-span-4 border-b pb-2 text-[#143525]">+ Register New Customer</h3>
+        <div>
+          <label>Full Name</label>
+          <input id="cName" required placeholder="e.g. Ramesh Sharma">
+        </div>
+        <div>
+          <label>Mobile Number (10 digits)</label>
+          <input id="cPhone" pattern="[0-9]{10}" required placeholder="9876543210">
+        </div>
+        <div>
+          <label>Area / Location</label>
+          <select id="cArea">
+            <option value="IIT Kandi">IIT Kandi</option>
+            <option value="Sangareddy">Sangareddy</option>
+            <option value="Mamidipally">Mamidipally</option>
+            <option value="Rudraram">Rudraram</option>
+            <option value="Patancheru">Patancheru</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label>House / Flat No (H.No)</label>
+          <input id="cHno" required placeholder="H.No 3-45/A, Sadar Bazar">
+        </div>
+        <div class="sm:col-span-2">
+          <label>Detailed Address / Landmark</label>
+          <input id="cAddress" required placeholder="Near Faculty Quarters / Temple">
+        </div>
+        <div>
+          <label>Milk Product</label>
+          <select id="cProduct">
+            <option>Buffalo Milk (Pure Natural)</option>
+            <option>Cow Milk (Pure Desi)</option>
+          </select>
+        </div>
+        <div>
+          <label>Bottle Size &amp; Rate</label>
+          <select id="cSizeRate" onchange="autoFillRate()">
+            <option value="250-40">250 ml (₹40)</option>
+            <option value="500-70">500 ml (₹70)</option>
+            <option value="1000-130" selected>1000 ml / 1L (₹130)</option>
+          </select>
+        </div>
+        <div>
+          <label>Rate Per Delivery (₹)</label>
+          <input id="cRate" type="number" value="130" required>
+        </div>
+        <div>
+          <label>Frequency</label>
+          <select id="cFrequency">
+            <option value="Daily">Daily</option>
+            <option value="Alternate days">Alternate Days (Day-by-Day)</option>
+          </select>
+        </div>
+        <div>
+          <label>Default Route Runner</label>
+          <select id="cAgent">
+            <option value="Agent 1">Agent 1</option>
+            <option value="Agent 2">Agent 2</option>
+            <option value="Agent 3">Agent 3</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2 lg:col-span-4 flex justify-end">
+          <button class="btn px-8">Save Customer Profile</button>
+        </div>
+      </form>
+
+      <!-- Customer Table -->
+      <div class="panel overflow-x-auto">
+        <table>
+          <thead>
+            <tr>
+              <th>H.No</th>
+              <th>Name</th>
+              <th>Area / Location</th>
+              <th>Mobile</th>
+              <th>Product / Size</th>
+              <th>Frequency</th>
+              <th>Rate</th>
+              <th>Assigned Agent</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customerRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW: ROUTE DISPATCH & PRE-CHECKLIST DISPATCH PLANNER -->
+    <section id="dispatch" class="view hidden space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold">Route Dispatch Planner &amp; Customer Checklist</h2>
+          <p class="text-xs text-gray-500">Every customer is autofilled &amp; pre-selected by default. Uncheck anyone who is unavailable today before confirming dispatch.</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn-secondary" onclick="printDeliveryManifest()">🖨️ Print Delivery Sheet</button>
+        </div>
+      </div>
+
+      <!-- Pre-Dispatch Checklist Generator Panel -->
+      <div class="panel border-2 border-emerald-900/15 space-y-3 bg-white">
+        <div class="grid sm:grid-cols-3 lg:grid-cols-4 gap-3 border-b pb-3 items-end">
+          <div>
+            <label>Dispatch Date</label>
+            <input id="dDate" type="date" required onchange="renderPreDispatchList()">
+          </div>
+          <div>
+            <label>Shift / Batch</label>
+            <select id="dBatch" onchange="renderPreDispatchList()">
+              <option value="Morning">Morning Batch (Dawn)</option>
+              <option value="Evening">Evening Batch</option>
+            </select>
+          </div>
+          <div>
+            <label>Default Route Runner</label>
+            <select id="dDefaultAgent" onchange="applyDefaultAgentToAll(this.value)">
+              <option value="Agent 1">Agent 1</option>
+              <option value="Agent 2">Agent 2</option>
+              <option value="Agent 3">Agent 3</option>
+            </select>
+          </div>
+          <div>
+            <button class="btn w-full py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold" onclick="commitSelectedDispatch()">
+              🚀 Schedule &amp; Send Direct (<span id="btnCommitCount">0</span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- Checklist Controls Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-gray-700">Autofill Selection:</span>
+            <button type="button" class="tag-bubble bg-emerald-100 text-emerald-900 font-bold border border-emerald-300" onclick="selectAllDispatch(true)">✓ Select All (Autofill)</button>
+            <button type="button" class="tag-bubble bg-gray-100 text-gray-700 border border-gray-300" onclick="selectAllDispatch(false)">✕ Uncheck All</button>
+            <span class="text-gray-500 ml-2 font-medium">Uncheck customers who asked for pause today.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="mb-0 text-gray-600">Filter Checklist Area:</label>
+            <select id="chkAreaFilter" class="w-auto py-1 text-xs" onchange="renderPreDispatchList()">
+              <option value="ALL">All Areas</option>
+              <option value="IIT Kandi">IIT Kandi</option>
+              <option value="Sangareddy">Sangareddy</option>
+              <option value="Mamidipally">Mamidipally</option>
+              <option value="Rudraram">Rudraram</option>
+              <option value="Patancheru">Patancheru</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Interactive Customer Dispatch Checklist Table -->
+        <div class="overflow-x-auto max-h-80 overflow-y-auto border rounded-lg">
+          <table class="bg-white">
+            <thead class="sticky top-0 z-10 shadow-sm">
+              <tr>
+                <th class="w-10 text-center"><input type="checkbox" id="chkMaster" checked onchange="toggleMasterCheckbox(this.checked)"></th>
+                <th>H.No / Address</th>
+                <th>Customer Name &amp; Phone</th>
+                <th>Area</th>
+                <th>Product &amp; Qty</th>
+                <th>Frequency</th>
+                <th>Assign Runner</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="preDispatchRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Area Filtering & Bulk Reassignment for Current Stops -->
+      <div class="panel bg-[#f8faf8] border-2 border-emerald-900/10 grid md:grid-cols-2 gap-4">
+        <div class="space-y-1">
+          <label class="text-[#143525]">📍 Filter Scheduled Stops by Area</label>
+          <select id="filterArea" onchange="renderDispatchRows()" class="bg-white">
+            <option value="ALL">Show All Areas (Whole Route)</option>
+            <option value="IIT Kandi">IIT Kandi Only</option>
+            <option value="Sangareddy">Sangareddy Only</option>
+            <option value="Mamidipally">Mamidipally Only</option>
+            <option value="Rudraram">Rudraram Only</option>
+            <option value="Patancheru">Patancheru Only</option>
+          </select>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[#143525]">🔄 Bulk Reassign Area (If Agent is on Leave)</label>
+          <div class="flex gap-2">
+            <select id="bulkArea" class="bg-white text-xs">
+              <option value="IIT Kandi">All IIT Kandi stops</option>
+              <option value="Sangareddy">All Sangareddy stops</option>
+              <option value="Mamidipally">All Mamidipally stops</option>
+              <option value="Rudraram">All Rudraram stops</option>
+              <option value="Patancheru">All Patancheru stops</option>
+            </select>
+            <span class="self-center text-xs text-gray-500">to</span>
+            <select id="bulkTargetAgent" class="bg-white text-xs">
+              <option value="Agent 1">Agent 1</option>
+              <option value="Agent 2">Agent 2</option>
+              <option value="Agent 3">Agent 3</option>
+            </select>
+            <button type="button" class="btn text-xs shrink-0" onclick="bulkReassignByLocation()">Reassign All</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scheduled Stops Table -->
+      <div class="panel overflow-x-auto">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="font-bold text-sm text-[#143525]">Scheduled Drops for Date: <span id="dispDateLabel" class="text-emerald-800"></span></h3>
+          <div class="flex items-center gap-2">
+            <button class="btn-secondary text-xs py-1" onclick="sendDirectBatchAssignmentMessages()">📲 Direct Broadcast to All Scheduled</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>H.No / Customer</th>
+              <th>Area / Locality</th>
+              <th>Mobile</th>
+              <th>Item &amp; Quantity</th>
+              <th>Current Agent</th>
+              <th>Reassign Agent</th>
+              <th>Status</th>
+              <th>Direct Notification</th>
+            </tr>
+          </thead>
+          <tbody id="dispatchRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW: AGENT MOBILE VIEW -->
+    <section id="agentView" class="view hidden space-y-4">
+      <div class="panel bg-[#143525] text-white">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <h2 class="text-base font-bold">Agent Delivery Console (Mobile Ready)</h2>
+            <p class="text-xs text-emerald-200">Doorstep drop verification &amp; automatic background customer receipt dispatch</p>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <label class="text-white text-xs mb-0">Agent:</label>
+            <select id="agentFilter" class="bg-white text-gray-800 text-xs py-1" onchange="renderAgentCards()">
+              <option value="Agent 1">Agent 1</option>
+              <option value="Agent 2">Agent 2</option>
+              <option value="Agent 3">Agent 3</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="agentCards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+    </section>
+
+    <!-- VIEW: PRE-CUT A4 STICKERS (16-SHEET 105x34mm WITH BUFFER) -->
+    <section id="stickers" class="view hidden space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold">Ready-Made Pre-Cut Label Sheet Generator</h2>
+          <p class="text-xs text-gray-500">Supports 16-Up (105 × 34 mm) &amp; 12-Up (105 × 48 mm) sheets with protective safe print buffers</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn" onclick="triggerA4Print()">🖨️ Print Pre-Cut Sheet (<span id="btnPrintCount">16</span> Labels)</button>
+        </div>
+      </div>
+
+      <div class="panel grid sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-white">
+        <div><label>Date &amp; Milking Time</label><input id="stkInputDateTime" oninput="renderA4Grid()"></div>
+        <div><label>Fat %</label><input id="stkInputFat" type="text" value="7.8%" oninput="renderA4Grid()"></div>
+        <div><label>Batch Number</label><input id="stkInputBatch" value="PJF-M04" oninput="renderA4Grid()"></div>
+        <div>
+          <label>Pre-Cut Label Sheet Type</label>
+          <select id="stkSheetPreset" class="font-bold text-emerald-900" onchange="renderA4Grid()">
+            <option value="16-105x34" selected>16 Labels (105 × 34 mm — 2×8) [VCR A4-16]</option>
+            <option value="12-105x48">12 Labels (105 × 48 mm — 2×6) [VCR A4-12]</option>
+            <option value="20-98x25">20 Labels (98 × 25.4 mm — 2×10 / 1" × 4")</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="flex justify-between items-center mb-3 border-b pb-2">
+          <h3 class="font-bold text-xs uppercase tracking-wider text-gray-600">
+            📄 A4 Preview (<span id="previewCountBadge">16</span> Stickers)
+          </h3>
+          <span class="text-xs text-emerald-800 font-semibold" id="sheetPresetBadge">2 Columns × 8 Rows (105 × 34 mm) with 2mm Edge Buffer</span>
+        </div>
+        
+        <div class="bg-gray-200 p-4 rounded-xl flex justify-center overflow-x-auto max-h-[820px] overflow-y-auto">
+          <div id="screenA4Page" style="width: 210mm; min-height: 297mm; background: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.18); padding: 12.5mm 0mm; box-sizing: border-box;">
+            <div id="screenA4Grid" style="display: grid; justify-content: center;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: BOTTLE LEDGER -->
+    <section id="bottles" class="view hidden space-y-4">
+      <h2 class="text-lg font-bold">Glass Bottle Tracking &amp; Savings Ledger</h2>
+      <div class="panel grid sm:grid-cols-4 gap-3">
+        <div>
+          <label>1000ml Return Rebate</label>
+          <div class="text-base font-bold text-emerald-800">₹20 deduction / bottle</div>
+        </div>
+        <div>
+          <label>500ml Return Rebate</label>
+          <div class="text-base font-bold text-emerald-800">₹10 deduction / bottle</div>
+        </div>
+        <div>
+          <label>250ml Return Rebate</label>
+          <div class="text-base font-bold text-emerald-800">₹5 deduction / bottle</div>
+        </div>
+        <div>
+          <label>Sterilization Standard</label>
+          <div class="text-xs text-gray-600 mt-1">4-Stage RO Washed &amp; 110°C Steam Sanitized</div>
+        </div>
+      </div>
+
+      <div class="panel overflow-x-auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Action</th>
+              <th>Size</th>
+              <th>Quantity Returned</th>
+              <th>Customer Savings (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="bottleRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW: BILLING & INVOICES -->
+    <section id="billing" class="view hidden space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-lg font-bold">Monthly Invoices &amp; Deductions</h2>
+        <div class="flex gap-2">
+          <input type="month" id="billMonth" class="w-auto text-xs">
+          <button class="btn" onclick="generateBills()">Generate Monthly Ledger</button>
+          <button class="btn-secondary" onclick="exportBills()">Export CSV</button>
+        </div>
+      </div>
+
+      <div class="panel overflow-x-auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice #</th>
+              <th>Customer Name</th>
+              <th>Deliveries</th>
+              <th>Milk Bill (₹)</th>
+              <th>Bottle Return Rebate (₹)</th>
+              <th>Net Due (₹)</th>
+              <th>Direct WhatsApp</th>
+            </tr>
+          </thead>
+          <tbody id="billRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+  <!-- VENDOR STATEMENT & BILL MODAL (LIKE CUSTOMER BILL) -->
+<div id="vendorBillModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-xl w-full p-5 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+    <div class="flex justify-between items-start border-b pb-3 mb-3">
+      <div>
+        <h3 class="font-bold text-base text-[#143525]" id="vBillName">Vendor Name</h3>
+        <p class="text-xs text-gray-500" id="vBillSub">Village · Mobile</p>
+      </div>
+      <button class="text-gray-400 hover:text-gray-700 text-lg font-bold" onclick="closeVendorBillModal()">✕</button>
+    </div>
+
+    <!-- Vendor Summary Cards -->
+    <div class="grid grid-cols-3 gap-2 text-xs mb-3">
+      <div class="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-center">
+        <span class="text-gray-500 block text-[10px] uppercase font-bold">Total Milk Supplied</span>
+        <b class="text-base text-blue-900" id="vBillTotalLitres">0.0 L</b>
+      </div>
+      <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-center">
+        <span class="text-gray-500 block text-[10px] uppercase font-bold">Standard Rate</span>
+        <b class="text-base text-gray-800" id="vBillRate">₹80 / L</b>
+      </div>
+      <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
+        <span class="text-emerald-700 block text-[10px] uppercase font-bold">Total Bill Payable</span>
+        <b class="text-base text-emerald-800" id="vBillTotalAmount">₹0</b>
+      </div>
+    </div>
+
+    <!-- Month Filter for Vendor Statement -->
+    <div class="flex justify-between items-center mb-2">
+      <h4 class="font-bold text-xs uppercase text-gray-700">Itemized Intake Entries</h4>
+      <div class="flex items-center gap-1.5">
+        <input type="month" id="vBillMonth" class="text-xs py-1 w-auto" onchange="renderVendorBillEntries()">
+        <button class="btn-secondary text-xs py-1" onclick="$('vBillMonth').value=''; renderVendorBillEntries()">All Entries</button>
+      </div>
+    </div>
+
+    <!-- Entries Table with Delete Option -->
+    <div class="max-h-56 overflow-y-auto border rounded-lg text-xs mb-3">
+      <table>
+        <thead class="sticky top-0 bg-gray-50">
+          <tr>
+            <th>Date &amp; Shift</th>
+            <th>Litres</th>
+            <th>Rate</th>
+            <th>Amount (₹)</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="vBillEntriesBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="pt-2 flex flex-wrap gap-2 border-t">
+      <button class="btn-wa flex-1 text-xs py-2" onclick="sendVendorBillWhatsApp()">📲 Send Statement on WhatsApp</button>
+      <button class="btn-secondary flex-1 text-xs py-2" onclick="printVendorBillSlip()">🖨️ Print Bill Slip</button>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT MANAGEMENT MODAL (ADD, EDIT, REMOVE & DEFAULT PIN 1234) -->
+<div id="agentManageModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-lg w-full p-5 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+    <div class="flex justify-between items-start border-b pb-3 mb-3">
+      <div>
+        <h3 class="font-bold text-base text-[#143525]">👮 Delivery Agents Management</h3>
+        <p class="text-xs text-gray-500">Configure delivery runners, phone numbers, and app login PINs (Default: 1234)</p>
+      </div>
+      <button class="text-gray-400 hover:text-gray-700 text-lg font-bold" onclick="closeAgentManageModal()">✕</button>
+    </div>
+
+    <!-- Add/Edit Agent Form -->
+    <form class="panel bg-gray-50 border p-3 rounded-lg mb-4 space-y-2 text-xs" onsubmit="saveAgentEntry(event)">
+      <input type="hidden" id="agEditId">
+      <h4 class="font-bold text-emerald-900" id="agFormTitle">+ Register New Agent</h4>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <label>Agent Name</label>
+          <input id="agName" required placeholder="e.g. Agent 4 / Raju">
+        </div>
+        <div>
+          <label>Mobile Number</label>
+          <input id="agPhone" required pattern="[0-9]{10}" placeholder="9876543210">
+        </div>
+        <div>
+          <label>Passcode / PIN</label>
+          <input id="agPin" required value="1234" placeholder="Default: 1234">
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-1">
+        <button type="button" id="agCancelEditBtn" class="btn-secondary text-xs hidden" onclick="resetAgentForm()">Cancel</button>
+        <button type="submit" class="btn text-xs" id="agSubmitBtn">Save Agent</button>
+      </div>
+    </form>
+
+    <!-- Agents Table -->
+    <div class="overflow-x-auto border rounded-lg text-xs">
+      <table>
+        <thead>
+          <tr>
+            <th>Agent Name</th>
+            <th>Mobile Number</th>
+            <th>PIN / Passcode</th>
+            <th>Assigned Stops Today</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="agentTableRows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+  </main>
+</div>
+
+<!-- WHATSAPP API SETTINGS MODAL -->
+<div id="waConfigModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-lg w-full p-5 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+    <div class="flex justify-between items-start border-b pb-3 mb-3">
+      <div>
+        <h3 class="font-bold text-base text-[#143525]">⚙️ WhatsApp Direct API Gateway</h3>
+        <p class="text-xs text-gray-500">Send notifications in the background without opening WhatsApp URLs</p>
+      </div>
+      <button class="text-gray-400 hover:text-gray-700 text-lg font-bold" onclick="closeWaConfigModal()">✕</button>
+    </div>
+
+    <form class="space-y-3 text-xs" onsubmit="saveWaApiConfig(event)">
+      <div>
+        <label>Gateway Provider</label>
+        <select id="waProvider" onchange="onWaProviderChange()">
+          <option value="meta">Meta Cloud API (Official WhatsApp Business API)</option>
+          <option value="generic">Custom REST Webhook / Cloud Bridge (Node/Python/PHP)</option>
+          <option value="ultramsg">UltraMsg / Wati / Fast2SMS Gateway</option>
+          <option value="manual">Manual Fallback (Open WhatsApp Web/App URLs)</option>
+        </select>
+      </div>
+
+      <div id="waFieldUrl">
+        <label>API Endpoint / Webhook URL</label>
+        <input id="waApiUrl" placeholder="https://graph.facebook.com/v19.0/YOUR_PHONE_ID/messages or https://api.ultramsg.com/...">
+      </div>
+
+      <div id="waFieldToken">
+        <label>Bearer Token / Access Key</label>
+        <input id="waApiKey" type="password" placeholder="EAA... or API Token">
+      </div>
+
+      <div id="waFieldPhoneId">
+        <label>Sender Phone Number ID / Instance ID</label>
+        <input id="waPhoneId" placeholder="e.g. 104829103984920">
+      </div>
+
+      <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded text-emerald-900 space-y-1">
+        <b>Direct Sending Benefits:</b>
+        <p class="text-[11px] leading-relaxed">
+          • When assigning a runner, an alert is sent directly to the customer's phone without browser redirects.<br>
+          • When an agent marks a drop as delivered on their phone, the customer receives their receipt and bottle rebate immediately.
+        </p>
+      </div>
+
+      <div class="pt-2 flex gap-2">
+        <button type="button" class="btn-secondary flex-1" onclick="testWaConnection()">Test Connection</button>
+        <button type="submit" class="btn flex-1">Save Configuration</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- BATCH BROADCAST PROGRESS MODAL -->
+<div id="batchProgressModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-md w-full p-5 shadow-2xl relative">
+    <h3 class="font-bold text-base text-[#143525]">Direct WhatsApp Dispatch</h3>
+    <p class="text-xs text-gray-500 mb-3" id="batchProgressSub">Sending messages directly to customers...</p>
+    
+    <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+      <div id="batchProgressBar" class="bg-emerald-600 h-3 rounded-full transition-all duration-200" style="width: 0%"></div>
+    </div>
+    <div class="flex justify-between text-xs text-gray-600 mb-3">
+      <span id="batchProgressText">0 / 0 sent</span>
+      <span id="batchProgressPercent">0%</span>
+    </div>
+
+    <div class="max-h-48 overflow-y-auto border rounded bg-gray-50 p-2 text-[11px] space-y-1" id="batchProgressLogs"></div>
+
+    <div class="mt-3 flex justify-end">
+      <button id="batchCloseBtn" class="btn-secondary text-xs" disabled onclick="closeBatchProgressModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER DETAIL DRAWER WITH INLINE INVOICE & EDIT ACCESS -->
+<div id="custModal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-xl w-full p-5 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+    <div class="flex justify-between items-start border-b pb-3 mb-3">
+      <div>
+        <h3 class="font-bold text-base text-[#143525]" id="mName">Customer Name</h3>
+        <p class="text-xs text-gray-500" id="mSub">H.No &amp; Contact</p>
+      </div>
+      <button class="text-gray-400 hover:text-gray-700 text-lg font-bold" onclick="closeModal()">✕</button>
+    </div>
+    
+    <div class="space-y-3 text-xs" id="mBody"></div>
+
+    <!-- Collapsible Live Invoice Section -->
+    <div id="mInvoiceWrap" class="mt-4 pt-3 border-t border-dashed hidden">
+      <div class="flex items-center justify-between mb-2">
+        <h4 class="font-bold text-xs uppercase text-emerald-900">🧾 Customer Bill &amp; Invoice</h4>
+        <div class="flex gap-1.5">
+          <input type="month" id="mBillMonth" class="text-xs py-1 w-auto">
+          <button class="btn text-xs py-1" onclick="generateCustomerInvoiceFromModal()">Calculate Bill</button>
+        </div>
+      </div>
+      <div id="mInvoiceDisplay" class="bg-gray-50 p-3 rounded-lg border border-gray-200"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DEDICATED EDIT CUSTOMER MODAL -->
+<div id="editCustModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-lg w-full p-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center border-b pb-3 mb-3">
+      <div>
+        <h3 class="font-bold text-base text-[#143525]">✏️ Edit Customer Profile</h3>
+        <p class="text-xs text-gray-500">Update address, milk plan, or assigned route runner</p>
+      </div>
+      <button class="text-gray-400 hover:text-gray-700 text-lg font-bold" onclick="closeEditModal()">✕</button>
+    </div>
+
+    <form class="grid sm:grid-cols-2 gap-3 text-xs" onsubmit="saveCustomerEdits(event)">
+      <input type="hidden" id="editCId">
+      
+      <div class="sm:col-span-2">
+        <label>Full Name</label>
+        <input id="editCName" required>
+      </div>
+      <div>
+        <label>Mobile Number (10 digits)</label>
+        <input id="editCPhone" pattern="[0-9]{10}" required>
+      </div>
+      <div>
+        <label>Area / Locality</label>
+        <select id="editCArea">
+          <option value="IIT Kandi">IIT Kandi</option>
+          <option value="Sangareddy">Sangareddy</option>
+          <option value="Mamidipally">Mamidipally</option>
+          <option value="Rudraram">Rudraram</option>
+          <option value="Patancheru">Patancheru</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label>House / Flat No (H.No)</label>
+        <input id="editCHno" required>
+      </div>
+      <div>
+        <label>Detailed Address / Landmark</label>
+        <input id="editCAddress" required>
+      </div>
+      <div>
+        <label>Milk Product</label>
+        <select id="editCProduct">
+          <option value="Buffalo Milk (Pure Natural)">Buffalo Milk (Pure Natural)</option>
+          <option value="Cow Milk (Pure Desi)">Cow Milk (Pure Desi)</option>
+        </select>
+      </div>
+      <div>
+        <label>Bottle Size (ml)</label>
+        <select id="editCSize" onchange="autoFillEditRate()">
+          <option value="250">250 ml</option>
+          <option value="500">500 ml</option>
+          <option value="1000">1000 ml (1 Litre)</option>
+        </select>
+      </div>
+      <div>
+        <label>Rate Per Delivery (₹)</label>
+        <input id="editCRate" type="number" required>
+      </div>
+      <div>
+        <label>Subscription Frequency</label>
+        <select id="editCFrequency">
+          <option value="Daily">Daily</option>
+          <option value="Alternate days">Alternate days (Day-by-Day)</option>
+        </select>
+      </div>
+      <div>
+        <label>Default Route Runner</label>
+        <select id="editCAgent">
+          <option value="Agent 1">Agent 1</option>
+          <option value="Agent 2">Agent 2</option>
+          <option value="Agent 3">Agent 3</option>
+        </select>
+      </div>
+      <div>
+        <label>Subscription Status</label>
+        <select id="editCActive">
+          <option value="true">Active Subscriber</option>
+          <option value="false">Paused / Inactive</option>
+        </select>
+      </div>
+
+      <div class="sm:col-span-2 pt-3 flex gap-2 border-t mt-2">
+        <button type="submit" class="btn flex-1">Save Profile Changes</button>
+        <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- SUPABASE CLOUD SYNC MODAL -->
+<div id="cloudModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-md w-full p-5 shadow-2xl relative">
+    <div class="flex justify-between items-center border-b pb-3 mb-3">
+      <h3 class="font-bold text-base text-[#143525]">☁️ Supabase Cloud Synchronization</h3>
+      <button onclick="closeCloudModal()" class="text-gray-400 hover:text-gray-700 font-bold">✕</button>
+    </div>
+    <form class="space-y-3 text-xs" onsubmit="saveCloudConfig(event)">
+      <div>
+        <label>Supabase Project URL</label>
+        <input id="sbUrl" value="https://nvqszaywblhdxhlhiuxp.supabase.co" required>
+      </div>
+      <div>
+        <label>Supabase Publishable / Anon Key</label>
+        <input id="sbKey" type="password" value="sb_publishable_Pkn8vXc6unUaY2ZPTFf9Rg_LZwu3GDm" required>
+      </div>
+      <div class="bg-emerald-50 p-2.5 rounded border border-emerald-200 text-emerald-900 leading-relaxed">
+        <b>Connected to Panditji Cloud:</b> Real-time sync enables the runner's mobile app (<code>agent.html</code>) to automatically write doorstep deliveries, bottle returns, and milk reconciliations directly to this console.
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" class="btn-secondary flex-1" onclick="pullFromCloud()">Pull Cloud Data</button>
+        <button type="submit" class="btn flex-1">Connect &amp; Push</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const nowFormatted = () => new Date().toLocaleString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true });
+const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+// State tracking
+let overviewScope = 'day';
+let currentModalCustomerId = null;
+let checklistSelectionMap = {};
+
+let db = JSON.parse(localStorage.getItem('pjf_admin_ops') || JSON.stringify({
+  vendors: [
+    { id: 'v1', name: 'Mani', phone: '9849011223', location: 'Mamidipally', defaultRate: 80 }
+  ],
+  procurements: [
+    { id: 'pr1', date: todayStr(), shift: 'Morning', vendorId: 'v1', vendorName: 'Mani', litres: 4, rate: 80, totalCost: 320 }
+  ],
+  customers: [
+    { id: 'c1', name: 'Sanjay Reddy', phone: '9849012345', area: 'IIT Kandi', hno: 'Plot 42, H.No 1-12/A', address: 'Near IIT Kandi Main Gate', product: 'Buffalo Milk (Pure Natural)', size: 1000, rate: 130, frequency: 'Daily', agent: 'Agent 1', active: true },
+    { id: 'c2', name: 'Lakshmi Narayana', phone: '9849054321', area: 'Sangareddy', hno: 'Flat 204, Sri Nivas', address: 'Opp. Old Bus Stand, Sangareddy', product: 'Buffalo Milk (Pure Natural)', size: 500, rate: 70, frequency: 'Daily', agent: 'Agent 1', active: true },
+    { id: 'c3', name: 'K. Sridhar Rao', phone: '9440188776', area: 'Mamidipally', hno: 'H.No 4-88', address: 'Main Road, Mamidipally', product: 'Cow Milk (Pure Desi)', size: 1000, rate: 130, frequency: 'Alternate days', agent: 'Agent 2', active: true },
+    { id: 'c4', name: 'Dr. Venkat Raman', phone: '9123456789', area: 'IIT Kandi', hno: 'Faculty Qtr B-12', address: 'IIT Hyderabad Campus, Kandi', product: 'Buffalo Milk (Pure Natural)', size: 1000, rate: 130, frequency: 'Daily', agent: 'Agent 1', active: true }
+  ],
+  deliveries: [],
+  bottles: [],
+  invoices: []
+}));
+
+// Pre-configured Supabase project details
+const DEFAULT_SB_URL = 'https://nvqszaywblhdxhlhiuxp.supabase.co';
+const DEFAULT_SB_KEY = 'sb_publishable_Pkn8vXc6unUaY2ZPTFf9Rg_LZwu3GDm';
+
+let waConfig = JSON.parse(localStorage.getItem('pjf_wa_config') || JSON.stringify({
+  provider: 'meta',
+  apiUrl: '',
+  apiKey: '',
+  phoneId: ''
+}));
+
+function save() {
+  localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+  renderAll();
+  pushToCloud(true);
+}
+
+function show(viewId, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  $(viewId).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderAll();
+}
+
+// -------------------------------------------------------------
+// -------------------------------------------------------------
+// VENDORS & PROCUREMENT ENGINE (DETAILS, STATEMENT & DELETE ENTRY)
+// -------------------------------------------------------------
+let currentBillVendorId = null;
+
+function addVendor(e) {
+  e.preventDefault();
+  const v = {
+    id: uid(),
+    name: $('vName').value.trim(),
+    phone: $('vPhone').value.trim(),
+    location: $('vLoc').value.trim(),
+    defaultRate: Number($('vDefaultRate').value) || 80
+  };
+  db.vendors = db.vendors || [];
+  db.vendors.push(v);
+  save();
+  e.target.reset();
+  alert(`Vendor "${v.name}" registered successfully!`);
+}
+
+function deleteVendor(vendorId) {
+  const v = (db.vendors || []).find(x => x.id === vendorId);
+  if (!v) return;
+  if (confirm(`Delete vendor "${v.name}"? Historical procurement entries will remain.`)) {
+    db.vendors = db.vendors.filter(x => x.id !== vendorId);
+    save();
+  }
+}
+
+function autoFillVendorRate() {
+  const vId = $('pVendorSelect').value;
+  const v = (db.vendors || []).find(x => x.id === vId);
+  if (v) {
+    $('pRate').value = v.defaultRate || 80;
+    calcProcurementTotal();
+  }
+}
+
+function calcProcurementTotal() {
+  const l = parseFloat($('pLitres').value) || 0;
+  const r = parseFloat($('pRate').value) || 0;
+  $('pTotal').value = Math.round(l * r);
+}
+
+function addProcurement(e) {
+  e.preventDefault();
+  const vId = $('pVendorSelect').value;
+  const v = (db.vendors || []).find(x => x.id === vId);
+  if (!v) return alert('Select a vendor');
+
+  const litres = parseFloat($('pLitres').value) || 0;
+  const rate = parseFloat($('pRate').value) || 0;
+
+  db.procurements = db.procurements || [];
+  db.procurements.push({
+    id: uid(),
+    date: $('pDate').value,
+    shift: $('pShift').value,
+    vendorId: v.id,
+    vendorName: v.name,
+    litres: litres,
+    rate: rate,
+    totalCost: Math.round(litres * rate)
+  });
+
+  save();
+  alert(`Recorded ${litres}L milk intake from ${v.name} (Total: ₹${Math.round(litres * rate)})!`);
+}
+
+function deleteProcurementEntry(entryId) {
+  if (confirm('Delete this procurement intake entry? Milk balance will automatically update.')) {
+    db.procurements = (db.procurements || []).filter(p => p.id !== entryId);
+    save();
+    if (currentBillVendorId) {
+      renderVendorBillEntries();
+    }
+  }
+}
+
+function renderProcurementRows() {
+  const filter = $('vendorHistoryFilter') ? $('vendorHistoryFilter').value : 'ALL';
+  let list = db.procurements || [];
+  if (filter !== 'ALL') {
+    list = list.filter(p => p.vendorId === filter);
+  }
+
+  $('procurementRows').innerHTML = list.slice().reverse().map(p => `
+    <tr>
+      <td>${p.date} <span class="badge ${p.shift === 'Morning' ? 'badge-delivered' : 'badge-planned'}">${p.shift}</span></td>
+      <td><b>${esc(p.vendorName)}</b></td>
+      <td class="font-bold text-blue-800">${p.litres} L</td>
+      <td>₹${p.rate} / L</td>
+      <td class="font-bold text-gray-900">${money(p.totalCost)}</td>
+      <td>
+        <button class="text-xs text-red-600 hover:text-red-800 font-bold hover:underline" onclick="deleteProcurementEntry('${p.id}')">
+          🗑️ Delete Entry
+        </button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-400">No procurement logged yet.</td></tr>`;
+}
+
+function renderVendorDirectoryRows() {
+  const procs = db.procurements || [];
+  $('vendorDirectoryRows').innerHTML = (db.vendors || []).map(v => {
+    const vProcs = procs.filter(p => p.vendorId === v.id);
+    const totalL = vProcs.reduce((sum, p) => sum + (p.litres || 0), 0);
+    const totalCost = vProcs.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+
+    return `
+      <tr>
+        <td><b>${esc(v.name)}</b></td>
+        <td>${esc(v.location || 'Local')}</td>
+        <td>${esc(v.phone)}</td>
+        <td>₹${v.defaultRate || 80}/L</td>
+        <td class="font-bold text-blue-800">${totalL.toFixed(1)} L</td>
+        <td class="font-bold text-emerald-800">${money(totalCost)}</td>
+        <td>
+          <div class="flex items-center gap-2">
+            <button class="btn text-xs py-1 px-2.5" onclick="openVendorBillModal('${v.id}')">🧾 View Bill</button>
+            <button class="text-xs text-red-600 hover:text-red-800 hover:underline" onclick="deleteVendor('${v.id}')">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-400">No vendors registered yet. Use form on left to register Mani or suppliers.</td></tr>`;
+}
+
+// Vendor Statement & Bill Modal
+function openVendorBillModal(vendorId) {
+  currentBillVendorId = vendorId;
+  const v = (db.vendors || []).find(x => x.id === vendorId);
+  if (!v) return;
+
+  $('vBillName').textContent = v.name;
+  $('vBillSub').textContent = `${v.location || 'Local'} · 📞 ${v.phone}`;
+  $('vBillRate').textContent = `₹${v.defaultRate || 80} / L`;
+  $('vBillMonth').value = todayStr().slice(0, 7);
+
+  renderVendorBillEntries();
+  $('vendorBillModal').classList.remove('hidden');
+}
+
+function closeVendorBillModal() {
+  $('vendorBillModal').classList.add('hidden');
+  currentBillVendorId = null;
+}
+
+function renderVendorBillEntries() {
+  if (!currentBillVendorId) return;
+  const v = (db.vendors || []).find(x => x.id === currentBillVendorId);
+  if (!v) return;
+
+  const month = $('vBillMonth').value;
+  let list = (db.procurements || []).filter(p => p.vendorId === v.id);
+
+  if (month) {
+    list = list.filter(p => p.date && p.date.startsWith(month));
+  }
+
+  const totalL = list.reduce((sum, p) => sum + (p.litres || 0), 0);
+  const totalCost = list.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+
+  $('vBillTotalLitres').textContent = `${totalL.toFixed(1)} L`;
+  $('vBillTotalAmount').textContent = money(totalCost);
+
+  $('vBillEntriesBody').innerHTML = list.slice().reverse().map(p => `
+    <tr>
+      <td>${p.date} (${p.shift})</td>
+      <td class="font-bold text-blue-800">${p.litres} L</td>
+      <td>₹${p.rate}</td>
+      <td class="font-bold text-emerald-800">${money(p.totalCost)}</td>
+      <td>
+        <button class="text-red-600 hover:text-red-800 hover:underline font-bold" onclick="deleteProcurementEntry('${p.id}')">Delete</button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="5" class="text-center py-4 text-gray-400">No milk intake records for this period.</td></tr>`;
+}
+
+function sendVendorBillWhatsApp() {
+  if (!currentBillVendorId) return;
+  const v = (db.vendors || []).find(x => x.id === currentBillVendorId);
+  if (!v) return;
+
+  const month = $('vBillMonth').value || 'Consolidated';
+  const totalL = $('vBillTotalLitres').textContent;
+  const totalCost = $('vBillTotalAmount').textContent;
+
+  const text = `Namaste ${v.name} ji 🙏\n\nYour Milk Supply Statement from Panditji Dairy Farm for period ${month}:\n\nTotal Milk Received: ${totalL}\n*Total Bill Payable: ${totalCost}*\n\nPlease verify your entries. Payment will be processed via UPI/Cash.\nThank you!`;
+  window.open(`https://wa.me/91${v.phone}?text=${encodeURIComponent(text)}`, '_blank');
+}
+
+function printVendorBillSlip() {
+  if (!currentBillVendorId) return;
+  const v = (db.vendors || []).find(x => x.id === currentBillVendorId);
+  if (!v) return;
+
+  const month = $('vBillMonth').value || 'Consolidated';
+  const totalL = $('vBillTotalLitres').textContent;
+  const totalCost = $('vBillTotalAmount').textContent;
+  const rows = $('vBillEntriesBody').innerHTML;
+
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html>
+      <head>
+        <title>Vendor Statement - ${v.name}</title>
+        <style>
+          body { font-family: sans-serif; padding: 25px; font-size: 13px; color: #111; }
+          .hdr { border-bottom: 2px solid #143525; padding-bottom: 8px; margin-bottom: 12px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+          th, td { padding: 8px 10px; border-bottom: 1px solid #ddd; text-align: left; }
+          th { background: #f4f7f4; }
+          .total { font-size: 15px; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="hdr">
+          <h2 style="margin:0;color:#143525">PANDITJI DAIRY FARM - VENDOR STATEMENT</h2>
+          <div>Mamidipally Village · Phone: 7993394025</div>
+        </div>
+        <p><b>Vendor:</b> ${v.name} (📞 ${v.phone}) | <b>Location:</b> ${v.location || 'Local'}<br><b>Period:</b> ${month} | <b>Total Volume:</b> ${totalL}</p>
+        <table>
+          <thead>
+            <tr><th>Date &amp; Shift</th><th>Litres</th><th>Rate / L</th><th>Amount</th><th></th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr class="total"><td colspan="3">Net Amount Payable to Vendor</td><td colspan="2">${totalCost}</td></tr>
+          </tfoot>
+        </table>
+        <script>window.print();<\/script>
+      </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+// -------------------------------------------------------------
+// AGENTS MANAGEMENT ENGINE (ADD, EDIT, REMOVE, DEFAULT PIN 1234)
+// -------------------------------------------------------------
+function openAgentManageModal() {
+  $('agentManageModal').classList.remove('hidden');
+  resetAgentForm();
+  renderAgentTable();
+}
+
+function closeAgentManageModal() {
+  $('agentManageModal').classList.add('hidden');
+}
+
+function resetAgentForm() {
+  $('agEditId').value = '';
+  $('agName').value = '';
+  $('agPhone').value = '';
+  $('agPin').value = '1234';
+  $('agFormTitle').textContent = '+ Register New Agent';
+  $('agSubmitBtn').textContent = 'Save Agent';
+  $('agCancelEditBtn').classList.add('hidden');
+}
+
+function saveAgentEntry(e) {
+  e.preventDefault();
+  db.agents = db.agents || [
+    { id: 'a1', name: 'Agent 1', phone: '9876543210', pin: '1234' },
+    { id: 'a2', name: 'Agent 2', phone: '9876543211', pin: '1234' },
+    { id: 'a3', name: 'Agent 3', phone: '9876543212', pin: '1234' }
+  ];
+
+  const editId = $('agEditId').value;
+  const name = $('agName').value.trim();
+  const phone = $('agPhone').value.trim();
+  const pin = $('agPin').value.trim() || '1234';
+
+  if (editId) {
+    const existing = db.agents.find(a => a.id === editId);
+    if (existing) {
+      existing.name = name;
+      existing.phone = phone;
+      existing.pin = pin;
+    }
+  } else {
+    db.agents.push({
+      id: uid(),
+      name: name,
+      phone: phone,
+      pin: pin
+    });
+  }
+
+  save();
+  resetAgentForm();
+  renderAgentTable();
+  updateRunnerDropdowns();
+  alert('Agent credentials updated & synchronized to Supabase Cloud!');
+}
+
+function editAgent(agentId) {
+  const a = (db.agents || []).find(x => x.id === agentId);
+  if (!a) return;
+  $('agEditId').value = a.id;
+  $('agName').value = a.name;
+  $('agPhone').value = a.phone;
+  $('agPin').value = a.pin || '1234';
+  $('agFormTitle').textContent = `✏️ Edit Agent: ${a.name}`;
+  $('agSubmitBtn').textContent = 'Update Credentials';
+  $('agCancelEditBtn').classList.remove('hidden');
+}
+
+function deleteAgent(agentId) {
+  const a = (db.agents || []).find(x => x.id === agentId);
+  if (!a) return;
+  if (confirm(`Remove agent "${a.name}"? They will no longer be able to log in to agent.html.`)) {
+    db.agents = (db.agents || []).filter(x => x.id !== agentId);
+    save();
+    renderAgentTable();
+    updateRunnerDropdowns();
+  }
+}
+
+function renderAgentTable() {
+  const today = $('dDate').value || todayStr();
+  const deliveries = db.deliveries || [];
+
+  const list = db.agents || [
+    { id: 'a1', name: 'Agent 1', phone: '9876543210', pin: '1234' },
+    { id: 'a2', name: 'Agent 2', phone: '9876543211', pin: '1234' },
+    { id: 'a3', name: 'Agent 3', phone: '9876543212', pin: '1234' }
+  ];
+
+  $('agentTableRows').innerHTML = list.map(a => {
+    const stopsCount = deliveries.filter(d => d.date === today && d.agent === a.name).length;
+    return `
+      <tr>
+        <td><b>${esc(a.name)}</b></td>
+        <td>📞 ${esc(a.phone)}</td>
+        <td><span class="font-mono bg-gray-100 px-2 py-0.5 rounded font-bold">${esc(a.pin || '1234')}</span></td>
+        <td><span class="badge ${stopsCount > 0 ? 'badge-delivered' : 'badge-planned'}">${stopsCount} stop(s)</span></td>
+        <td>
+          <div class="flex items-center gap-2">
+            <button class="btn-secondary text-xs py-1 px-2" onclick="editAgent('${a.id}')">✏️ Edit</button>
+            <button class="text-xs text-red-600 hover:text-red-800 font-bold hover:underline" onclick="deleteAgent('${a.id}')">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function updateRunnerDropdowns() {
+  const agents = (db.agents || []).map(a => a.name);
+  if (agents.length === 0) agents.push('Agent 1', 'Agent 2', 'Agent 3');
+
+  const runnerOptions = agents.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+
+  if ($('cAgent')) $('cAgent').innerHTML = runnerOptions;
+  if ($('editCAgent')) $('editCAgent').innerHTML = runnerOptions;
+  if ($('dDefaultAgent')) $('dDefaultAgent').innerHTML = runnerOptions;
+  if ($('bulkTargetAgent')) $('bulkTargetAgent').innerHTML = runnerOptions;
+  if ($('agentFilter')) $('agentFilter').innerHTML = runnerOptions;
+}
+
+// -------------------------------------------------------------
+// RECONCILIATION & OVERVIEW METRICS
+// -------------------------------------------------------------
+function switchOverviewScope(scope) {
+  overviewScope = scope;
+  if (scope === 'day') {
+    $('toggleDayBtn').classList.add('active');
+    $('toggleMonthBtn').classList.remove('active');
+    $('daySelectorWrap').classList.remove('hidden');
+    $('monthSelectorWrap').classList.add('hidden');
+  } else {
+    $('toggleMonthBtn').classList.add('active');
+    $('toggleDayBtn').classList.remove('active');
+    $('monthSelectorWrap').classList.remove('hidden');
+    $('daySelectorWrap').classList.add('hidden');
+  }
+  renderOverviewMetrics();
+}
+
+function renderOverviewMetrics() {
+  const selectedDate = $('ovDate').value || todayStr();
+  const selectedMonth = $('ovMonth').value || todayStr().slice(0, 7);
+  const shift = $('ovShift').value;
+
+  let procs = db.procurements || [];
+  if (overviewScope === 'day') {
+    procs = procs.filter(p => p.date === selectedDate);
+  } else {
+    procs = procs.filter(p => p.date && p.date.startsWith(selectedMonth));
+  }
+  if (shift !== 'ALL') procs = procs.filter(p => p.shift === shift);
+
+  const milkInLitres = procs.reduce((sum, p) => sum + (p.litres || 0), 0);
+  const procurementCost = procs.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+
+  let dels = db.deliveries || [];
+  if (overviewScope === 'day') {
+    dels = dels.filter(d => d.date === selectedDate);
+  } else {
+    dels = dels.filter(d => d.date && d.date.startsWith(selectedMonth));
+  }
+  if (shift !== 'ALL') dels = dels.filter(d => (d.batch || 'Morning') === shift);
+
+  const deliveredStops = dels.filter(d => d.status === 'delivered');
+  const milkOutLitres = deliveredStops.reduce((sum, d) => sum + (d.size || 0), 0) / 1000;
+  const salesRevenue = deliveredStops.reduce((sum, d) => sum + (d.rate || 0), 0);
+  const totalBottleRebates = deliveredStops.reduce((sum, d) => sum + (d.bottlesRebate || 0), 0);
+
+  const balanceLitres = (milkInLitres - milkOutLitres).toFixed(1);
+  const netMargin = (salesRevenue - totalBottleRebates) - procurementCost;
+
+  $('kMilkIn').textContent = `${milkInLitres.toFixed(1)} L`;
+  $('kMilkInCost').textContent = `Procurement: ${money(procurementCost)}`;
+
+  $('kMilkOut').textContent = `${milkOutLitres.toFixed(1)} L`;
+  $('kMilkOutRev').textContent = `Sales: ${money(salesRevenue - totalBottleRebates)}`;
+
+  $('kMilkBalance').textContent = `${balanceLitres > 0 ? '+' : ''}${balanceLitres} L`;
+  $('kMilkBalanceStatus').textContent = balanceLitres >= 0 ? 'Surplus in chill tank' : 'Deficit / Shortage';
+
+  $('kNetProfit').textContent = money(netMargin);
+  $('kNetProfitSub').textContent = `Net Sales - Procurement Cost`;
+}
+
+// -------------------------------------------------------------
+// CUSTOMER REGISTER & EDITING (RESTORED FULLY)
+// -------------------------------------------------------------
+function autoFillRate() {
+  const val = $('cSizeRate').value;
+  $('cRate').value = val.split('-')[1];
+}
+
+function autoFillEditRate() {
+  const size = $('editCSize').value;
+  if (size === '250') $('editCRate').value = 40;
+  else if (size === '500') $('editCRate').value = 70;
+  else if (size === '1000') $('editCRate').value = 130;
+}
+
+function addCustomer(e) {
+  e.preventDefault();
+  const [size, defaultRate] = $('cSizeRate').value.split('-');
+  const cust = {
+    id: uid(),
+    name: $('cName').value.trim(),
+    phone: $('cPhone').value.trim(),
+    area: $('cArea').value,
+    hno: $('cHno').value.trim(),
+    address: $('cAddress').value.trim(),
+    product: $('cProduct').value,
+    size: Number(size),
+    rate: Number($('cRate').value || defaultRate),
+    frequency: $('cFrequency').value,
+    agent: $('cAgent').value,
+    active: true
+  };
+  db.customers.push(cust);
+  save();
+  e.target.reset();
+  alert(`Customer "${cust.name}" registered successfully!`);
+}
+
+function openEditCustomerModal(id) {
+  const c = db.customers.find(x => x.id === id);
+  if (!c) return;
+
+  $('editCId').value = c.id;
+  $('editCName').value = c.name;
+  $('editCPhone').value = c.phone;
+  $('editCArea').value = c.area || 'Mamidipally';
+  $('editCHno').value = c.hno;
+  $('editCAddress').value = c.address;
+  $('editCProduct').value = c.product || 'Buffalo Milk (Pure Natural)';
+  $('editCSize').value = String(c.size || 1000);
+  $('editCRate').value = c.rate;
+  $('editCFrequency').value = c.frequency;
+  $('editCAgent').value = c.agent || 'Agent 1';
+  $('editCActive').value = String(c.active);
+
+  $('editCustModal').classList.remove('hidden');
+}
+
+function closeEditModal() {
+  $('editCustModal').classList.add('hidden');
+}
+
+function saveCustomerEdits(e) {
+  e.preventDefault();
+  const id = $('editCId').value;
+  const c = db.customers.find(x => x.id === id);
+  if (!c) return;
+
+  c.name = $('editCName').value.trim();
+  c.phone = $('editCPhone').value.trim();
+  c.area = $('editCArea').value;
+  c.hno = $('editCHno').value.trim();
+  c.address = $('editCAddress').value.trim();
+  c.product = $('editCProduct').value;
+  c.size = Number($('editCSize').value);
+  c.rate = Number($('editCRate').value);
+  c.frequency = $('editCFrequency').value;
+  c.agent = $('editCAgent').value;
+  c.active = $('editCActive').value === 'true';
+
+  const today = $('dDate').value || todayStr();
+  db.deliveries.filter(d => d.customerId === c.id && d.status === 'planned').forEach(d => {
+    d.customerName = c.name;
+    d.customerPhone = c.phone;
+    d.hno = c.hno;
+    d.area = c.area;
+    d.product = c.product;
+    d.size = c.size;
+    d.rate = c.rate;
+  });
+
+  save();
+  closeEditModal();
+  if (currentModalCustomerId === id) {
+    openCustomerModal(id);
+  }
+  alert(`Customer profile for "${c.name}" updated successfully!`);
+}
+
+function renderCustomers() {
+  const q = ($('custSearch').value || '').toLowerCase().trim();
+  const list = db.customers.filter(c => 
+    c.name.toLowerCase().includes(q) ||
+    c.phone.includes(q) ||
+    (c.area && c.area.toLowerCase().includes(q)) ||
+    c.hno.toLowerCase().includes(q) ||
+    c.address.toLowerCase().includes(q)
+  );
+
+  $('customerRows').innerHTML = list.map(c => `
+    <tr class="hover:bg-gray-50">
+      <td class="font-semibold">${esc(c.hno)}</td>
+      <td>
+        <button class="text-left font-bold text-emerald-800 hover:underline" onclick="openCustomerModal('${c.id}')">
+          ${esc(c.name)}
+        </button>
+      </td>
+      <td><span class="bg-emerald-50 text-emerald-800 font-semibold px-2 py-0.5 rounded text-xs">${esc(c.area || 'Mamidipally')}</span></td>
+      <td>${esc(c.phone)}</td>
+      <td>${esc(c.product)} (${c.size}ml)</td>
+      <td><span class="badge ${c.frequency === 'Daily' ? 'badge-delivered' : 'badge-planned'}">${c.frequency}</span></td>
+      <td>${money(c.rate)}</td>
+      <td><b>${esc(c.agent)}</b></td>
+      <td>
+        <div class="flex items-center gap-1.5">
+          <button class="btn-secondary text-xs py-1 px-2.5" onclick="openCustomerModal('${c.id}')">Details</button>
+          <button class="btn text-xs py-1 px-2.5 bg-emerald-700 hover:bg-emerald-800" onclick="openEditCustomerModal('${c.id}')">✏️ Edit</button>
+        </div>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="9" class="text-center py-4 text-gray-500">No customers found matching "${esc(q)}"</td></tr>`;
+}
+
+function openCustomerModal(id) {
+  currentModalCustomerId = id;
+  const c = db.customers.find(x => x.id === id);
+  if (!c) return;
+
+  $('mName').textContent = c.name;
+  $('mSub').textContent = `${c.hno} · ${c.area || ''} · ${c.phone}`;
+  $('mBillMonth').value = todayStr().slice(0, 7);
+
+  const history = db.deliveries.filter(d => d.customerId === c.id);
+  const bottleReturns = db.bottles.filter(b => b.customerId === c.id);
+  const totalRebateSaved = bottleReturns.reduce((acc, b) => acc + (b.rebate || 0), 0);
+
+  $('mBody').innerHTML = `
+    <div class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-lg">
+      <div><b>Area / Cluster:</b> <span class="text-emerald-800 font-bold">${esc(c.area || 'Mamidipally')}</span></div>
+      <div><b>Delivery Address:</b> ${esc(c.address)}</div>
+      <div><b>Default Runner:</b> ${esc(c.agent)}</div>
+      <div><b>Product Plan:</b> ${esc(c.product)} - ${c.size}ml</div>
+      <div><b>Frequency:</b> ${c.frequency} (${money(c.rate)}/day)</div>
+      <div><b>Bottle Savings to Date:</b> <span class="text-emerald-700 font-bold">${money(totalRebateSaved)}</span></div>
+      <div><b>Status:</b> ${c.active ? '<span class="text-emerald-600 font-bold">Active Subscriber</span>' : '<span class="text-red-600 font-bold">Paused</span>'}</div>
+    </div>
+
+    <div class="mt-3">
+      <h4 class="font-bold text-xs uppercase text-gray-500 mb-1">Recent Deliveries</h4>
+      <div class="max-h-36 overflow-y-auto border rounded divide-y text-xs">
+        ${history.length ? history.slice(-5).reverse().map(h => `
+          <div class="p-2 flex justify-between">
+            <span>${h.date} (${h.batch}) - ${h.size}ml</span>
+            <span class="badge badge-${h.status}">${h.status}</span>
+          </div>
+        `).join('') : '<div class="p-2 text-gray-400">No dispatch records yet.</div>'}
+      </div>
+    </div>
+
+    <div class="pt-2 flex flex-wrap gap-2">
+      <button class="btn text-xs py-1.5" onclick="openEditCustomerModal('${c.id}')">✏️ Edit Details</button>
+      <button class="btn-secondary text-xs py-1.5" onclick="toggleModalInvoiceView()">🧾 Generate Invoice</button>
+      <button class="btn-wa text-xs py-1.5" onclick="sendCustomDirectMessage('${c.phone}', 'Namaste ${c.name} ji, this is Panditji Dairy Farm Mamidipally regarding your subscription.')">💬 WhatsApp</button>
+      <button class="btn-secondary text-xs py-1.5" onclick="toggleActive('${c.id}')">${c.active ? 'Pause' : 'Resume'}</button>
+    </div>
+  `;
+
+  $('mInvoiceWrap').classList.add('hidden');
+  $('custModal').classList.remove('hidden');
+}
+
+function closeModal() {
+  $('custModal').classList.add('hidden');
+}
+
+function toggleModalInvoiceView() {
+  const wrap = $('mInvoiceWrap');
+  if (wrap.classList.contains('hidden')) {
+    wrap.classList.remove('hidden');
+    generateCustomerInvoiceFromModal();
+  } else {
+    wrap.classList.add('hidden');
+  }
+}
+
+function generateCustomerInvoiceFromModal() {
+  if (!currentModalCustomerId) return;
+  const c = db.customers.find(x => x.id === currentModalCustomerId);
+  if (!c) return;
+
+  const month = $('mBillMonth').value || todayStr().slice(0, 7);
+  const custDels = db.deliveries.filter(d => d.customerId === c.id && d.date && d.date.startsWith(month) && d.status === 'delivered');
+
+  const grossMilk = custDels.reduce((sum, d) => sum + (d.rate || 0), 0);
+  const bottleDeduction = custDels.reduce((sum, d) => sum + (d.bottlesRebate || 0), 0);
+  const totalLitres = (custDels.reduce((sum, d) => sum + (d.size || 0), 0) / 1000).toFixed(1);
+  const netPayable = grossMilk - bottleDeduction;
+
+  const invNo = `PJF-${month.replace('-','')}-${c.id.slice(-4)}`;
+
+  $('mInvoiceDisplay').innerHTML = `
+    <div class="space-y-2">
+      <div class="flex justify-between items-center border-b pb-2">
+        <div>
+          <div class="font-bold text-sm text-gray-900">Invoice: ${invNo}</div>
+          <div class="text-[11px] text-gray-500">Billing Period: ${month} · ${custDels.length} drops (${totalLitres} Litres)</div>
+        </div>
+        <div class="text-right">
+          <div class="text-[11px] text-gray-500">Net Payable</div>
+          <div class="text-base font-black text-emerald-800">${money(netPayable)}</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 text-[11px] py-1 bg-white p-2 rounded border">
+        <div><span class="text-gray-500">Gross Milk:</span> <b class="block text-gray-800">${money(grossMilk)}</b></div>
+        <div><span class="text-gray-500">Bottle Rebates:</span> <b class="block text-emerald-700">-${money(bottleDeduction)}</b></div>
+        <div><span class="text-gray-500">Balance Due:</span> <b class="block text-gray-900">${money(netPayable)}</b></div>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button class="btn-wa flex-1 text-xs py-1" onclick="sendInvoiceDirect('${c.phone}', '${c.name}', '${invNo}', '${month}', ${custDels.length}, ${totalLitres}, ${grossMilk}, ${bottleDeduction}, ${netPayable})">
+          📲 Send Invoice Directly
+        </button>
+        <button class="btn-secondary text-xs py-1" onclick="printModalInvoice('${c.name}', '${c.phone}', '${c.hno}', '${invNo}', '${month}', ${custDels.length}, ${totalLitres}, ${grossMilk}, ${bottleDeduction}, ${netPayable})">
+          🖨️ Print Slip
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+async function sendInvoiceDirect(phone, name, invNo, month, drops, litres, gross, rebate, net) {
+  const text = `Namaste ${name} ji 🙏\n\nYour Monthly Milk Statement from Panditji Dairy Farm for month *${month}*:\n\nInvoice No: ${invNo}\nDelivered Days: ${drops} days (${litres} Litres)\nGross Milk Bill: ₹${gross}\nGlass Bottle Rebate: -₹${rebate}\n\n*Net Payable: ₹${net}*\n\nPlease transfer via UPI to: 7993394025@upi\nThank you for trusting pure fresh glass bottle milk!`;
+  await sendDirectWhatsAppMessage(phone, text);
+  alert(`Invoice transmission initiated for ${name}!`);
+}
+
+function printModalInvoice(name, phone, hno, invNo, month, drops, litres, gross, rebate, net) {
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html>
+      <head>
+        <title>Invoice - ${invNo}</title>
+        <style>
+          body { font-family: sans-serif; padding: 25px; font-size: 13px; color: #111; }
+          .hdr { border-bottom: 2px solid #143525; padding-bottom: 8px; margin-bottom: 12px; }
+          .title { font-size: 18px; font-weight: bold; color: #143525; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+          th, td { padding: 8px 10px; border-bottom: 1px solid #ddd; text-align: left; }
+          th { background: #f4f7f4; }
+          .total { font-size: 15px; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="hdr">
+          <div class="title">PANDITJI DAIRY FARM</div>
+          <div>Mamidipally Village · Phone: 7993394025</div>
+        </div>
+        <p><b>Customer:</b> ${name} (${phone})<br><b>H.No:</b> ${hno}<br><b>Invoice:</b> ${invNo} | <b>Month:</b> ${month}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Qty / Days</th>
+              <th>Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Farm Fresh Milk Subscription</td>
+              <td>${drops} days (${litres} L)</td>
+              <td>₹${gross}</td>
+            </tr>
+            <tr>
+              <td>Glass Bottle Return Credit</td>
+              <td>Deduction</td>
+              <td>-₹${rebate}</td>
+            </tr>
+            <tr class="total">
+              <td colspan="2">Net Amount Due</td>
+              <td>₹${net}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="margin-top: 20px;">UPI ID for payment: <b>7993394025@upi</b></p>
+        <script>window.print();<\/script>
+      </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+function toggleActive(id) {
+  const c = db.customers.find(x => x.id === id);
+  if (c) {
+    c.active = !c.active;
+    save();
+    openCustomerModal(id);
+  }
+}
+
+// -------------------------------------------------------------
+// PRE-DISPATCH CHECKLIST & COMMIT
+// -------------------------------------------------------------
+function renderPreDispatchList() {
+  const date = $('dDate').value || todayStr();
+  const batch = $('dBatch').value || 'Morning';
+  const filterArea = $('chkAreaFilter') ? $('chkAreaFilter').value : 'ALL';
+  const dayNum = new Date(date).getDate();
+
+  let eligible = db.customers.filter(c => c.active);
+  if (filterArea !== 'ALL') {
+    eligible = eligible.filter(c => (c.area || 'Mamidipally') === filterArea);
+  }
+
+  eligible.forEach(c => {
+    if (!checklistSelectionMap[c.id]) {
+      const isAltDayEligible = !(c.frequency === 'Alternate days' && dayNum % 2 === 0);
+      checklistSelectionMap[c.id] = {
+        selected: isAltDayEligible,
+        agent: c.agent || $('dDefaultAgent').value || 'Agent 1'
+      };
+    }
+  });
+
+  let selectedCount = 0;
+
+  $('preDispatchRows').innerHTML = eligible.map(c => {
+    const isScheduled = db.deliveries.some(d => d.date === date && d.batch === batch && d.customerId === c.id);
+    const selData = checklistSelectionMap[c.id] || { selected: true, agent: c.agent || 'Agent 1' };
+    
+    if (selData.selected && !isScheduled) {
+      selectedCount++;
+    }
+
+    const isAltDayExcluded = (c.frequency === 'Alternate days' && dayNum % 2 === 0);
+
+    return `
+      <tr class="${isScheduled ? 'bg-emerald-50/60' : (selData.selected ? 'hover:bg-gray-50' : 'bg-gray-100/70 text-gray-400')}">
+        <td class="text-center">
+          <input type="checkbox" 
+                 class="chk-item w-4 h-4 cursor-pointer" 
+                 ${isScheduled ? 'disabled checked' : (selData.selected ? 'checked' : '')} 
+                 onchange="toggleCustomerChecklist('${c.id}', this.checked)">
+        </td>
+        <td>
+          <b>${esc(c.hno)}</b><br>
+          <span class="text-[11px] text-gray-500">${esc(c.address)}</span>
+        </td>
+        <td>
+          <span class="font-bold text-gray-900">${esc(c.name)}</span><br>
+          <span class="text-xs text-gray-600">📞 ${esc(c.phone)}</span>
+        </td>
+        <td>
+          <span class="bg-emerald-50 text-emerald-800 font-semibold px-2 py-0.5 rounded text-xs">
+            ${esc(c.area || 'Local')}
+          </span>
+        </td>
+        <td>
+          <span class="font-bold text-emerald-900">${c.size} ml</span> (${esc(c.product)})<br>
+          <span class="text-[11px] text-gray-500">${money(c.rate)}/day</span>
+        </td>
+        <td>
+          <span class="badge ${c.frequency === 'Daily' ? 'badge-delivered' : 'badge-planned'}">
+            ${c.frequency}
+          </span>
+          ${isAltDayExcluded ? '<div class="text-[10px] text-amber-700 font-bold mt-0.5">Alt Day (Off Today)</div>' : ''}
+        </td>
+        <td>
+          <select class="text-xs py-1 border rounded" 
+                  ${isScheduled ? 'disabled' : ''} 
+                  onchange="setChecklistAgent('${c.id}', this.value)">
+            <option value="Agent 1" ${selData.agent === 'Agent 1' ? 'selected' : ''}>Agent 1</option>
+            <option value="Agent 2" ${selData.agent === 'Agent 2' ? 'selected' : ''}>Agent 2</option>
+            <option value="Agent 3" ${selData.agent === 'Agent 3' ? 'selected' : ''}>Agent 3</option>
+          </select>
+        </td>
+        <td>
+          ${isScheduled 
+            ? '<span class="badge badge-delivered">Already Scheduled</span>' 
+            : (selData.selected 
+                ? '<span class="text-emerald-700 font-bold text-xs">✓ Ready to Dispatch</span>' 
+                : '<span class="text-red-500 font-bold text-xs">✕ Unavailable / Skipped</span>')}
+        </td>
+      </tr>
+    `;
+  }).join('') || `<tr><td colspan="8" class="text-center py-4 text-gray-500">No active subscribers found for this area.</td></tr>`;
+
+  $('btnCommitCount').textContent = selectedCount;
+}
+
+function toggleCustomerChecklist(customerId, isChecked) {
+  if (!checklistSelectionMap[customerId]) {
+    const c = db.customers.find(x => x.id === customerId);
+    checklistSelectionMap[customerId] = { selected: isChecked, agent: c?.agent || 'Agent 1' };
+  } else {
+    checklistSelectionMap[customerId].selected = isChecked;
+  }
+  renderPreDispatchList();
+}
+
+function setChecklistAgent(customerId, agent) {
+  if (!checklistSelectionMap[customerId]) {
+    checklistSelectionMap[customerId] = { selected: true, agent: agent };
+  } else {
+    checklistSelectionMap[customerId].agent = agent;
+  }
+}
+
+function selectAllDispatch(status) {
+  const filterArea = $('chkAreaFilter') ? $('chkAreaFilter').value : 'ALL';
+  db.customers.filter(c => c.active).forEach(c => {
+    if (filterArea !== 'ALL' && (c.area || 'Mamidipally') !== filterArea) return;
+    if (!checklistSelectionMap[c.id]) {
+      checklistSelectionMap[c.id] = { selected: status, agent: c.agent || 'Agent 1' };
+    } else {
+      checklistSelectionMap[c.id].selected = status;
+    }
+  });
+  renderPreDispatchList();
+}
+
+function toggleMasterCheckbox(isChecked) {
+  selectAllDispatch(isChecked);
+}
+
+function applyDefaultAgentToAll(agent) {
+  db.customers.forEach(c => {
+    if (checklistSelectionMap[c.id]) {
+      checklistSelectionMap[c.id].agent = agent;
+    } else {
+      checklistSelectionMap[c.id] = { selected: true, agent: agent };
+    }
+  });
+  renderPreDispatchList();
+}
+
+async function commitSelectedDispatch() {
+  const date = $('dDate').value || todayStr();
+  const batch = $('dBatch').value || 'Morning';
+  const defaultAgent = $('dDefaultAgent').value || 'Agent 1';
+
+  let addedStops = [];
+  let excludedCount = 0;
+
+  db.customers.filter(c => c.active).forEach(c => {
+    const selData = checklistSelectionMap[c.id];
+    const isSelected = selData ? selData.selected : true;
+
+    if (!isSelected) {
+      excludedCount++;
+      return;
+    }
+
+    const exists = db.deliveries.some(d => d.date === date && d.customerId === c.id && d.batch === batch);
+    if (!exists) {
+      const newDel = {
+        id: uid(),
+        date: date,
+        batch: batch,
+        customerId: c.id,
+        customerName: c.name,
+        customerPhone: c.phone,
+        area: c.area || 'Mamidipally',
+        hno: c.hno,
+        product: c.product,
+        size: c.size,
+        rate: c.rate,
+        agent: selData?.agent || c.agent || defaultAgent,
+        status: 'planned',
+        bottlesReturned: 0,
+        bottlesRebate: 0
+      };
+      db.deliveries.push(newDel);
+      addedStops.push(newDel);
+    }
+  });
+
+  save();
+  renderPreDispatchList();
+  renderDispatchRows();
+
+  if (addedStops.length > 0) {
+    if (confirm(`Scheduled ${addedStops.length} stops! Broadcast assignment alerts directly to WhatsApp?`)) {
+      await runBatchBroadcast(addedStops, 'assignment');
+    }
+  } else {
+    alert(`No new stops to schedule. All selected customers already exist for ${date} (${batch}).`);
+  }
+}
+
+// -------------------------------------------------------------
+// BATCH BACKGROUND DISPATCH RUNNER & WHATSAPP API
+// -------------------------------------------------------------
+function openWaConfigModal() {
+  $('waProvider').value = waConfig.provider || 'meta';
+  $('waApiUrl').value = waConfig.apiUrl || '';
+  $('waApiKey').value = waConfig.apiKey || '';
+  $('waPhoneId').value = waConfig.phoneId || '';
+  onWaProviderChange();
+  $('waConfigModal').classList.remove('hidden');
+}
+
+function closeWaConfigModal() {
+  $('waConfigModal').classList.add('hidden');
+}
+
+function onWaProviderChange() {
+  const p = $('waProvider').value;
+  $('waFieldUrl').style.display = p === 'manual' ? 'none' : 'block';
+  $('waFieldToken').style.display = p === 'manual' ? 'none' : 'block';
+  $('waFieldPhoneId').style.display = p === 'meta' ? 'block' : 'none';
+}
+
+function saveWaApiConfig(e) {
+  e.preventDefault();
+  waConfig = {
+    provider: $('waProvider').value,
+    apiUrl: $('waApiUrl').value.trim(),
+    apiKey: $('waApiKey').value.trim(),
+    phoneId: $('waPhoneId').value.trim()
+  };
+  localStorage.setItem('pjf_wa_config', JSON.stringify(waConfig));
+  closeWaConfigModal();
+  updateWaStatusBadge();
+  alert('WhatsApp Gateway Configuration Saved!');
+}
+
+function updateWaStatusBadge() {
+  const dot = $('waApiStatusDot');
+  if (waConfig.provider !== 'manual' && waConfig.apiKey) {
+    dot.className = 'w-2 h-2 rounded-full bg-emerald-400 inline-block';
+    dot.title = 'Direct API Active';
+  } else {
+    dot.className = 'w-2 h-2 rounded-full bg-amber-400 inline-block';
+    dot.title = 'Manual WhatsApp Active';
+  }
+}
+
+async function sendDirectWhatsAppMessage(phoneNumber, messageText) {
+  const cleanPhone = String(phoneNumber).replace(/[^0-9]/g, '');
+  const recipient = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;
+
+  if (waConfig.provider === 'manual' || !waConfig.apiKey) {
+    window.open(`https://wa.me/${recipient}?text=${encodeURIComponent(messageText)}`, '_blank');
+    return { success: true, mode: 'manual' };
+  }
+
+  try {
+    let endpoint = waConfig.apiUrl;
+    let headers = { 'Content-Type': 'application/json' };
+    let body = {};
+
+    if (waConfig.provider === 'meta') {
+      endpoint = endpoint || `https://graph.facebook.com/v19.0/${waConfig.phoneId}/messages`;
+      headers['Authorization'] = `Bearer ${waConfig.apiKey}`;
+      body = {
+        messaging_product: 'whatsapp',
+        to: recipient,
+        type: 'text',
+        text: { body: messageText }
+      };
+    } else if (waConfig.provider === 'ultramsg') {
+      endpoint = endpoint || `https://api.ultramsg.com/${waConfig.phoneId}/messages/chat`;
+      body = {
+        token: waConfig.apiKey,
+        to: recipient,
+        body: messageText
+      };
+    } else {
+      headers['Authorization'] = `Bearer ${waConfig.apiKey}`;
+      body = {
+        to: recipient,
+        message: messageText,
+        farm: 'Panditji Dairy Farm'
+      };
+    }
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body)
+    });
+
+    if (res.ok) {
+      return { success: true, mode: 'api' };
+    } else {
+      const err = await res.text();
+      console.warn('API error, falling back:', err);
+      window.open(`https://wa.me/${recipient}?text=${encodeURIComponent(messageText)}`, '_blank');
+      return { success: false, error: err, mode: 'fallback' };
+    }
+  } catch (err) {
+    console.error('Network failure, opening WhatsApp web:', err);
+    window.open(`https://wa.me/${recipient}?text=${encodeURIComponent(messageText)}`, '_blank');
+    return { success: false, error: err.message, mode: 'fallback' };
+  }
+}
+
+async function testWaConnection() {
+  const testNumber = prompt('Enter 10-digit number for test message:');
+  if (!testNumber) return;
+  const res = await sendDirectWhatsAppMessage(testNumber, 'Namaste from Panditji Dairy Farm! This is a WhatsApp API test connection.');
+  if (res.success) {
+    alert('Test message transmitted successfully!');
+  } else {
+    alert('API request returned an issue. Check endpoint and token.');
+  }
+}
+
+async function runBatchBroadcast(deliveryList, type = 'assignment') {
+  $('batchProgressModal').classList.remove('hidden');
+  $('batchCloseBtn').disabled = true;
+  $('batchProgressBar').style.width = '0%';
+  $('batchProgressLogs').innerHTML = '';
+
+  const total = deliveryList.length;
+  let sentCount = 0;
+
+  for (let i = 0; i < total; i++) {
+    const d = deliveryList[i];
+    $('batchProgressSub').textContent = `Transmitting ${i + 1} of ${total}: ${d.customerName}...`;
+    
+    let msg = '';
+    if (type === 'assignment') {
+      msg = `Namaste ${d.customerName} ji 🙏\n\nYour fresh milk delivery for ${d.date} (${d.batch}) from Panditji Dairy Farm has been scheduled!\n\nDelivery Runner: ${d.agent}\nItem: ${d.product} (${d.size}ml)\nLocation: ${d.area || ''}\n\nPlease keep your empty clean glass bottle outside for pickup to receive your bottle rebate.\n\nHelpline: 7993394025`;
+    }
+
+    const res = await sendDirectWhatsAppMessage(d.customerPhone, msg);
+    sentCount++;
+
+    const logEntry = document.createElement('div');
+    logEntry.className = 'flex justify-between py-0.5 border-b text-[11px]';
+    logEntry.innerHTML = `
+      <span>${d.hno} · ${esc(d.customerName)}</span>
+      <span class="${res.success ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}">${res.mode === 'api' ? '✓ API Sent' : '✓ Opened'}</span>
+    `;
+    $('batchProgressLogs').appendChild(logEntry);
+    $('batchProgressLogs').scrollTop = $('batchProgressLogs').scrollHeight;
+
+    const pct = Math.round((sentCount / total) * 100);
+    $('batchProgressBar').style.width = `${pct}%`;
+    $('batchProgressPercent').textContent = `${pct}%`;
+    $('batchProgressText').textContent = `${sentCount} / ${total} sent`;
+
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  $('batchProgressSub').textContent = 'Broadcast completed successfully!';
+  $('batchCloseBtn').disabled = false;
+}
+
+function closeBatchProgressModal() {
+  $('batchProgressModal').classList.add('hidden');
+}
+
+function sendDirectBatchAssignmentMessages() {
+  const today = $('dDate').value || todayStr();
+  const stops = db.deliveries.filter(d => d.date === today && d.status === 'planned');
+  if (stops.length === 0) return alert(`No planned stops found for ${today}.`);
+  runBatchBroadcast(stops, 'assignment');
+}
+
+async function reassignAgent(deliveryId, newAgent) {
+  const d = db.deliveries.find(x => x.id === deliveryId);
+  if (!d) return;
+
+  const wasSkipped = d.status === 'skipped';
+  d.agent = newAgent;
+  if (wasSkipped) d.status = 'planned';
+  save();
+
+  const note = wasSkipped ? ` (Rerouted from skipped attempt)` : '';
+  const text = `Namaste ${d.customerName} ji 🙏\n\nYour milk delivery runner for ${d.date} (${d.batch}) from Panditji Dairy Farm has been updated:\n\nAssigned Runner: *${d.agent}*${note}\nItem: ${d.product} (${d.size}ml)\nArea: ${d.area || 'Local'}\n\nPlease keep empty glass bottles outside for pickup.\nHelpline: 7993394025`;
+
+  await sendDirectWhatsAppMessage(d.customerPhone, text);
+}
+
+function bulkReassignByLocation() {
+  const targetArea = $('bulkArea').value;
+  const targetAgent = $('bulkTargetAgent').value;
+  const today = $('dDate').value || todayStr();
+
+  const stops = db.deliveries.filter(d => d.date === today && d.area === targetArea && d.status !== 'delivered');
+  if (stops.length === 0) return alert(`No pending stops found for area "${targetArea}" on ${today}.`);
+
+  if (!confirm(`Reassign ALL ${stops.length} stops in "${targetArea}" to ${targetAgent}?`)) return;
+
+  stops.forEach(d => {
+    d.agent = targetAgent;
+    if (d.status === 'skipped') d.status = 'planned';
+  });
+
+  save();
+  alert(`Reassigned ${stops.length} stops in ${targetArea} to ${targetAgent}. Broadcasting direct updates...`);
+  runBatchBroadcast(stops, 'assignment');
+}
+
+async function sendAgentAssignedMsg(deliveryId) {
+  const d = db.deliveries.find(x => x.id === deliveryId);
+  if (!d) return;
+  const text = `Namaste ${d.customerName} ji 🙏\n\nYour fresh milk delivery for ${d.date} (${d.batch}) from Panditji Dairy Farm has been scheduled!\n\nDelivery Agent: ${d.agent}\nItem: ${d.product} (${d.size}ml)\nLocation: ${d.area || ''}\n\nPlease keep your empty clean glass bottle outside for pickup to receive your bottle rebate.\n\nHelpline: 7993394025`;
+  await sendDirectWhatsAppMessage(d.customerPhone, text);
+}
+
+function renderDispatchRows() {
+  const today = $('dDate').value || todayStr();
+  $('dispDateLabel').textContent = today;
+  const areaFilter = $('filterArea') ? $('filterArea').value : 'ALL';
+
+  let list = db.deliveries.filter(d => d.date === today);
+  if (areaFilter !== 'ALL') {
+    list = list.filter(d => d.area === areaFilter);
+  }
+
+  $('dispatchRows').innerHTML = list.map(d => {
+    const isSkipped = d.status === 'skipped';
+    return `
+      <tr class="${isSkipped ? 'bg-red-50/70 border-l-4 border-red-500' : 'hover:bg-gray-50'}">
+        <td>
+          <b>${esc(d.hno)}</b><br>
+          <span class="text-xs text-gray-700">${esc(d.customerName)}</span>
+        </td>
+        <td>
+          <span class="inline-block bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded text-xs">
+            ${esc(d.area || 'Local')}
+          </span>
+        </td>
+        <td>${esc(d.customerPhone)}</td>
+        <td>${esc(d.product)} (${d.size}ml)</td>
+        <td><span class="font-bold text-emerald-800">${esc(d.agent)}</span></td>
+        <td>
+          <div class="space-y-1">
+            <select class="text-xs py-1 w-32 border rounded ${isSkipped ? 'border-red-400 bg-red-50 font-bold' : ''}" onchange="reassignAgent('${d.id}', this.value)">
+              <option value="Agent 1" ${d.agent === 'Agent 1' ? 'selected' : ''}>Agent 1</option>
+              <option value="Agent 2" ${d.agent === 'Agent 2' ? 'selected' : ''}>Agent 2</option>
+              <option value="Agent 3" ${d.agent === 'Agent 3' ? 'selected' : ''}>Agent 3</option>
+            </select>
+            ${isSkipped ? '<div class="text-[10px] text-red-600 font-bold animate-pulse">Select to Reassign &amp; Retry</div>' : ''}
+          </div>
+        </td>
+        <td>
+          <span class="badge badge-${d.status}">
+            ${isSkipped ? '⚠️ skipped' : d.status}
+          </span>
+        </td>
+        <td>
+          <button class="btn-wa text-xs" onclick="sendAgentAssignedMsg('${d.id}')">📲 Direct Notify</button>
+        </td>
+      </tr>
+    `;
+  }).join('') || `<tr><td colspan="8" class="text-center py-4 text-gray-500">No scheduled dispatches found for this date &amp; area.</td></tr>`;
+}
+
+// -------------------------------------------------------------
+// AGENT MOBILE HANDLERS (AUTOMATIC BACKGROUND DELIVERY NOTICE)
+// -------------------------------------------------------------
+function setQuickBottles(deliveryId, count) {
+  const d = db.deliveries.find(x => x.id === deliveryId);
+  if (!d) return;
+  d.bottlesReturned = Number(count);
+  renderAgentCards();
+}
+
+function setManualBottles(deliveryId, val) {
+  const d = db.deliveries.find(x => x.id === deliveryId);
+  if (!d) return;
+  d.bottlesReturned = Math.max(0, parseInt(val) || 0);
+  renderAgentCards();
+}
+
+async function markDelivered(deliveryId) {
+  const d = db.deliveries.find(x => x.id === deliveryId);
+  if (!d) return;
+
+  let ratePerBottle = 20;
+  if (d.size === 500) ratePerBottle = 10;
+  if (d.size === 250) ratePerBottle = 5;
+
+  const totalRebate = (d.bottlesReturned || 0) * ratePerBottle;
+  d.status = 'delivered';
+  d.bottlesRebate = totalRebate;
+
+  if (d.bottlesReturned > 0) {
+    db.bottles.push({
+      id: uid(),
+      date: d.date,
+      customerId: d.customerId,
+      customerName: d.customerName,
+      size: d.size,
+      count: d.bottlesReturned,
+      rebate: totalRebate
+    });
+  }
+
+  save();
+
+  const text = `Namaste ${d.customerName} ji 🙏\n\nYour milk has been delivered successfully by ${d.agent}!\n\nItem: ${d.product} (${d.size}ml)\nEmpty Bottles Received: ${d.bottlesReturned}\nBottle Savings Deducted: ₹${totalRebate}\n\nStrictly pure & packed in sanitized glass bottles. Thank you!\nPanditji Dairy Farm.`;
+  await sendDirectWhatsAppMessage(d.customerPhone, text);
+}
+
+function markSkipped(deliveryId) {
+  const d = db.deliveries.find(x => x.id === deliveryId);
+  if (!d) return;
+  d.status = 'skipped';
+  save();
+  alert(`Delivery marked as Skipped.`);
+}
+
+function renderAgentCards() {
+  const filterAgent = $('agentFilter').value;
+  const today = $('dDate').value || todayStr();
+  const stops = db.deliveries.filter(d => d.agent === filterAgent && d.date === today && d.status === 'planned');
+
+  $('agentCards').innerHTML = stops.map(d => `
+    <div class="panel border-2 border-emerald-900/10 space-y-3">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">📍 ${esc(d.area || 'Local')}</span>
+          <div class="text-xs font-bold text-gray-700 mt-1">H.No: ${esc(d.hno)}</div>
+          <h3 class="font-bold text-base text-gray-900">${esc(d.customerName)}</h3>
+          <p class="text-xs text-gray-500">📞 <a href="tel:${d.customerPhone}" class="underline font-semibold">${d.customerPhone}</a></p>
+        </div>
+        <span class="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded">${d.size} ml</span>
+      </div>
+
+      <div class="bg-gray-50 p-2.5 rounded-lg border text-xs">
+        <b>Item:</b> ${esc(d.product)}<br>
+        <b>Shift:</b> ${d.batch}
+      </div>
+
+      <div>
+        <label class="text-xs font-bold text-gray-700">Empty Bottles Received:</label>
+        <div class="flex gap-1.5 mt-1 items-center">
+          ${[0, 1, 2, 3, 4].map(num => `
+            <button type="button" class="tag-bubble ${d.bottlesReturned === num ? 'active' : ''}" onclick="setQuickBottles('${d.id}', ${num})">${num}</button>
+          `).join('')}
+          <input type="number" min="0" value="${d.bottlesReturned || 0}" class="w-16 text-center text-xs ml-1" onchange="setManualBottles('${d.id}', this.value)" placeholder="More">
+        </div>
+        <p class="text-[11px] text-gray-500 mt-1">Rebate: ₹${(d.size === 1000 ? 20 : (d.size === 500 ? 10 : 5)) * (d.bottlesReturned || 0)} will be credited</p>
+      </div>
+
+      <div class="pt-2 flex gap-2">
+        <button class="btn w-full text-xs" onclick="markDelivered('${d.id}')">✓ Delivered (Auto Notify)</button>
+        <button class="btn-secondary text-xs text-red-700 hover:bg-red-50" onclick="markSkipped('${d.id}')">Skip</button>
+      </div>
+    </div>
+  `).join('') || `<div class="panel col-span-full text-center py-8 text-gray-500">No pending stops scheduled for ${filterAgent} on ${today}.</div>`;
+}
+
+// -------------------------------------------------------------
+// PRE-CUT A4 STICKERS (16-UP 105x34mm WITH BUFFER)
+// -------------------------------------------------------------
+function getStickerDimensions() {
+  const preset = $('stkSheetPreset').value;
+  if (preset === '16-105x34') {
+    return { cols: 2, rows: 8, width: 105, height: 34, topMargin: 12.5, leftMargin: 0, gapX: 0, gapY: 0, isCompact: true };
+  } else if (preset === '12-105x48') {
+    return { cols: 2, rows: 6, width: 105, height: 48, topMargin: 4.5, leftMargin: 0, gapX: 0, gapY: 0, isCompact: false };
+  } else {
+    return { cols: 2, rows: 10, width: 98, height: 25.4, topMargin: 6, leftMargin: 4, gapX: 4, gapY: 2, isCompact: true };
+  }
+}
+
+function generateStickerHtml(dateTime, fat, batch, widthMm, heightMm, isCompact) {
+  return `
+    <div style="width: ${widthMm}mm; height: ${heightMm}mm; box-sizing: border-box; padding: 1.5mm 2mm; overflow: hidden; page-break-inside: avoid;">
+      <div style="width: 100%; height: 100%; border: 1.5px solid #000; box-sizing: border-box; font-family: 'Courier New', Courier, monospace; color: #000; background: #fff; display: flex; flex-direction: column; justify-content: space-between; padding: 2px;">
+        <div style="text-align: center; border-bottom: 1px solid #000; padding-bottom: 1px; line-height: 1.1;">
+          <div style="font-weight: 900; font-size: ${isCompact ? '10px' : '13px'}; letter-spacing: 0.03em;">PANDITJI DAIRY FARM</div>
+          <div style="font-size: ${isCompact ? '8.5px' : '10px'};">Mamidipally Village</div>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: ${isCompact ? '8.5px' : '10px'}; line-height: 1.15; margin: 1px 0;">
+          <tr>
+            <td style="width: 32%; padding: 1px 2px; border-right: 1px solid #000; white-space: nowrap; font-weight: bold;">DATE &amp; TIME:</td>
+            <td style="width: 68%; padding: 1px 4px; white-space: nowrap;">${dateTime}</td>
+          </tr>
+          <tr>
+            <td style="width: 32%; padding: 1px 2px; border-right: 1px solid #000; font-weight: bold;">FAT %:</td>
+            <td style="width: 68%; padding: 1px 4px;"><b>${fat}</b> &nbsp;|&nbsp; <b>BATCH:</b> ${batch}</td>
+          </tr>
+        </table>
+        <div style="border-top: 1px solid #000; text-align: center; font-size: ${isCompact ? '7.5px' : '9px'}; font-weight: 900; padding: 1px 0; letter-spacing: 0.02em;">
+          ! DO NOT ACCEPT IF SEAL IS BROKEN
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderA4Grid() {
+  const dt = $('stkInputDateTime').value.trim() || nowFormatted();
+  let fat = $('stkInputFat').value.trim() || '7.8%';
+  if (!fat.includes('%')) fat += '%';
+  const batch = $('stkInputBatch').value.trim() || 'PJF-M04';
+
+  const dim = getStickerDimensions();
+  const totalCount = dim.cols * dim.rows;
+
+  $('btnPrintCount').textContent = totalCount;
+  $('previewCountBadge').textContent = totalCount;
+  $('sheetPresetBadge').textContent = `${dim.cols} Cols × ${dim.rows} Rows (${dim.width} × ${dim.height} mm) with 2mm Edge Buffer`;
+
+  $('screenA4Page').style.padding = `${dim.topMargin}mm ${dim.leftMargin}mm`;
+  const grid = $('screenA4Grid');
+  grid.style.gridTemplateColumns = `repeat(${dim.cols}, ${dim.width}mm)`;
+  grid.style.columnGap = `${dim.gapX}mm`;
+  grid.style.rowGap = `${dim.gapY}mm`;
+
+  let stickersHtml = '';
+  for (let i = 0; i < totalCount; i++) {
+    stickersHtml += generateStickerHtml(dt, fat, batch, dim.width, dim.height, dim.isCompact);
+  }
+  grid.innerHTML = stickersHtml;
+}
+
+function triggerA4Print() {
+  const dt = $('stkInputDateTime').value.trim() || nowFormatted();
+  let fat = $('stkInputFat').value.trim() || '7.8%';
+  if (!fat.includes('%')) fat += '%';
+  const batch = $('stkInputBatch').value.trim() || 'PJF-M04';
+
+  const dim = getStickerDimensions();
+  const totalCount = dim.cols * dim.rows;
+
+  let stickersHtml = '';
+  for (let i = 0; i < totalCount; i++) {
+    stickersHtml += generateStickerHtml(dt, fat, batch, dim.width, dim.height, dim.isCompact);
+  }
+
+  let printFrame = document.getElementById('stickerPrintFrame');
+  if (!printFrame) {
+    printFrame = document.createElement('iframe');
+    printFrame.id = 'stickerPrintFrame';
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    document.body.appendChild(printFrame);
+  }
+
+  const doc = printFrame.contentWindow.document;
+  doc.open();
+  doc.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <title>Pre-Cut A4 Stickers (${totalCount} per sheet) - Panditji Dairy Farm</title>
+      <style>
+        @page { size: A4 portrait; margin: 0; }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { margin: 0; padding: 0; background: #ffffff; font-family: 'Courier New', Courier, monospace; width: 210mm; height: 297mm; }
+        .sheet { width: 210mm; height: 297mm; padding: ${dim.topMargin}mm ${dim.leftMargin}mm; box-sizing: border-box; display: flex; justify-content: center; }
+        .grid { display: grid; grid-template-columns: repeat(${dim.cols}, ${dim.width}mm); column-gap: ${dim.gapX}mm; row-gap: ${dim.gapY}mm; }
+      </style>
+    </head>
+    <body>
+      <div class="sheet"><div class="grid">${stickersHtml}</div></div>
+      <script>window.onload = function() { window.focus(); window.print(); };<\/script>
+    </body>
+    </html>
+  `);
+  doc.close();
+}
+
+// -------------------------------------------------------------
+// SUPABASE REAL-TIME CLOUD SYNC
+// -------------------------------------------------------------
+let sbClient = null;
+
+function openCloudModal() {
+  const conf = JSON.parse(localStorage.getItem('pjf_supabase_config') || '{}');
+  $('sbUrl').value = conf.url || DEFAULT_SB_URL;
+  $('sbKey').value = conf.key || DEFAULT_SB_KEY;
+  $('cloudModal').classList.remove('hidden');
+}
+
+function closeCloudModal() {
+  $('cloudModal').classList.add('hidden');
+}
+
+function initSupabase() {
+  const conf = JSON.parse(localStorage.getItem('pjf_supabase_config') || JSON.stringify({ url: DEFAULT_SB_URL, key: DEFAULT_SB_KEY }));
+  if (conf.url && conf.key && window.supabase) {
+    sbClient = window.supabase.createClient(conf.url, conf.key);
+    $('cloudStatusDot').className = 'w-2 h-2 rounded-full bg-emerald-400 inline-block';
+    $('cloudStatusDot').title = 'Cloud Connected';
+  } else {
+    $('cloudStatusDot').className = 'w-2 h-2 rounded-full bg-amber-400 inline-block';
+  }
+}
+
+async function saveCloudConfig(e) {
+  e.preventDefault();
+  const conf = { url: $('sbUrl').value.trim(), key: $('sbKey').value.trim() };
+  localStorage.setItem('pjf_supabase_config', JSON.stringify(conf));
+  initSupabase();
+  closeCloudModal();
+  await pushToCloud();
+}
+
+async function pushToCloud(silent = false) {
+  if (!sbClient) return;
+  try {
+    const { error } = await sbClient.from('farm_workspace').upsert({ id: 'primary_farm', data: db, updated_at: new Date() });
+    if (!error && !silent) alert('Online Cloud Sync Successful!');
+  } catch (err) {
+    if (!silent) console.warn('Supabase sync warning:', err);
+  }
+}
+
+async function pullFromCloud() {
+  if (!sbClient) initSupabase();
+  if (!sbClient) return alert('Enter Supabase credentials first');
+  try {
+    const { data, error } = await sbClient.from('farm_workspace').select('data').eq('id', 'primary_farm').single();
+    if (data && data.data) {
+      db = data.data;
+      save();
+      alert('Local database updated with latest Cloud records!');
+    }
+  } catch (err) {
+    alert('Pull failed: ' + err.message);
+  }
+}
+
+function printDeliveryManifest() {
+  const today = $('dDate').value || todayStr();
+  const areaFilter = $('filterArea') ? $('filterArea').value : 'ALL';
+  let stops = db.deliveries.filter(d => d.date === today);
+  if (areaFilter !== 'ALL') {
+    stops = stops.filter(d => d.area === areaFilter);
+  }
+
+  const rows = stops.map((s, idx) => `
+    <tr>
+      <td style="border: 1px solid #ccc; padding: 6px;">${idx + 1}</td>
+      <td style="border: 1px solid #ccc; padding: 6px;"><b>${s.hno}</b></td>
+      <td style="border: 1px solid #ccc; padding: 6px;">${s.area || ''}</td>
+      <td style="border: 1px solid #ccc; padding: 6px;">${s.customerName}<br><small>${s.customerPhone}</small></td>
+      <td style="border: 1px solid #ccc; padding: 6px;">${s.product} (${s.size}ml)</td>
+      <td style="border: 1px solid #ccc; padding: 6px;">${s.agent}</td>
+      <td style="border: 1px solid #ccc; padding: 6px; width: 60px;"></td>
+      <td style="border: 1px solid #ccc; padding: 6px; width: 70px;"></td>
+    </tr>
+  `).join('');
+
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html>
+      <head>
+        <title>Delivery Manifest - ${today}</title>
+        <style>
+          body { font-family: sans-serif; padding: 20px; font-size: 12px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+          th { border: 1px solid #999; background: #eee; padding: 8px; text-align: left; }
+        </style>
+      </head>
+      <body>
+        <h2>PANDITJI DAIRY FARM - Delivery Run Sheet</h2>
+        <p><b>Date:</b> ${today} | <b>Area Filter:</b> ${areaFilter} | <b>Helpline:</b> 7993394025</p>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>H.No</th>
+              <th>Area</th>
+              <th>Customer</th>
+              <th>Milk &amp; Qty</th>
+              <th>Agent</th>
+              <th>Bottles Recd</th>
+              <th>Customer Sign</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <script>window.print();<\/script>
+      </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+function generateBills() {
+  const m = $('billMonth').value;
+  if (!m) return alert('Select month');
+  db.customers.forEach(c => {
+    const custDels = db.deliveries.filter(d => d.customerId === c.id && d.date.startsWith(m) && d.status === 'delivered');
+    if (custDels.length === 0) return;
+    const milk = custDels.reduce((s, d) => s + d.rate, 0);
+    const rebate = custDels.reduce((s, d) => s + (d.bottlesRebate || 0), 0);
+    const invNo = `PJF-${m.replace('-','')}-${c.id.slice(-4)}`;
+    const idx = db.invoices.findIndex(i => i.invoiceNo === invNo);
+    const data = { id: uid(), invoiceNo: invNo, customerId: c.id, customerName: c.name, customerPhone: c.phone, month: m, drops: custDels.length, milk, rebate, net: milk - rebate };
+    if (idx >= 0) db.invoices[idx] = data; else db.invoices.push(data);
+  });
+  save();
+  alert('Bills generated!');
+}
+
+async function sendInvoiceWhatsApp(invId) {
+  const inv = db.invoices.find(x => x.id === invId);
+  if (!inv) return;
+  const text = `Namaste ${inv.customerName} ji 🙏\n\nYour Monthly Milk Statement from Panditji Dairy Farm for month ${inv.month}:\n\nInvoice: ${inv.invoiceNo}\nTotal Deliveries: ${inv.drops} days\nGross Milk Bill: ₹${inv.milk}\nBottle Return Savings: -₹${inv.rebate}\n\n*Net Payable: ₹${inv.net}*\n\nPlease make UPI payment to: 7993394025@upi.\nThank you for choosing pure glass-bottle farm milk!`;
+  await sendDirectWhatsAppMessage(inv.customerPhone, text);
+}
+
+function sendCustomDirectMessage(phone, msg) {
+  sendDirectWhatsAppMessage(phone, msg);
+}
+
+function esc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `panditji-dairy-backup-${todayStr()}.json`;
+  a.click();
+}
+
+function exportBills() {
+  const rows = [
+    ['Invoice No', 'Customer Name', 'Month', 'Drops', 'Gross Milk (Rs)', 'Bottle Return Savings (Rs)', 'Net Due (Rs)'],
+    ...db.invoices.map(i => [i.invoiceNo, i.customerName, i.month, i.drops, i.milk, i.rebate, i.net])
+  ];
+  const csv = rows.map(r => r.join('\n'));
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `panditji-invoices-${todayStr()}.csv`;
+  a.click();
+}
+
+function renderAll() {
+  const today = $('dDate').value || todayStr();
+  $('todayLabel').textContent = today;
+  $('ovDate').value = $('ovDate').value || today;
+  $('ovMonth').value = $('ovMonth').value || today.slice(0, 7);
+
+  $('pVendorSelect').innerHTML = (db.vendors || []).map(v => `<option value="${v.id}">${esc(v.name)} (${esc(v.location)})</option>`).join('');
+  if ($('vendorHistoryFilter')) {
+    $('vendorHistoryFilter').innerHTML = '<option value="ALL">All Vendors</option>' + (db.vendors || []).map(v => `<option value="${v.id}">${esc(v.name)}</option>`).join('');
+  }
+
+  renderOverviewMetrics();
+  renderProcurementRows();
+  renderVendorDirectoryRows();
+  updateRunnerDropdowns();
+  renderCustomers();
+  renderPreDispatchList();
+  renderDispatchRows();
+  renderAgentCards();
+
+  $('overviewList').innerHTML = db.deliveries.filter(d => d.date === today).map(d => `
+    <tr>
+      <td><b>${esc(d.hno)}</b><br><small>${esc(d.customerName)}</small></td>
+      <td>${esc(d.area)}</td>
+      <td>${esc(d.product)}</td>
+      <td>${d.size} ml</td>
+      <td><b>${esc(d.agent)}</b></td>
+      <td><span class="badge badge-${d.status}">${d.status}</span></td>
+      <td>${d.bottlesReturned || 0}</td>
+      <td><button class="btn-wa text-xs" onclick="sendAgentAssignedMsg('${d.id}')">📲 Direct Notify</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="8" class="text-center py-4 text-gray-400">No scheduled stops today.</td></tr>`;
+
+  $('bottleRows').innerHTML = (db.bottles || []).slice().reverse().map(b => `
+    <tr>
+      <td>${b.date}</td><td>${esc(b.customerName)}</td><td><span class="badge badge-delivered">Returned</span></td><td>${b.size} ml</td><td>${b.count}</td><td class="font-bold text-emerald-800">-${money(b.rebate)}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-400">No bottle records.</td></tr>`;
+
+  $('billRows').innerHTML = (db.invoices || []).slice().reverse().map(i => `
+    <tr>
+      <td><b>${i.invoiceNo}</b></td><td>${esc(i.customerName)}</td><td>${i.drops} days</td><td>${money(i.milk)}</td><td class="text-emerald-700">-${money(i.rebate)}</td><td class="font-black">${money(i.net)}</td>
+      <td><button class="btn-wa text-xs" onclick="sendInvoiceWhatsApp('${i.id}')">WhatsApp</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-400">No invoices generated for this month.</td></tr>`;
+}
+
+// Initial setup
+$('dDate').value = todayStr();
+$('pDate').value = todayStr();
+$('billMonth').value = todayStr().slice(0, 7);
+$('stkInputDateTime').value = nowFormatted();
+$('clockHeader').textContent = nowFormatted().slice(-8);
+initSupabase();
+updateWaStatusBadge();
+renderA4Grid();
+renderAll();
+</script>
+</body>
+</html>
