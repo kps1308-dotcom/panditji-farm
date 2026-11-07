@@ -1,114 +1,203 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="h-full overflow-x-hidden">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- Prevent Localhost & Browser Cache Locking -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Mobile App / PWA Standalone Setup -->
+  <meta name="theme-color" content="#123826">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Panditji Agent">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23123826'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='%2348bb78' font-weight='bold' font-family='sans-serif'>PJ</text></svg>">
+  
   <title>Panditji Dairy | Agent Delivery Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f4f1; color: #143525; }
-    .card { background: #ffffff; border-radius: 14px; padding: 14px; box-shadow: 0 2px 10px rgba(20,53,37,0.06); border: 1px solid #dce8e0; }
-    .btn-deliver { background: #165636; color: #ffffff; font-weight: 700; border-radius: 10px; padding: 10px 14px; transition: 0.15s; }
-    .btn-deliver:active { transform: scale(0.98); background: #0f3d26; }
-    .bubble { border: 1.5px solid #a3c4b0; border-radius: 8px; width: 38px; height: 38px; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 14px; background: white; cursor: pointer; }
-    .bubble.active { background: #165636; color: white; border-color: #165636; }
-    .date-nav-btn { background: #1e5a3c; color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
-    .date-nav-btn:hover { background: #28734e; }
-    .date-nav-btn.active { background: #ffffff; color: #165636; }
+    /* Strict Lock against horizontal sliding, elastic bounce & misaligned gestures */
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      overscroll-behavior-y: none;
+      touch-action: pan-y;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f4f1;
+      color: #143525;
+    }
+    
+    /* Responsive Touch-friendly Button Boundaries */
+    .bubble {
+      border: 1.5px solid #a3c4b0;
+      border-radius: 8px;
+      min-width: 38px;
+      height: 38px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      background: #ffffff;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .bubble:active {
+      transform: scale(0.94);
+    }
+    .bubble.active {
+      background: #165636;
+      color: #ffffff;
+      border-color: #165636;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 2px 10px rgba(20,53,37,0.06);
+      border: 1px solid #dce8e0;
+      width: 100%;
+      box-sizing: border-box;
+    }
   </style>
 </head>
-<body class="pb-16">
+<body class="flex flex-col min-h-screen">
 
-<!-- LOGIN SCREEN (DEFAULT PIN 1234) -->
+<!-- PWA INSTALL PROMPT TOAST -->
+<div id="pwaInstallBar" class="hidden bg-[#165636] text-white px-4 py-2.5 text-xs flex items-center justify-between shrink-0 shadow-lg z-50">
+  <div class="flex items-center gap-2">
+    <span>📲</span>
+    <span class="font-medium">Install Panditji App on your phone screen</span>
+  </div>
+  <button id="pwaInstallBtn" class="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-3 py-1 rounded-lg text-xs shadow">
+    Install
+  </button>
+</div>
+
+<!-- AGENT AUTHENTICATION SCREEN (PIN: 1234) -->
 <div id="loginScreen" class="fixed inset-0 bg-[#123826] z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
     <div class="w-14 h-14 mx-auto rounded-xl bg-emerald-100 flex items-center justify-center font-black text-2xl text-emerald-800 border-2 border-emerald-300">
       PJ
     </div>
     <div>
-      <h2 class="text-xl font-bold text-gray-900">Agent Portal Login</h2>
+      <h2 class="text-xl font-bold text-gray-900">Agent Route Login</h2>
       <p class="text-xs text-gray-500 mt-1">Panditji Dairy Farm · Doorstep Delivery App</p>
     </div>
 
     <form onsubmit="handleAgentLogin(event)" class="space-y-3 text-left">
       <div>
         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Mobile Number</label>
-        <input type="tel" id="loginPhone" required placeholder="Enter 10-digit mobile" pattern="[0-9]{10}" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:border-emerald-600 focus:outline-none">
+        <input type="tel" id="loginPhone" required placeholder="Enter registered mobile" value="9876543210" pattern="[0-9]{10}" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:border-emerald-600 focus:outline-none">
+        <p class="text-[10px] text-gray-400 mt-1">Default test: 9876543210 / 9876543211 / 9876543212</p>
       </div>
       <div>
         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Passcode / PIN</label>
-        <input type="password" id="loginPin" required placeholder="Default PIN: 1234" value="1234" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:border-emerald-600 focus:outline-none text-center font-bold tracking-widest text-lg">
-        <p class="text-[11px] text-gray-400 mt-1 text-center">Default PIN for all agents is <b>1234</b></p>
+        <input type="password" id="loginPin" required placeholder="Default: 1234" value="1234" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:border-emerald-600 focus:outline-none text-center font-bold tracking-widest text-lg">
       </div>
 
       <p id="loginError" class="text-xs text-red-600 font-bold hidden text-center"></p>
 
-      <button type="submit" class="w-full bg-[#165636] hover:bg-[#114028] text-white font-bold py-3 rounded-xl text-sm shadow-md transition">
+      <button type="submit" class="w-full bg-[#165636] hover:bg-[#114028] text-white font-bold py-3 rounded-xl text-sm shadow-md transition active:scale-95">
         Unlock Delivery Route
       </button>
     </form>
+
+    <div class="pt-2 border-t text-[11px] text-gray-400">
+      Localhost caching issue? <button onclick="purgeLocalCache()" class="underline text-emerald-700 font-bold">Clear Local Cache</button>
+    </div>
   </div>
 </div>
 
-<!-- AGENT APP DASHBOARD -->
-<div id="appContainer" class="hidden">
-  <header class="bg-[#123826] text-white px-4 py-3 sticky top-0 z-30 shadow-md">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center font-bold text-emerald-300 border border-emerald-400/30 text-sm">PJ</div>
-        <div>
-          <h1 class="text-sm font-bold tracking-tight" id="headerAgentName">Agent Runner</h1>
-          <p class="text-[11px] text-emerald-200" id="headerAgentPhone">Logged In</p>
+<!-- AGENT APP CONTAINER -->
+<div id="appContainer" class="hidden flex-1 flex flex-col w-full max-w-md mx-auto">
+  
+  <!-- APP HEADER (STICKY) -->
+  <header class="bg-[#123826] text-white px-3.5 py-3 sticky top-0 z-40 shadow-md shrink-0">
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center font-bold text-emerald-300 border border-emerald-400/30 text-xs shrink-0">
+          PJ
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-sm font-bold tracking-tight truncate" id="headerAgentName">Agent Runner</h1>
+          <p class="text-[10px] text-emerald-200 truncate" id="headerAgentPhone">Logged In</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="syncWithCloud()" class="w-8 h-8 rounded-lg bg-[#1b4e36] flex items-center justify-center text-xs" title="Sync Cloud">🔄</button>
-        <button onclick="handleLogout()" class="text-xs bg-red-900/60 hover:bg-red-800 text-red-200 px-2.5 py-1.5 rounded-lg border border-red-500/30 font-semibold">Logout</button>
+      
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="syncWithCloud()" class="h-8 px-2 rounded-lg bg-[#1b4e36] hover:bg-[#236345] text-xs font-semibold flex items-center gap-1" title="Sync Cloud">
+          <span>🔄</span>
+          <span class="text-[10px] hidden sm:inline">Sync</span>
+        </button>
+        <button onclick="purgeLocalCache()" class="h-8 px-2 rounded-lg bg-[#1b4e36] text-[10px] font-semibold text-amber-200" title="Purge Localhost Cache">
+          Reset
+        </button>
+        <button onclick="handleLogout()" class="h-8 px-2.5 rounded-lg bg-red-900/70 hover:bg-red-800 text-red-200 text-xs font-bold">
+          Exit
+        </button>
       </div>
     </div>
 
-    <!-- Date Navigation Tabs -->
-    <div class="flex items-center justify-between mt-3 pt-2 border-t border-emerald-900/40 text-xs">
-      <button class="date-nav-btn" onclick="changeDateOffset(-1)">◀ Previous</button>
-      <div class="text-center font-bold text-emerald-100" id="currentViewDateLabel">Today</div>
-      <button class="date-nav-btn" onclick="changeDateOffset(1)">Next Day ▶</button>
+    <!-- Date Navigation Strip -->
+    <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-emerald-900/60 text-xs gap-1">
+      <button class="bg-[#1b4e36] text-white px-2.5 py-1.5 rounded-lg text-xs font-bold active:scale-95" onclick="changeDateOffset(-1)">
+        ◀ Prev
+      </button>
+      <div class="text-center font-bold text-emerald-100 text-xs truncate px-1" id="currentViewDateLabel">
+        Today
+      </div>
+      <button class="bg-[#1b4e36] text-white px-2.5 py-1.5 rounded-lg text-xs font-bold active:scale-95" onclick="changeDateOffset(1)">
+        Next ▶
+      </button>
     </div>
   </header>
 
-  <!-- View Mode Notice Banner -->
-  <div id="readOnlyNotice" class="hidden px-4 py-2 text-xs font-bold text-center border-b"></div>
+  <!-- Notice Banner for Previous / Future Days -->
+  <div id="readOnlyNotice" class="hidden px-3 py-1.5 text-xs font-bold text-center border-b shrink-0"></div>
 
-  <!-- Search & Fast Filters -->
-  <div class="p-3 space-y-3 max-w-lg mx-auto">
-    <div class="flex gap-2">
-      <input type="text" id="runnerSearch" placeholder="🔍 Search H.No, Name, Phone..." class="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-600" oninput="renderStops()">
-      <select id="shiftFilter" class="bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs font-semibold" onchange="renderStops()">
-        <option value="ALL">All Shifts</option>
+  <!-- MAIN SCROLLABLE CONTENT AREA -->
+  <main class="flex-1 p-3 space-y-3 w-full max-w-md mx-auto overflow-y-auto">
+    
+    <!-- Search & Shift Filter -->
+    <div class="flex gap-2 w-full">
+      <input type="text" id="runnerSearch" placeholder="🔍 Search H.No, Name..." class="flex-1 min-w-0 bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-600" oninput="renderStops()">
+      <select id="shiftFilter" class="bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs font-bold shrink-0" onchange="renderStops()">
+        <option value="ALL">All</option>
         <option value="Morning" selected>Morning</option>
         <option value="Evening">Evening</option>
       </select>
     </div>
 
-    <!-- Agent Summary Metrics -->
-    <div class="grid grid-cols-3 gap-2">
-      <div class="bg-white p-2.5 rounded-xl border border-gray-200 text-center">
-        <div class="text-[10px] uppercase font-bold text-gray-500">Stops</div>
-        <div id="statTotal" class="text-lg font-black text-[#143525]">0</div>
+    <!-- Agent Quick Summary Metric Strip -->
+    <div class="grid grid-cols-3 gap-2 w-full">
+      <div class="bg-white p-2 rounded-xl border border-gray-200 text-center">
+        <div class="text-[9px] uppercase font-bold text-gray-500">Stops</div>
+        <div id="statTotal" class="text-base font-black text-[#143525]">0</div>
       </div>
-      <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-center">
-        <div class="text-[10px] uppercase font-bold text-emerald-800">Delivered</div>
-        <div id="statDone" class="text-lg font-black text-emerald-700">0</div>
+      <div class="bg-emerald-50 p-2 rounded-xl border border-emerald-200 text-center">
+        <div class="text-[9px] uppercase font-bold text-emerald-800">Delivered</div>
+        <div id="statDone" class="text-base font-black text-emerald-700">0</div>
       </div>
-      <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-200 text-center">
-        <div class="text-[10px] uppercase font-bold text-blue-800">Bottles Recd</div>
-        <div id="statBottles" class="text-lg font-black text-blue-700">0</div>
+      <div class="bg-blue-50 p-2 rounded-xl border border-blue-200 text-center">
+        <div class="text-[9px] uppercase font-bold text-blue-800">Bottles</div>
+        <div id="statBottles" class="text-base font-black text-blue-700">0</div>
       </div>
     </div>
 
-    <!-- Stops List -->
-    <div id="agentStopsContainer" class="space-y-3"></div>
-  </div>
+    <!-- Customer Stops List (Cards never overflow or slide horizontally) -->
+    <div id="agentStopsContainer" class="space-y-3 w-full pb-8"></div>
+  </main>
+
 </div>
 
 <script>
@@ -116,23 +205,42 @@ const $ = id => document.getElementById(id);
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
 
+// Supabase synchronization parameters
 const DEFAULT_SB_URL = 'https://nvqszaywblhdxhlhiuxp.supabase.co';
 const DEFAULT_SB_KEY = 'sb_publishable_Pkn8vXc6unUaY2ZPTFf9Rg_LZwu3GDm';
 
-let db = JSON.parse(localStorage.getItem('pjf_admin_ops') || JSON.stringify({
+// Initial DB template with sample customer stops so you see instant output on test
+const defaultDbData = {
   agents: [
     { id: 'a1', name: 'Agent 1', phone: '9876543210', pin: '1234' },
     { id: 'a2', name: 'Agent 2', phone: '9876543211', pin: '1234' },
     { id: 'a3', name: 'Agent 3', phone: '9876543212', pin: '1234' }
   ],
-  customers: [],
-  deliveries: [],
-  bottles: [],
-  invoices: []
-}));
+  deliveries: [
+    { id: 'd1', date: todayStr(), batch: 'Morning', customerId: 'c1', customerName: 'Sanjay Reddy', customerPhone: '9849012345', area: 'IIT Kandi', hno: 'Plot 42, H.No 1-12/A', product: 'Buffalo Milk (Pure Natural)', size: 1000, rate: 130, agent: 'Agent 1', status: 'planned', bottlesReturned: 0, bottlesRebate: 0 },
+    { id: 'd2', date: todayStr(), batch: 'Morning', customerId: 'c2', customerName: 'Lakshmi Narayana', customerPhone: '9849054321', area: 'Sangareddy', hno: 'Flat 204, Sri Nivas', product: 'Buffalo Milk (Pure Natural)', size: 500, rate: 70, agent: 'Agent 1', status: 'planned', bottlesReturned: 0, bottlesRebate: 0 },
+    { id: 'd3', date: todayStr(), batch: 'Morning', customerId: 'c3', customerName: 'Dr. Venkat Raman', customerPhone: '9123456789', area: 'IIT Kandi', hno: 'Faculty Qtr B-12', product: 'Buffalo Milk (Pure Natural)', size: 1000, rate: 130, agent: 'Agent 1', status: 'planned', bottlesReturned: 0, bottlesRebate: 0 }
+  ],
+  bottles: []
+};
+
+let db = JSON.parse(localStorage.getItem('pjf_admin_ops') || JSON.stringify(defaultDbData));
+
+// If old localStorage is missing deliveries, restore default stops
+if (!db.deliveries || db.deliveries.length === 0) {
+  db.deliveries = defaultDbData.deliveries;
+}
 
 let currentAgent = null;
 let selectedDateOffset = 0;
+
+function purgeLocalCache() {
+  if (confirm('Clear local app cache & reload latest state?')) {
+    localStorage.removeItem('pjf_admin_ops');
+    localStorage.removeItem('pjf_agent_session');
+    location.reload(true);
+  }
+}
 
 function getTargetDateStr() {
   const d = new Date();
@@ -159,12 +267,7 @@ function handleAgentLogin(e) {
   const pin = $('loginPin').value.trim();
   const errEl = $('loginError');
 
-  const agentsList = db.agents || [
-    { id: 'a1', name: 'Agent 1', phone: '9876543210', pin: '1234' },
-    { id: 'a2', name: 'Agent 2', phone: '9876543211', pin: '1234' },
-    { id: 'a3', name: 'Agent 3', phone: '9876543212', pin: '1234' }
-  ];
-
+  const agentsList = db.agents || defaultDbData.agents;
   let match = agentsList.find(a => String(a.phone).trim() === phone);
 
   if (!match) {
@@ -174,14 +277,14 @@ function handleAgentLogin(e) {
   }
 
   if (!match) {
-    errEl.textContent = 'Mobile number not found in Agent Register. Contact Admin.';
+    errEl.textContent = 'Mobile number not found in register.';
     errEl.classList.remove('hidden');
     return;
   }
 
   const expectedPin = match.pin || '1234';
   if (pin !== expectedPin && pin !== '1234') {
-    errEl.textContent = 'Incorrect Passcode / PIN. Default is 1234.';
+    errEl.textContent = 'Incorrect PIN! Passcode is 1234.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -197,9 +300,6 @@ function handleLogout() {
     currentAgent = null;
     $('loginScreen').classList.remove('hidden');
     $('appContainer').classList.add('hidden');
-    $('loginPhone').value = '';
-    $('loginPin').value = '1234';
-    $('loginError').classList.add('hidden');
   }
 }
 
@@ -231,15 +331,15 @@ function updateDateHeader() {
     notice.classList.add('hidden');
   } else if (selectedDateOffset < 0) {
     const daysAgo = Math.abs(selectedDateOffset);
-    $('currentViewDateLabel').innerHTML = `⏪ ${daysAgo === 1 ? 'Yesterday' : daysAgo + ' days ago'} (${dateFormatted})`;
-    notice.className = 'px-4 py-2 text-xs font-bold text-center bg-gray-200 text-gray-700 border-b border-gray-300';
-    notice.textContent = '🔒 Viewing Past Record (Read-Only Mode). No delivery actions allowed.';
+    $('currentViewDateLabel').innerHTML = `⏪ ${daysAgo === 1 ? 'Yesterday' : daysAgo + 'd ago'} (${dateFormatted})`;
+    notice.className = 'px-3 py-1.5 text-[11px] font-bold text-center bg-gray-200 text-gray-700 border-b border-gray-300';
+    notice.textContent = '🔒 Viewing Past Record (Read-Only Mode)';
     notice.classList.remove('hidden');
   } else {
     const daysAhead = selectedDateOffset;
-    $('currentViewDateLabel').innerHTML = `⏩ ${daysAhead === 1 ? 'Tomorrow' : 'In ' + daysAhead + ' days'} (${dateFormatted})`;
-    notice.className = 'px-4 py-2 text-xs font-bold text-center bg-amber-100 text-amber-900 border-b border-amber-300';
-    notice.textContent = '⏳ Upcoming Preview (Read-Only). Delivery actions unlock on scheduled date.';
+    $('currentViewDateLabel').innerHTML = `⏩ In ${daysAhead}d (${dateFormatted})`;
+    notice.className = 'px-3 py-1.5 text-[11px] font-bold text-center bg-amber-100 text-amber-900 border-b border-amber-300';
+    notice.textContent = '⏳ Upcoming Preview (Read-Only)';
     notice.classList.remove('hidden');
   }
 }
@@ -270,7 +370,7 @@ function setManualBottles(delId, val) {
 
 async function markStopDelivered(delId) {
   if (selectedDateOffset !== 0) {
-    return alert('Deliveries can only be marked on the scheduled day (Today).');
+    return alert('Deliveries can only be completed on Today’s route.');
   }
 
   const d = (db.deliveries || []).find(x => x.id === delId);
@@ -299,7 +399,7 @@ async function markStopDelivered(delId) {
 
   save();
 
-  const msg = `Namaste ${d.customerName} ji 🙏\n\nYour milk has been delivered by ${d.agent}!\n\nItem: ${d.product} (${d.size}ml)\nEmpty Bottles Received: ${d.bottlesReturned || 0}\nBottle Rebate Credited: ₹${totalRebate}\n\nPure fresh glass bottle milk. Thank you!\nPanditji Dairy Farm Mamidipally.`;
+  const msg = `Namaste ${d.customerName} ji 🙏\n\nYour milk has been delivered by ${d.agent}!\n\nItem: ${d.product} (${d.size}ml)\nEmpty Bottles Received: ${d.bottlesReturned || 0}\nBottle Rebate: ₹${totalRebate}\n\nPure fresh glass bottle milk. Thank you!\nPanditji Dairy Farm Mamidipally.`;
   window.open(`https://wa.me/91${d.customerPhone}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
@@ -348,79 +448,125 @@ function renderStops() {
     const isSkipped = d.status === 'skipped';
 
     return `
-      <div class="card ${isDone ? 'border-l-4 border-emerald-600 bg-emerald-50/25' : isSkipped ? 'border-l-4 border-red-500 bg-red-50/25' : 'border-l-4 border-amber-500'}">
-        <div class="flex justify-between items-start">
-          <div>
+      <div class="card ${isDone ? 'border-l-4 border-emerald-600 bg-emerald-50/30' : isSkipped ? 'border-l-4 border-red-500 bg-red-50/30' : 'border-l-4 border-amber-500'}">
+        <div class="flex justify-between items-start gap-2">
+          <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="bg-[#143525] text-white text-[11px] font-bold px-2 py-0.5 rounded">H.No: ${esc(d.hno)}</span>
-              <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">📍 ${esc(d.area || 'Local')}</span>
+              <span class="bg-[#143525] text-white text-[10px] font-bold px-2 py-0.5 rounded truncate max-w-[140px]">H.No: ${esc(d.hno)}</span>
+              <span class="bg-emerald-100 text-emerald-900 text-[10px] font-bold px-1.5 py-0.5 rounded truncate max-w-[120px]">📍 ${esc(d.area || 'Local')}</span>
             </div>
-            <h3 class="font-bold text-base text-gray-900 mt-1">${esc(d.customerName)}</h3>
-            <p class="text-xs text-gray-600">
+            <h3 class="font-bold text-sm text-gray-900 mt-1 break-words">${esc(d.customerName)}</h3>
+            <p class="text-xs text-gray-600 mt-0.5">
               📞 <a href="tel:${d.customerPhone}" class="font-bold text-emerald-800 underline">${d.customerPhone}</a>
             </p>
           </div>
-          <span class="text-xs font-black px-2.5 py-1 rounded bg-amber-100 text-amber-900 border border-amber-300">
+          <span class="text-xs font-black px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
             ${d.size} ml
           </span>
         </div>
 
         <div class="my-2 p-2 bg-gray-50 rounded-lg text-xs flex justify-between items-center border">
-          <span><b>Item:</b> ${esc(d.product)}</span>
-          <span class="text-gray-500 font-semibold">${d.batch || 'Morning'}</span>
+          <span class="truncate pr-1"><b>Item:</b> ${esc(d.product)}</span>
+          <span class="text-gray-500 font-semibold shrink-0">${d.batch || 'Morning'}</span>
         </div>
 
         ${isToday ? (
           !isDone ? `
             <div class="mt-2 pt-2 border-t">
-              <div class="flex justify-between items-center mb-1.5">
-                <span class="text-xs font-bold text-gray-700">Empty Bottles Collected:</span>
+              <div class="flex justify-between items-center mb-1 text-xs">
+                <span class="font-bold text-gray-700 text-[11px]">Empty Bottles Received:</span>
                 <span class="text-[11px] text-emerald-800 font-bold">
                   Rebate: ₹${(d.size === 1000 ? 20 : (d.size === 500 ? 10 : 5)) * (d.bottlesReturned || 0)}
                 </span>
               </div>
-              <div class="flex items-center gap-1.5">
+              <div class="grid grid-cols-6 gap-1 w-full">
                 ${[0, 1, 2, 3, 4].map(n => `
                   <button type="button" class="bubble ${d.bottlesReturned === n ? 'active' : ''}" onclick="setQuickBottles('${d.id}', ${n})">${n}</button>
                 `).join('')}
-                <input type="number" min="0" value="${d.bottlesReturned || 0}" class="w-14 text-center text-xs py-2 bg-white border border-gray-300 rounded-lg ml-1" placeholder="More" onchange="setManualBottles('${d.id}', this.value)">
+                <input type="number" min="0" value="${d.bottlesReturned || 0}" class="w-full text-center text-xs bg-white border border-gray-300 rounded-lg" placeholder="+" onchange="setManualBottles('${d.id}', this.value)">
               </div>
             </div>
 
-            <div class="mt-3 flex gap-2">
-              <button class="btn-deliver flex-1 text-xs" onclick="markStopDelivered('${d.id}')">✓ Mark Delivered</button>
-              <button class="bg-gray-100 text-gray-700 font-bold px-3 py-2 rounded-lg text-xs" onclick="markStopSkipped('${d.id}')">Skip</button>
+            <div class="mt-3 flex gap-2 w-full">
+              <button class="bg-[#165636] hover:bg-[#10432a] text-white font-bold py-2.5 px-3 rounded-lg text-xs flex-1 transition active:scale-95" onclick="markStopDelivered('${d.id}')">
+                ✓ Delivered (Auto WhatsApp)
+              </button>
+              <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-2.5 rounded-lg text-xs shrink-0" onclick="markStopSkipped('${d.id}')">
+                Skip
+              </button>
             </div>
           ` : `
             <div class="mt-2 pt-2 border-t flex justify-between items-center text-xs">
               <span class="text-emerald-700 font-bold">✓ Delivered Today</span>
-              <span class="text-gray-600 bg-gray-100 px-2 py-0.5 rounded font-semibold">${d.bottlesReturned || 0} bottle(s) returned</span>
+              <span class="text-gray-600 bg-gray-100 px-2 py-0.5 rounded font-semibold">${d.bottlesReturned || 0} bottle(s) collected</span>
             </div>
           `
         ) : `
-          <div class="mt-2 pt-2 border-t flex justify-between items-center text-xs bg-gray-50 p-2 rounded">
+          <div class="mt-2 pt-2 border-t flex justify-between items-center text-xs bg-gray-50 p-1.5 rounded">
             <span class="font-bold ${isDone ? 'text-emerald-700' : isSkipped ? 'text-red-600' : 'text-gray-500'}">
               ${isDone ? '✓ Delivered' : isSkipped ? '⚠️ Skipped' : '⏳ Scheduled'}
             </span>
-            <span class="text-gray-600 font-semibold">
-              ${isDone ? `Bottles received: ${d.bottlesReturned || 0}` : 'No actions permitted'}
+            <span class="text-gray-600 font-semibold text-[11px]">
+              ${isDone ? `Bottles: ${d.bottlesReturned || 0}` : 'Locked view'}
             </span>
           </div>
         `}
       </div>
     `;
-  }).join('') || `<div class="card text-center py-10 text-gray-400">No scheduled drops for ${currentAgent.name} on ${targetDate}.</div>`;
+  }).join('') || `<div class="card text-center py-8 text-gray-400 text-xs">No scheduled drops for ${currentAgent.name} on this date.</div>`;
 }
 
 function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
 }
 
+// Standalone PWA Installation Logic
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  $('pwaInstallBar').classList.remove('hidden');
+});
+
+$('pwaInstallBtn')?.addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      $('pwaInstallBar').classList.add('hidden');
+    }
+    deferredPrompt = null;
+  }
+});
+
+// Inline Data URI Web Manifest for instant Installability
+const manifestData = {
+  name: "Panditji Dairy Agent",
+  short_name: "PJ Agent",
+  start_url: "agent.html",
+  display: "standalone",
+  background_color: "#f0f4f1",
+  theme_color: "#123826",
+  icons: [
+    {
+      src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='35' fill='%23123826'/><text x='96' y='125' font-size='95' text-anchor='middle' fill='%2348bb78' font-weight='bold' font-family='sans-serif'>PJ</text></svg>",
+      sizes: "192x192",
+      type: "image/svg+xml"
+    }
+  ]
+};
+const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
+const manifestURL = URL.createObjectURL(manifestBlob);
+const link = document.createElement('link');
+link.rel = 'manifest';
+link.href = manifestURL;
+document.head.appendChild(link);
+
+// Cloud Sync
 let sb = null;
 function initSupabase() {
-  const sbConf = JSON.parse(localStorage.getItem('pjf_supabase_config') || JSON.stringify({ url: DEFAULT_SB_URL, key: DEFAULT_SB_KEY }));
-  if (sbConf.url && sbConf.key && window.supabase) {
-    sb = window.supabase.createClient(sbConf.url, sbConf.key);
+  if (window.supabase) {
+    sb = window.supabase.createClient(DEFAULT_SB_URL, DEFAULT_SB_KEY);
   }
 }
 
@@ -433,10 +579,10 @@ async function syncWithCloud(silent = false) {
       db = data.data;
       localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
       renderStops();
-      if (!silent) alert('Synchronized with farm cloud!');
+      if (!silent) alert('Synced with live dairy records!');
     }
   } catch(e) {
-    console.warn('Sync warning:', e);
+    console.warn('Sync issue:', e);
   }
 }
 
