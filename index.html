@@ -145,17 +145,29 @@
       </a>
 
       <!-- Navigation Links -->
-      <div class="hidden lg:flex items-center gap-8 text-sm font-semibold text-heritage-900">
+      <div class="hidden lg:flex items-center gap-7 text-sm font-semibold text-heritage-900">
         <a href="#batch-seal" class="hover:text-gilded-600 transition">Sealed Cap &amp; Fat %</a>
         <a href="#subscription-engine" class="hover:text-gilded-600 transition">Plans &amp; Calculator</a>
         <a href="#bottle-cycle" class="hover:text-gilded-600 transition">Glass Wash Cycle</a>
         <a href="#tech-autopay" class="hover:text-gilded-600 transition">UPI AutoPay &amp; SMS</a>
       </div>
 
-      <!-- Action Area -->
-      <div class="flex items-center gap-3">
-        <button onclick="scrollToCalculator()" class="bg-heritage-800 hover:bg-heritage-900 text-cream-100 px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border border-gilded-500/50 shadow-sm hover:shadow transition flex items-center gap-2">
-          <span>Start Subscription</span>
+      <!-- Action Area: Agent, Admin & Start Subscription -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Agent App Link (Protected with PIN: 1234) -->
+        <button type="button" onclick="accessPortal('agent.html', 'Agent Portal')" class="bg-white hover:bg-cream-200 text-heritage-900 px-3 py-2 rounded-xl font-bold text-xs border border-stone-300 shadow-2xs hover:border-heritage-800 transition flex items-center gap-1.5" title="Agent App (Requires PIN)">
+          <span>📱</span>
+          <span class="hidden sm:inline">Agent</span>
+        </button>
+
+        <!-- Admin Portal Link (Protected with PIN: 1234) -->
+        <button type="button" onclick="accessPortal('admin.html', 'Admin Console')" class="bg-white hover:bg-cream-200 text-heritage-900 px-3 py-2 rounded-xl font-bold text-xs border border-stone-300 shadow-2xs hover:border-heritage-800 transition flex items-center gap-1.5" title="Admin Console (Requires PIN)">
+          <span>⚙️</span>
+          <span class="hidden sm:inline">Admin</span>
+        </button>
+
+        <button onclick="scrollToCalculator()" class="bg-heritage-800 hover:bg-heritage-900 text-cream-100 px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border border-gilded-500/50 shadow-sm hover:shadow transition flex items-center gap-2">
+          <span>Subscribe</span>
           <span class="text-gilded-500 font-mono">→</span>
         </button>
       </div>
@@ -165,7 +177,6 @@
 
   <!-- HERO SECTION: The Artisanal Difference -->
   <section class="relative pt-12 pb-16 overflow-hidden">
-    <!-- Decorative background elements -->
     <div class="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-gilded-500/10 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute bottom-0 left-0 translate-y-12 -translate-x-12 w-96 h-96 bg-heritage-800/5 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -191,19 +202,19 @@
 
           <!-- 4 Core Pillars Strip -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
+            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-2xs">
               <div class="text-lg font-bold text-heritage-800">7.5% - 8.2%</div>
               <div class="text-[11px] font-medium text-stone-500">Natural Fat Content</div>
             </div>
-            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
+            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-2xs">
               <div class="text-lg font-bold text-heritage-800">110°C Steam</div>
               <div class="text-[11px] font-medium text-stone-500">RO Bottle Hygiene</div>
             </div>
-            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
+            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-2xs">
               <div class="text-lg font-bold text-emerald-700">UPI AutoPay</div>
               <div class="text-[11px] font-medium text-stone-500">Zero Hassle Renewals</div>
             </div>
-            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
+            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-2xs">
               <div class="text-lg font-bold text-heritage-800">SMS Ledger</div>
               <div class="text-[11px] font-medium text-stone-500">Daily Mobile Counts</div>
             </div>
@@ -238,7 +249,6 @@
             <!-- Simulated Radial Bottle Cap Graphic -->
             <div class="flex flex-col items-center justify-center my-4">
               <div class="relative w-48 h-48 rounded-full cap-seal-radial p-4 flex flex-col items-center justify-center text-center border-4 border-amber-300/80 shadow-2xl">
-                <!-- Circular seal rim indent -->
                 <div class="w-full h-full rounded-full border border-dashed border-amber-200/50 flex flex-col items-center justify-center p-2 text-white">
                   <div class="text-[9px] uppercase tracking-wider font-extrabold text-amber-200">Panditji Pure Natural</div>
                   <div class="text-2xl font-serif font-black tracking-widest my-0.5 text-white">SEALED</div>
@@ -251,7 +261,6 @@
                   <div class="text-[7px] text-amber-200/70 uppercase tracking-tighter">TAMPER EVIDENT CAP</div>
                 </div>
                 
-                <!-- Live Tag Pin -->
                 <div class="absolute -bottom-2 bg-emerald-600 text-white font-mono text-[9px] font-bold px-3 py-0.5 rounded-full border border-emerald-300 shadow">
                   BUFFALO TAG: #MUR-042
                 </div>
@@ -296,7 +305,7 @@
       <!-- 4 Stages Grid -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         
-        <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-2xs flex flex-col justify-between">
           <div>
             <div class="w-10 h-10 rounded-2xl bg-heritage-100 text-heritage-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">
               01
@@ -311,7 +320,7 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-2xs flex flex-col justify-between">
           <div>
             <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">
               02
@@ -326,7 +335,7 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-2xs flex flex-col justify-between">
           <div>
             <div class="w-10 h-10 rounded-2xl bg-sky-100 text-sky-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">
               03
@@ -341,7 +350,7 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-2xs flex flex-col justify-between">
           <div>
             <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">
               04
@@ -436,7 +445,7 @@
                 </button>
 
                 <!-- 1000 ML (Default) -->
-                <button type="button" onclick="setVolume('1000')" id="volBtn1000" class="vol-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-3.5 text-center transition flex flex-col justify-between shadow-xs">
+                <button type="button" onclick="setVolume('1000')" id="volBtn1000" class="vol-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-3.5 text-center transition flex flex-col justify-between shadow-2xs">
                   <span class="text-[10px] font-bold text-gilded-600 uppercase">Family Litre</span>
                   <span class="font-serif font-black text-xl text-heritage-900 my-1">1000 ml</span>
                   <span class="text-xs font-bold text-stone-600">₹130 / bottle</span>
@@ -560,7 +569,7 @@
     </div>
   </section>
 
-  <!-- SECTION: Modern Technology Integration (UPI AutoPay & SMS/WhatsApp Ledger) -->
+  <!-- SECTION: Modern Technology Integration -->
   <section id="tech-autopay" class="py-16 bg-cream-100 border-t border-cream-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
@@ -569,13 +578,11 @@
         <!-- Left: SMS Ledger Preview -->
         <div class="order-2 lg:order-1">
           <div class="max-w-md mx-auto bg-stone-900 rounded-3xl p-6 text-cream-100 shadow-2xl border-4 border-stone-800 relative">
-            <!-- Simulated Mobile Header -->
             <div class="flex items-center justify-between border-b border-stone-800 pb-3 mb-4 text-xs text-stone-400">
               <span>Messages • Panditji Dairy</span>
               <span>06:45 AM</span>
             </div>
 
-            <!-- SMS Bubble 1 -->
             <div class="bg-stone-800 rounded-2xl p-4 text-xs text-stone-200 space-y-2 mb-3 border border-stone-700">
               <div class="flex items-center justify-between text-[11px] text-gilded-500 font-bold">
                 <span>🥛 MORNING DELIVERY DISPATCHED</span>
@@ -592,7 +599,6 @@
               </div>
             </div>
 
-            <!-- SMS Bubble 2 -->
             <div class="bg-stone-800/70 rounded-2xl p-3 text-xs text-stone-300 border border-stone-700/60">
               <div class="text-[10px] text-amber-400 font-bold">🌙 NIGHT REMINDER (8:00 PM)</div>
               <p class="text-[11px] mt-1">
@@ -680,7 +686,7 @@
 
     <div class="space-y-3">
       
-      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-xs" onclick="toggleAccordion('f1')">
+      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-2xs" onclick="toggleAccordion('f1')">
         <div class="flex items-center justify-between font-bold text-heritage-900 text-sm">
           <span>Why does Panditji use glass instead of standard plastic pouches?</span>
           <span id="f1-icon" class="text-gilded-600 text-xl font-bold">+</span>
@@ -690,7 +696,7 @@
         </div>
       </div>
 
-      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-xs" onclick="toggleAccordion('f2')">
+      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-2xs" onclick="toggleAccordion('f2')">
         <div class="flex items-center justify-between font-bold text-heritage-900 text-sm">
           <span>How does the bottle return deduction reflect on my bill?</span>
           <span id="f2-icon" class="text-gilded-600 text-xl font-bold">+</span>
@@ -700,7 +706,7 @@
         </div>
       </div>
 
-      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-xs" onclick="toggleAccordion('f3')">
+      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-2xs" onclick="toggleAccordion('f3')">
         <div class="flex items-center justify-between font-bold text-heritage-900 text-sm">
           <span>Can I pause milk delivery if I go out of town?</span>
           <span id="f3-icon" class="text-gilded-600 text-xl font-bold">+</span>
@@ -710,7 +716,7 @@
         </div>
       </div>
 
-      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-xs" onclick="toggleAccordion('f4')">
+      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-2xs" onclick="toggleAccordion('f4')">
         <div class="flex items-center justify-between font-bold text-heritage-900 text-sm">
           <span>Is your buffalo milk pasteurized or raw?</span>
           <span id="f4-icon" class="text-gilded-600 text-xl font-bold">+</span>
@@ -758,12 +764,17 @@
         </div>
 
         <div>
-          <h5 class="text-xs font-bold text-gilded-500 uppercase tracking-widest mb-3">Payment Protocols</h5>
-          <p class="text-xs text-stone-400 leading-relaxed mb-3">
-            Supports UPI AutoPay, Google Pay, PhonePe, Paytm &amp; e-NACH automatic recurring settlements.
-          </p>
-          <div class="inline-flex items-center gap-2 px-3 py-1 bg-heritage-800 rounded-lg text-[10px] text-emerald-400 border border-heritage-700 font-mono">
-            <span>🔒 256-Bit Bank Grade SSL</span>
+          <h5 class="text-xs font-bold text-gilded-500 uppercase tracking-widest mb-3">Quick Portals</h5>
+          <div class="flex flex-col space-y-2 text-xs">
+            <button onclick="accessPortal('agent.html', 'Agent Portal')" class="text-left text-stone-300 hover:text-gilded-500 font-semibold transition">
+              📱 Agent Delivery Portal (PIN: 1234)
+            </button>
+            <button onclick="accessPortal('admin.html', 'Admin Console')" class="text-left text-stone-300 hover:text-gilded-500 font-semibold transition">
+              ⚙️ Admin Operations Console (PIN: 1234)
+            </button>
+          </div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-heritage-800 rounded-lg text-[10px] text-emerald-400 border border-heritage-700 font-mono mt-4">
+            <span>🔒 256-Bit SSL Protected</span>
           </div>
         </div>
 
@@ -771,14 +782,45 @@
 
       <div class="pt-8 border-t border-heritage-800 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-4">
         <div>© 2026 Panditji Pure Natural Dairy Farm. All rights reserved.</div>
-        <div class="flex gap-6">
+        <div class="flex flex-wrap gap-4 sm:gap-6">
           <a href="#" class="hover:text-gilded-500">Privacy Policy</a>
           <a href="#" class="hover:text-gilded-500">Terms of Subscription</a>
-          <a href="#" class="hover:text-gilded-500">Hygiene Audits</a>
+          <button onclick="accessPortal('agent.html', 'Agent Portal')" class="hover:text-gilded-500 transition">Agent App</button>
+          <button onclick="accessPortal('admin.html', 'Admin Console')" class="hover:text-gilded-500 transition">Admin Portal</button>
         </div>
       </div>
     </div>
   </footer>
+
+  <!-- MODAL: Password Protection for Agent & Admin (PIN: 1234) -->
+  <div id="portalModal" class="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl relative border-2 border-gilded-500/40 text-center space-y-4">
+      
+      <button onclick="closePortalModal()" class="absolute top-4 right-4 text-stone-400 hover:text-stone-700 p-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="w-12 h-12 rounded-2xl bg-heritage-100 text-heritage-800 font-black text-xl flex items-center justify-center mx-auto border border-heritage-600/30">
+        🔒
+      </div>
+
+      <div>
+        <h3 class="font-serif font-bold text-lg text-heritage-900" id="portalModalTitle">Restricted Access</h3>
+        <p class="text-xs text-stone-500 mt-1" id="portalModalSubtitle">Enter security passcode to continue</p>
+      </div>
+
+      <form onsubmit="verifyPortalPin(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-stone-700 uppercase tracking-wider mb-1 text-[11px]">Security PIN</label>
+          <input type="password" id="portalPinInput" maxlength="10" placeholder="Default: 1234" autofocus required class="w-full border border-stone-300 rounded-xl p-2.5 text-center font-bold tracking-widest text-lg focus:outline-none focus:border-heritage-800">
+          <p id="portalPinError" class="text-xs text-red-600 font-bold hidden mt-1.5"></p>
+        </div>
+        <button type="submit" class="w-full bg-heritage-800 hover:bg-heritage-900 text-cream-100 font-bold py-3 rounded-xl uppercase tracking-wider text-xs shadow-md transition">
+          Unlock &amp; Proceed
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- MODAL: UPI AutoPay & Subscription Checkout Simulation -->
   <div id="autopayModal" class="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -909,6 +951,44 @@
       }
     };
 
+    // Portal Passcode Protection Logic (PIN: 1234)
+    let pendingPortalUrl = '';
+
+    function accessPortal(targetUrl, portalName) {
+      pendingPortalUrl = targetUrl;
+      const modal = document.getElementById('portalModal');
+      const title = document.getElementById('portalModalTitle');
+      const subtitle = document.getElementById('portalModalSubtitle');
+      const pinInput = document.getElementById('portalPinInput');
+      const err = document.getElementById('portalPinError');
+
+      title.innerText = portalName + ' Access';
+      subtitle.innerText = 'Enter authorization PIN (1234) to open ' + portalName;
+      pinInput.value = '';
+      err.classList.add('hidden');
+      modal.classList.remove('hidden');
+      setTimeout(() => pinInput.focus(), 100);
+    }
+
+    function closePortalModal() {
+      document.getElementById('portalModal').classList.add('hidden');
+      pendingPortalUrl = '';
+    }
+
+    function verifyPortalPin(e) {
+      e.preventDefault();
+      const pinInput = document.getElementById('portalPinInput');
+      const err = document.getElementById('portalPinError');
+
+      if (pinInput.value.trim() === '1234') {
+        window.location.href = pendingPortalUrl;
+      } else {
+        err.innerText = 'Incorrect passcode! Default PIN is 1234.';
+        err.classList.remove('hidden');
+        pinInput.select();
+      }
+    }
+
     // Set Volume
     function setVolume(vol) {
       dairyState.volume = vol;
@@ -917,7 +997,7 @@
       ['250', '500', '1000'].forEach(v => {
         const btn = document.getElementById(`volBtn${v}`);
         if (v === vol) {
-          btn.className = "vol-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-3.5 text-center transition flex flex-col justify-between shadow-xs";
+          btn.className = "vol-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-3.5 text-center transition flex flex-col justify-between shadow-2xs";
         } else {
           btn.className = "vol-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-3.5 text-center transition flex flex-col justify-between";
         }
@@ -1047,6 +1127,15 @@
         icon.innerText = '+';
       }
     }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closePortalModal();
+        closeAutopayModal();
+        closeSuccessModal();
+      }
+    });
 
     // Init on load
     window.onload = function() {
