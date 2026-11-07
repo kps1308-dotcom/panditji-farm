@@ -780,7 +780,7 @@
           <h5 class="text-xs font-bold text-gilded-500 uppercase tracking-widest mb-3">Runner Access</h5>
           <div class="flex flex-col space-y-2 text-xs">
             <button onclick="openAgentModal()" class="text-left text-emerald-400 hover:text-emerald-300 font-bold transition flex items-center gap-1.5">
-              <span>📱 Agent Delivery Portal (PIN: 1234)</span>
+              <span>📱 Agent Delivery Portal </span>
             </button>
           </div>
           <div class="inline-flex items-center gap-2 px-3 py-1 bg-heritage-800 rounded-lg text-[10px] text-emerald-400 border border-heritage-700 font-mono mt-4">
@@ -815,13 +815,13 @@
 
       <div>
         <h3 class="font-serif font-bold text-lg text-heritage-900">Agent Portal Access</h3>
-        <p class="text-xs text-stone-500 mt-1">Enter route passcode (1234) to launch app</p>
+        <p class="text-xs text-stone-500 mt-1">Enter route passcode to launch app</p>
       </div>
 
       <form onsubmit="verifyAgentPin(event)" class="space-y-3 text-xs">
         <div>
           <label class="block font-bold text-stone-700 uppercase tracking-wider mb-1 text-[11px]">Security PIN</label>
-          <input type="password" id="agentPinInput" maxlength="10" placeholder="Default: 1234" autofocus required class="w-full border border-stone-300 rounded-xl p-2.5 text-center font-bold tracking-widest text-lg focus:outline-none focus:border-heritage-800">
+          <input type="password" id="agentPinInput" maxlength="10" placeholder="XXXXXX" autofocus required class="w-full border border-stone-300 rounded-xl p-2.5 text-center font-bold tracking-widest text-lg focus:outline-none focus:border-heritage-800">
           <p id="agentPinError" class="text-xs text-red-600 font-bold hidden mt-1.5"></p>
         </div>
         <button type="submit" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-3 rounded-xl uppercase tracking-wider text-xs shadow-md transition active:scale-95">
@@ -983,7 +983,7 @@
       if (pin.value.trim() === '1234') {
         window.location.href = 'agent.html';
       } else {
-        err.textContent = 'Incorrect passcode! Default PIN is 1234.';
+        err.textContent = 'Incorrect passcode!';
         err.classList.remove('hidden');
         pin.select();
       }
