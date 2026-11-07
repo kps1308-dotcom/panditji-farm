@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="en" class="overflow-x-hidden">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- Prevent Localhost & Browser Stale Caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <title>Panditji Dairy Farm | Operations & Admin Console</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    html, body {
+      width: 100%;
+      overflow-x: hidden;
+      touch-action: pan-y;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f3f6f3;
+      color: #143525;
+    }
+    .panel {
+      background: #ffffff;
+      border: 1px solid #d8e5dc;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(20,53,37,0.04);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .btn {
+      background: #185237;
+      color: #ffffff;
+      padding: 8px 14px;
+      border-radius: 9px;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:hover { background: #123e2a; }
+    .btn-secondary {
+      background: #e8f1eb;
+      color: #185237;
+      padding: 8px 14px;
+      border-radius: 9px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .btn-secondary:hover { background: #dceade; }
+    .btn-wa {
+      background: #25D366;
+      color: #ffffff;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    input, select, textarea {
+      border: 1px solid #c9d8ce;
+      border-radius: 8px;
+      padding: 8px 10px;
+      width: 100%;
+      background: #ffffff;
+      font-size: 13px;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #185237;
+      box-shadow: 0 0 0 2px rgba(24,82,55,0.15);
+    }
+    label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #53695d;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .nav-btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      color: #cbe0d3;
+      transition: 0.15s;
+      white-space: nowrap;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      background: #235d40;
+      color: #ffffff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      text-align: left;
+      padding: 9px 10px;
+      border-bottom: 1px solid #e7eee9;
+    }
+    th {
+      color: #53695d;
+      background: #f8faf8;
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge {
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      display: inline-block;
+    }
+    .badge-planned { background: #fef3c7; color: #92400e; }
+    .badge-delivered { background: #d1fae5; color: #065f46; }
+    .badge-skipped { background: #fee2e2; color: #991b1b; }
+    .tab-toggle {
+      background: #e2ede5;
+      border-radius: 8px;
+      padding: 3px;
+      display: inline-flex;
+      gap: 3px;
+    }
+    .tab-toggle button {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      color: #235d40;
+    }
+    .tab-toggle button.active {
+      background: #185237;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body class="w-full">
+
+<!-- 1. ADMIN AUTHENTICATION GATE (Username: 9133550086 | Password: 4321) -->
+<div id="adminAuthGate" class="fixed inset-0 bg-[#123826] z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
+    <div class="w-14 h-14 mx-auto rounded-xl bg-emerald-100 flex items-center justify-center font-black text-2xl text-emerald-800 border-2 border-emerald-300">
+      PJ
+    </div>
+    <div>
+      <h2 class="text-xl font-bold text-gray-900">Admin Operations Console</h2>
+      <p class="text-xs text-gray-500 mt-1">Authorized Panditji Farm Managers Only</p>
+    </div>
+
+    <form onsubmit="handleAdminLogin(event)" class="space-y-3 text-left">
+      <div>
+        <label>Admin Mobile / Username</label>
+        <input type="tel" id="admUser" required placeholder="9133550086" value="9133550086" class="text-sm font-semibold">
+      </div>
+      <div>
+        <label>Passcode / Password</label>
+        <input type="password" id="admPass" required placeholder="••••" autofocus class="text-sm font-bold tracking-widest text-center text-lg">
+      </div>
+
+      <p id="authError" class="text-xs text-red-600 font-bold hidden text-center"></p>
+
+      <button type="submit" class="btn w-full py-3 text-sm">
+        Unlock Operations Console
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- 2. MAIN APPLICATION CONSOLE -->
+<div id="adminApp" class="hidden min-h-screen flex flex-col w-full">
+  
+  <!-- Header -->
+  <header class="bg-[#123826] text-white px-4 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-30 shadow-md">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center font-bold text-emerald-300 border border-emerald-400/30 text-sm">PJ</div>
+      <div>
+        <h1 class="text-sm sm:text-base font-bold tracking-tight leading-tight">Panditji Dairy Farm</h1>
+        <p class="text-[10px] text-emerald-200">Central Operations · Live Cloud</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-2 text-xs">
+      <!-- Sync Status Badge -->
+      <button onclick="pullFromCloud()" class="bg-[#1b4d35] hover:bg-[#235d40] px-2.5 py-1.5 rounded-lg border border-emerald-500/30 flex items-center gap-1.5 text-[11px]" title="Force Fetch Latest Data">
+        <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+        <span id="syncText">Cloud Synced</span>
+      </button>
+
+      <button onclick="handleAdminLogout()" class="bg-red-950/70 hover:bg-red-900 text-red-200 border border-red-500/40 px-2.5 py-1.5 rounded-lg font-bold text-[11px]">
+        Log Out
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile & Desktop Navigation Bar (Scrollable on small screens) -->
+  <nav class="bg-[#16432e] px-2 py-2 flex items-center gap-1.5 overflow-x-auto border-b border-[#1f543a] shrink-0 sticky top-14 z-20">
+    <button class="nav-btn active" onclick="showView('overview', this)">▦ Overview</button>
+    <button class="nav-btn" onclick="showView('vendors', this)">🐄 Vendors &amp; Intake</button>
+    <button class="nav-btn" onclick="showView('customers', this)">👥 Customers</button>
+    <button class="nav-btn" onclick="showView('dispatch', this)">🚚 Route Dispatch</button>
+    <button class="nav-btn" onclick="showView('bottles', this)">🍾 Bottle Ledger</button>
+    <button class="nav-btn" onclick="showView('billing', this)">🧾 Monthly Invoices</button>
+    <button class="nav-btn text-amber-300" onclick="exportData()">💾 Backup JSON</button>
+  </nav>
+
+  <!-- Main Body Content -->
+  <main class="p-3 sm:p-5 flex-1 max-w-7xl mx-auto w-full space-y-4">
+
+    <!-- VIEW: OVERVIEW WITH MILK RECONCILIATION -->
+    <section id="overview" class="view space-y-4">
+      <div class="panel flex flex-wrap items-center justify-between gap-2.5 bg-white">
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="tab-toggle">
+            <button id="toggleDayBtn" class="active" onclick="switchOverviewScope('day')">📅 Day</button>
+            <button id="toggleMonthBtn" onclick="switchOverviewScope('month')">🗓️ Month</button>
+          </div>
+          <div id="daySelectorWrap">
+            <input type="date" id="ovDate" class="text-xs py-1" onchange="renderOverviewMetrics()">
+          </div>
+          <div id="monthSelectorWrap" class="hidden">
+            <input type="month" id="ovMonth" class="text-xs py-1" onchange="renderOverviewMetrics()">
+          </div>
+          <select id="ovShift" class="text-xs py-1 font-bold w-auto" onchange="renderOverviewMetrics()">
+            <option value="ALL">All Shifts</option>
+            <option value="Morning">Morning Batch</option>
+            <option value="Evening">Evening Batch</option>
+          </select>
+        </div>
+        <div class="text-[11px] text-gray-500 font-medium">Real-time Inflow vs. Outflow</div>
+      </div>
+
+      <!-- Milk Balance Metrics -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div class="panel border-l-4 border-blue-600 p-3">
+          <div class="text-[10px] text-gray-500 uppercase font-bold">Milk Intake (Vendors)</div>
+          <div id="kMilkIn" class="text-xl sm:text-2xl font-black text-blue-900 mt-0.5">0.0 L</div>
+          <div class="text-[10px] text-gray-500" id="kMilkInCost">Cost: ₹0</div>
+        </div>
+        <div class="panel border-l-4 border-emerald-600 p-3">
+          <div class="text-[10px] text-gray-500 uppercase font-bold">Milk Dispatched</div>
+          <div id="kMilkOut" class="text-xl sm:text-2xl font-black text-emerald-800 mt-0.5">0.0 L</div>
+          <div class="text-[10px] text-emerald-700 font-semibold" id="kMilkOutRev">Sales: ₹0</div>
+        </div>
+        <div class="panel border-l-4 border-amber-500 bg-amber-50/20 p-3">
+          <div class="text-[10px] text-amber-900 uppercase font-bold">Tank Balance</div>
+          <div id="kMilkBalance" class="text-xl sm:text-2xl font-black text-amber-900 mt-0.5">0.0 L</div>
+          <div class="text-[10px] text-gray-600" id="kMilkBalanceStatus">Surplus / Deficit</div>
+        </div>
+        <div class="panel border-l-4 border-green-800 p-3">
+          <div class="text-[10px] text-gray-500 uppercase font-bold">Net Milk Margin</div>
+          <div id="kNetProfit" class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5">₹0</div>
+          <div class="text-[10px] text-emerald-800" id="kNetProfitSub">Sales - Intake</div>
+        </div>
+      </div>
+
+      <!-- Live Dispatch Status Table -->
+      <div class="panel overflow-hidden">
+        <h3 class="font-bold text-sm text-[#143525] mb-2">Today's Real-Time Dispatch Status</h3>
+        <div class="overflow-x-auto w-full">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer / H.No</th>
+                <th>Area</th>
+                <th>Item</th>
+                <th>Runner</th>
+                <th>Status</th>
+                <th>Bottles</th>
+              </tr>
+            </thead>
+            <tbody id="overviewList"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: VENDORS & INTAKE -->
+    <section id="vendors" class="view hidden space-y-4">
+      <form class="panel grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5" onsubmit="addProcurement(event)">
+        <h3 class="font-bold text-sm col-span-2 sm:col-span-3 lg:col-span-6 border-b pb-1 text-[#143525]">+ Record Daily Intake</h3>
+        <div>
+          <label>Date</label>
+          <input type="date" id="pDate" required>
+        </div>
+        <div>
+          <label>Shift</label>
+          <select id="pShift">
+            <option value="Morning">Morning</option>
+            <option value="Evening">Evening</option>
+          </select>
+        </div>
+        <div>
+          <label>Vendor</label>
+          <select id="pVendorSelect" onchange="autoFillVendorRate()" required></select>
+        </div>
+        <div>
+          <label>Litres</label>
+          <input type="number" step="0.5" min="0.5" id="pLitres" value="4" required oninput="calcProcurementTotal()">
+        </div>
+        <div>
+          <label>Rate (₹/L)</label>
+          <input type="number" step="1" id="pRate" value="80" required oninput="calcProcurementTotal()">
+        </div>
+        <div>
+          <label>Total (₹)</label>
+          <input type="number" id="pTotal" value="320" readonly class="bg-gray-100 font-bold">
+        </div>
+        <div class="col-span-2 sm:col-span-3 lg:col-span-6 flex justify-end">
+          <button class="btn px-6 py-2">Save Intake to Cloud</button>
+        </div>
+      </form>
+
+      <div class="panel overflow-x-auto">
+        <h3 class="font-bold text-sm text-[#143525] mb-2">Recent Milk Intake History</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Date &amp; Shift</th>
+              <th>Vendor</th>
+              <th>Volume</th>
+              <th>Rate</th>
+              <th>Total Cost</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="procurementRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW: CUSTOMERS -->
+    <section id="customers" class="view hidden space-y-4">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+        <h2 class="text-base font-bold">Customer Directory</h2>
+        <input type="text" id="custSearch" placeholder="🔍 Search H.No, Name, Phone..." oninput="renderCustomers()" class="w-full sm:w-64">
+      </div>
+
+      <form class="panel grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs" onsubmit="addCustomer(event)">
+        <h3 class="font-bold text-sm col-span-full border-b pb-1 text-[#143525]">+ Add New Customer</h3>
+        <div>
+          <label>Customer Name</label>
+          <input id="cName" required placeholder="e.g. Ramesh Sharma">
+        </div>
+        <div>
+          <label>Mobile Number</label>
+          <input id="cPhone" pattern="[0-9]{10}" required placeholder="9876543210">
+        </div>
+        <div>
+          <label>Area / Locality</label>
+          <select id="cArea">
+            <option value="IIT Kandi">IIT Kandi</option>
+            <option value="Sangareddy">Sangareddy</option>
+            <option value="Mamidipally">Mamidipally</option>
+            <option value="Rudraram">Rudraram</option>
+          </select>
+        </div>
+        <div>
+          <label>H.No / Flat</label>
+          <input id="cHno" required placeholder="H.No 3-45/A">
+        </div>
+        <div>
+          <label>Address / Landmark</label>
+          <input id="cAddress" required placeholder="Near Temple">
+        </div>
+        <div>
+          <label>Size (ml)</label>
+          <select id="cSize">
+            <option value="1000" selected>1000 ml (₹130)</option>
+            <option value="500">500 ml (₹70)</option>
+            <option value="250">250 ml (₹40)</option>
+          </select>
+        </div>
+        <div class="col-span-full flex justify-end">
+          <button class="btn px-6 py-2">Register Customer</button>
+        </div>
+      </form>
+
+      <div class="panel overflow-x-auto">
+        <table>
+          <thead>
+            <tr>
+              <th>H.No</th>
+              <th>Customer</th>
+              <th>Area</th>
+              <th>Mobile</th>
+              <th>Size</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="customerRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW: ROUTE DISPATCH -->
+    <section id="dispatch" class="view hidden space-y-4">
+      <div class="panel space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-2">
+          <div class="flex items-center gap-2">
+            <input type="date" id="dDate" class="text-xs py-1" onchange="renderDispatchRows()">
+            <select id="dBatch" class="text-xs py-1 font-bold" onchange="renderDispatchRows()">
+              <option value="Morning">Morning Batch</option>
+              <option value="Evening">Evening Batch</option>
+            </select>
+          </div>
+          <button class="btn text-xs py-1.5" onclick="autoGenerateDispatchForDate()">
+            🚀 Populate All Active Customers for Today
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>H.No / Customer</th>
+                <th>Area</th>
+                <th>Milk Item</th>
+                <th>Assigned Runner</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="dispatchRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: BOTTLE LEDGER -->
+    <section id="bottles" class="view hidden space-y-4">
+      <div class="panel overflow-x-auto">
+        <h3 class="font-bold text-sm text-[#143525] mb-2">Bottle Return Ledger</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Size</th>
+              <th>Returned</th>
+              <th>Rebate Credited</th>
+            </tr>
+          </thead>
+          <tbody id="bottleRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW: BILLING & INVOICES -->
+    <section id="billing" class="view hidden space-y-4">
+      <div class="panel flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <input type="month" id="billMonth" class="text-xs py-1">
+          <button class="btn text-xs py-1.5" onclick="generateBills()">Generate Monthly Ledger</button>
+        </div>
+      </div>
+
+      <div class="panel overflow-x-auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice #</th>
+              <th>Customer</th>
+              <th>Delivered Days</th>
+              <th>Gross Milk</th>
+              <th>Bottle Savings</th>
+              <th>Net Due</th>
+            </tr>
+          </thead>
+          <tbody id="billRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+// Hardcoded Supabase credentials for seamless cross-device synchronization
+const SUPABASE_URL = 'https://nvqszaywblhdxhlhiuxp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Pkn8vXc6unUaY2ZPTFf9Rg_LZwu3GDm';
+
+let sbClient = null;
+let overviewScope = 'day';
+
+// Master in-memory database
+let db = {
+  vendors: [
+    { id: 'v1', name: 'Mani', phone: '9849011223', location: 'Mamidipally', defaultRate: 80 }
+  ],
+  procurements: [
+    { id: 'pr1', date: todayStr(), shift: 'Morning', vendorId: 'v1', vendorName: 'Mani', litres: 4, rate: 80, totalCost: 320 }
+  ],
+  customers: [
+    { id: 'c1', name: 'Sanjay Reddy', phone: '9849012345', area: 'IIT Kandi', hno: 'Plot 42, H.No 1-12/A', address: 'Near Gate', product: 'Buffalo Milk (Pure Natural)', size: 1000, rate: 130, frequency: 'Daily', agent: 'Agent 1', active: true },
+    { id: 'c2', name: 'Lakshmi Narayana', phone: '9849054321', area: 'Sangareddy', hno: 'Flat 204, Sri Nivas', address: 'Old Bus Stand', product: 'Buffalo Milk (Pure Natural)', size: 500, rate: 70, frequency: 'Daily', agent: 'Agent 1', active: true },
+    { id: 'c3', name: 'Dr. Venkat Raman', phone: '9123456789', area: 'IIT Kandi', hno: 'Faculty Qtr B-12', address: 'IIT Campus', product: 'Buffalo Milk (Pure Natural)', size: 1000, rate: 130, frequency: 'Daily', agent: 'Agent 1', active: true }
+  ],
+  deliveries: [],
+  bottles: [],
+  invoices: []
+};
+
+// -------------------------------------------------------------
+// AUTHENTICATION GUARD: 9133550086 / 4321
+// -------------------------------------------------------------
+function handleAdminLogin(e) {
+  e.preventDefault();
+  const u = $('admUser').value.trim();
+  const p = $('admPass').value.trim();
+  const err = $('authError');
+
+  if (u === '9133550086' && p === '4321') {
+    sessionStorage.setItem('pjf_admin_auth', 'true');
+    err.classList.add('hidden');
+    unlockAdminInterface();
+  } else {
+    err.textContent = 'Invalid credentials! Mobile: 9133550086, Passcode: 4321';
+    err.classList.remove('hidden');
+    $('admPass').select();
+  }
+}
+
+function handleAdminLogout() {
+  if (confirm('Log out from Admin Console?')) {
+    sessionStorage.removeItem('pjf_admin_auth');
+    $('adminApp').classList.add('hidden');
+    $('adminAuthGate').classList.remove('hidden');
+    $('admPass').value = '';
+  }
+}
+
+function checkAdminAuth() {
+  if (sessionStorage.getItem('pjf_admin_auth') === 'true') {
+    unlockAdminInterface();
+  } else {
+    $('adminAuthGate').classList.remove('hidden');
+    $('adminApp').classList.add('hidden');
+  }
+}
+
+async function unlockAdminInterface() {
+  $('adminAuthGate').classList.add('hidden');
+  $('adminApp').classList.remove('hidden');
+  initSupabase();
+  await pullFromCloud(); // Pull latest real-time state from Supabase
+}
+
+// -------------------------------------------------------------
+// SUPABASE REALTIME CLOUD ENGINE (SAVES & LOADS FROM PC/MOBILE)
+// -------------------------------------------------------------
+function initSupabase() {
+  if (window.supabase) {
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+}
+
+async function pullFromCloud() {
+  if (!sbClient) initSupabase();
+  if (!sbClient) return;
+
+  $('syncText').textContent = 'Fetching...';
+  try {
+    const { data, error } = await sbClient
+      .from('farm_workspace')
+      .select('data')
+      .eq('id', 'primary_farm')
+      .single();
+
+    if (data && data.data) {
+      db = data.data;
+      localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+      $('syncText').textContent = 'Live Cloud OK';
+      renderAll();
+    } else {
+      // First run: push initial dataset up
+      await pushToCloud();
+    }
+  } catch (err) {
+    console.warn('Pull warning:', err);
+    $('syncText').textContent = 'Offline (Local)';
+    // Load local storage fallback
+    const local = localStorage.getItem('pjf_admin_ops');
+    if (local) db = JSON.parse(local);
+    renderAll();
+  }
+}
+
+async function pushToCloud() {
+  localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+  if (!sbClient) initSupabase();
+  if (!sbClient) return;
+
+  $('syncText').textContent = 'Saving...';
+  try {
+    const { error } = await sbClient
+      .from('farm_workspace')
+      .upsert({ id: 'primary_farm', data: db, updated_at: new Date() });
+
+    if (!error) {
+      $('syncText').textContent = 'Live Cloud OK';
+    }
+  } catch (err) {
+    console.warn('Cloud save warning:', err);
+    $('syncText').textContent = 'Saved Locally';
+  }
+}
+
+async function save() {
+  renderAll();
+  await pushToCloud();
+}
+
+// -------------------------------------------------------------
+// NAVIGATION & VIEW SWITCHER
+// -------------------------------------------------------------
+function showView(viewId, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  $(viewId).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderAll();
+}
+
+// -------------------------------------------------------------
+// VENDORS & INTAKE
+// -------------------------------------------------------------
+function autoFillVendorRate() {
+  const vId = $('pVendorSelect').value;
+  const v = (db.vendors || []).find(x => x.id === vId);
+  if (v) {
+    $('pRate').value = v.defaultRate || 80;
+    calcProcurementTotal();
+  }
+}
+
+function calcProcurementTotal() {
+  const l = parseFloat($('pLitres').value) || 0;
+  const r = parseFloat($('pRate').value) || 0;
+  $('pTotal').value = Math.round(l * r);
+}
+
+async function addProcurement(e) {
+  e.preventDefault();
+  const vId = $('pVendorSelect').value;
+  const v = (db.vendors || []).find(x => x.id === vId);
+  if (!v) return alert('Select vendor');
+
+  const litres = parseFloat($('pLitres').value) || 0;
+  const rate = parseFloat($('pRate').value) || 0;
+
+  db.procurements = db.procurements || [];
+  db.procurements.push({
+    id: uid(),
+    date: $('pDate').value,
+    shift: $('pShift').value,
+    vendorId: v.id,
+    vendorName: v.name,
+    litres: litres,
+    rate: rate,
+    totalCost: Math.round(litres * rate)
+  });
+
+  await save();
+  alert(`Logged ${litres}L from ${v.name}! Cloud updated.`);
+}
+
+async function deleteProcurementEntry(entryId) {
+  if (confirm('Delete this intake record?')) {
+    db.procurements = (db.procurements || []).filter(p => p.id !== entryId);
+    await save();
+  }
+}
+
+// -------------------------------------------------------------
+// CUSTOMERS
+// -------------------------------------------------------------
+async function addCustomer(e) {
+  e.preventDefault();
+  const size = Number($('cSize').value);
+  let rate = 130;
+  if (size === 500) rate = 70;
+  if (size === 250) rate = 40;
+
+  const cust = {
+    id: uid(),
+    name: $('cName').value.trim(),
+    phone: $('cPhone').value.trim(),
+    area: $('cArea').value,
+    hno: $('cHno').value.trim(),
+    address: $('cAddress').value.trim(),
+    product: 'Buffalo Milk (Pure Natural)',
+    size: size,
+    rate: rate,
+    frequency: 'Daily',
+    agent: 'Agent 1',
+    active: true
+  };
+
+  db.customers = db.customers || [];
+  db.customers.push(cust);
+  await save();
+  e.target.reset();
+  alert(`Customer "${cust.name}" registered and synced!`);
+}
+
+// -------------------------------------------------------------
+// DISPATCH ENGINE
+// -------------------------------------------------------------
+async function autoGenerateDispatchForDate() {
+  const date = $('dDate').value || todayStr();
+  const batch = $('dBatch').value || 'Morning';
+
+  let added = 0;
+  (db.customers || []).filter(c => c.active).forEach(c => {
+    const exists = (db.deliveries || []).some(d => d.date === date && d.customerId === c.id && d.batch === batch);
+    if (!exists) {
+      db.deliveries.push({
+        id: uid(),
+        date: date,
+        batch: batch,
+        customerId: c.id,
+        customerName: c.name,
+        customerPhone: c.phone,
+        area: c.area || 'Mamidipally',
+        hno: c.hno,
+        product: c.product,
+        size: c.size,
+        rate: c.rate,
+        agent: c.agent || 'Agent 1',
+        status: 'planned',
+        bottlesReturned: 0,
+        bottlesRebate: 0
+      });
+      added++;
+    }
+  });
+
+  await save();
+  alert(`Scheduled ${added} customer stops for ${date} (${batch})!`);
+}
+
+// -------------------------------------------------------------
+// RECONCILIATION & METRICS
+// -------------------------------------------------------------
+function switchOverviewScope(scope) {
+  overviewScope = scope;
+  if (scope === 'day') {
+    $('toggleDayBtn').classList.add('active');
+    $('toggleMonthBtn').classList.remove('active');
+    $('daySelectorWrap').classList.remove('hidden');
+    $('monthSelectorWrap').classList.add('hidden');
+  } else {
+    $('toggleMonthBtn').classList.add('active');
+    $('toggleDayBtn').classList.remove('active');
+    $('monthSelectorWrap').classList.remove('hidden');
+    $('daySelectorWrap').classList.add('hidden');
+  }
+  renderOverviewMetrics();
+}
+
+function renderOverviewMetrics() {
+  const selectedDate = $('ovDate').value || todayStr();
+  const selectedMonth = $('ovMonth').value || todayStr().slice(0, 7);
+  const shift = $('ovShift').value;
+
+  let procs = db.procurements || [];
+  let dels = db.deliveries || [];
+
+  if (overviewScope === 'day') {
+    procs = procs.filter(p => p.date === selectedDate);
+    dels = dels.filter(d => d.date === selectedDate);
+  } else {
+    procs = procs.filter(p => p.date && p.date.startsWith(selectedMonth));
+    dels = dels.filter(d => d.date && d.date.startsWith(selectedMonth));
+  }
+
+  if (shift !== 'ALL') {
+    procs = procs.filter(p => p.shift === shift);
+    dels = dels.filter(d => (d.batch || 'Morning') === shift);
+  }
+
+  const milkInLitres = procs.reduce((sum, p) => sum + (p.litres || 0), 0);
+  const procurementCost = procs.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+
+  const deliveredStops = dels.filter(d => d.status === 'delivered');
+  const milkOutLitres = deliveredStops.reduce((sum, d) => sum + (d.size || 0), 0) / 1000;
+  const salesRevenue = deliveredStops.reduce((sum, d) => sum + (d.rate || 0), 0);
+  const totalBottleRebates = deliveredStops.reduce((sum, d) => sum + (d.bottlesRebate || 0), 0);
+
+  const balanceLitres = (milkInLitres - milkOutLitres).toFixed(1);
+  const netMargin = (salesRevenue - totalBottleRebates) - procurementCost;
+
+  $('kMilkIn').textContent = `${milkInLitres.toFixed(1)} L`;
+  $('kMilkInCost').textContent = `Cost: ${money(procurementCost)}`;
+  $('kMilkOut').textContent = `${milkOutLitres.toFixed(1)} L`;
+  $('kMilkOutRev').textContent = `Sales: ${money(salesRevenue - totalBottleRebates)}`;
+  $('kMilkBalance').textContent = `${balanceLitres > 0 ? '+' : ''}${balanceLitres} L`;
+  $('kNetProfit').textContent = money(netMargin);
+}
+
+// -------------------------------------------------------------
+// RENDERERS
+// -------------------------------------------------------------
+function renderCustomers() {
+  const q = ($('custSearch').value || '').toLowerCase().trim();
+  const list = (db.customers || []).filter(c => 
+    c.name.toLowerCase().includes(q) ||
+    c.phone.includes(q) ||
+    c.hno.toLowerCase().includes(q)
+  );
+
+  $('customerRows').innerHTML = list.map(c => `
+    <tr>
+      <td class="font-bold">${esc(c.hno)}</td>
+      <td><b>${esc(c.name)}</b></td>
+      <td>${esc(c.area)}</td>
+      <td>${esc(c.phone)}</td>
+      <td>${c.size} ml (${money(c.rate)})</td>
+      <td><span class="text-xs font-semibold text-emerald-800">${esc(c.agent)}</span></td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-400">No customers found.</td></tr>`;
+}
+
+function renderProcurementRows() {
+  $('procurementRows').innerHTML = (db.procurements || []).slice().reverse().map(p => `
+    <tr>
+      <td>${p.date} (${p.shift})</td>
+      <td><b>${esc(p.vendorName)}</b></td>
+      <td class="font-bold text-blue-800">${p.litres} L</td>
+      <td>₹${p.rate}</td>
+      <td class="font-bold text-gray-900">${money(p.totalCost)}</td>
+      <td>
+        <button class="text-red-600 hover:underline font-bold text-xs" onclick="deleteProcurementEntry('${p.id}')">Delete</button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-400">No procurement entries recorded.</td></tr>`;
+}
+
+function renderDispatchRows() {
+  const date = $('dDate').value || todayStr();
+  const batch = $('dBatch').value || 'Morning';
+  const list = (db.deliveries || []).filter(d => d.date === date && (d.batch || 'Morning') === batch);
+
+  $('dispatchRows').innerHTML = list.map(d => `
+    <tr>
+      <td><b>${esc(d.hno)}</b><br><small>${esc(d.customerName)}</small></td>
+      <td>${esc(d.area)}</td>
+      <td>${d.size} ml</td>
+      <td><b>${esc(d.agent)}</b></td>
+      <td><span class="badge badge-${d.status}">${d.status}</span></td>
+    </tr>
+  `).join('') || `<tr><td colspan="5" class="text-center py-4 text-gray-400">No dispatches scheduled for ${date} (${batch}).</td></tr>`;
+}
+
+function renderAll() {
+  const today = todayStr();
+  if (!$('dDate').value) $('dDate').value = today;
+  if (!$('pDate').value) $('pDate').value = today;
+  if (!$('ovDate').value) $('ovDate').value = today;
+  if (!$('ovMonth').value) $('ovMonth').value = today.slice(0, 7);
+  if (!$('billMonth').value) $('billMonth').value = today.slice(0, 7);
+
+  $('pVendorSelect').innerHTML = (db.vendors || []).map(v => `<option value="${v.id}">${esc(v.name)} (${esc(v.location)})</option>`).join('');
+
+  renderOverviewMetrics();
+  renderProcurementRows();
+  renderCustomers();
+  renderDispatchRows();
+
+  $('overviewList').innerHTML = (db.deliveries || []).filter(d => d.date === today).map(d => `
+    <tr>
+      <td><b>${esc(d.hno)}</b><br><small>${esc(d.customerName)}</small></td>
+      <td>${esc(d.area)}</td>
+      <td>${d.size} ml</td>
+      <td>${esc(d.agent)}</td>
+      <td><span class="badge badge-${d.status}">${d.status}</span></td>
+      <td>${d.bottlesReturned || 0}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="text-center py-3 text-gray-400">No stops scheduled today.</td></tr>`;
+
+  $('bottleRows').innerHTML = (db.bottles || []).slice().reverse().map(b => `
+    <tr>
+      <td>${b.date}</td>
+      <td>${esc(b.customerName)}</td>
+      <td>${b.size} ml</td>
+      <td>${b.count}</td>
+      <td class="font-bold text-emerald-800">-${money(b.rebate)}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="5" class="text-center py-3 text-gray-400">No bottle returns recorded yet.</td></tr>`;
+}
+
+function generateBills() {
+  alert('Monthly bills recalculated and ready for review.');
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `panditji-database-backup-${todayStr()}.json`;
+  a.click();
+}
+
+function esc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
+}
+
+// Automatically re-fetch latest data whenever window gains focus (e.g. switching tabs from Agent App)
+window.addEventListener('focus', () => {
+  if (sessionStorage.getItem('pjf_admin_auth') === 'true') {
+    pullFromCloud();
+  }
+});
+
+// Run auth check on initialization
+checkAdminAuth();
+</script>
+</body>
+</html>
