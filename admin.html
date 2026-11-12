@@ -37,6 +37,30 @@
 </head>
 <body>
 
+<!-- ADMIN CONSOLE PASSWORD GATE (Password: 9133550086) -->
+<div id="adminLockScreen" class="fixed inset-0 bg-[#0F2319] z-[100] flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-4 border-2 border-emerald-600/30">
+    <div class="w-14 h-14 mx-auto rounded-2xl bg-[#123826] text-amber-300 flex items-center justify-center font-black text-2xl border-2 border-amber-400/50 shadow">
+      PJ
+    </div>
+    <div>
+      <h2 class="text-xl font-bold text-gray-900">Admin Console Locked</h2>
+      <p class="text-xs text-gray-500 mt-1">Panditji Dairy Farm · Central Operations</p>
+    </div>
+
+    <form onsubmit="verifyAdminConsolePassword(event)" class="space-y-3 text-left">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Admin Password</label>
+        <input type="password" id="adminGateInput" autocomplete="new-password" required placeholder="Enter Admin Password" autofocus class="w-full border border-gray-300 rounded-xl p-3 text-center font-bold tracking-widest text-base focus:border-emerald-700 focus:outline-none">
+        <p id="adminGateError" class="text-xs text-red-600 font-bold hidden text-center mt-1.5"></p>
+      </div>
+      <button type="submit" class="w-full bg-[#185237] hover:bg-[#123e2a] text-white font-bold py-3 rounded-xl text-sm shadow-md transition active:scale-95">
+        🔓 Unlock Admin Console
+      </button>
+    </form>
+  </div>
+</div>
+
 <!-- Header -->
 <header class="bg-[#123826] text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-30 shadow-md">
   <div class="flex items-center gap-3">
@@ -66,6 +90,7 @@
       <span id="waApiStatusDot" class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
     </button>
     <a href="agent.html" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg font-bold">📱 Agent App</a>
+    <button onclick="lockAdminConsole()" class="bg-red-900/80 hover:bg-red-800 px-2.5 py-1.5 rounded-lg font-bold border border-red-400/30" title="Lock Console">🔒 Lock</button>
   </div>
 </header>
 
@@ -1515,7 +1540,7 @@ function resetAgentForm() {
   $('agCancelEditBtn').classList.add('hidden');
 }
 
-function saveAgentEntry(e) {
+async function saveAgentEntry(e) {
   e.preventDefault();
   db.agents = db.agents || [];
   const editId = $('agEditId').value;
@@ -1537,11 +1562,13 @@ function saveAgentEntry(e) {
     db.agents.push({ id: uid(), name, phone, pin });
   }
 
-  save();
+  localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+  renderAll();
+  await pushToCloud(true);
   resetAgentForm();
   renderAgentTable();
   updateRunnerDropdowns();
-  alert('Agent credentials updated & synced to Cloud!');
+  alert(`Agent "${name}" credentials & PIN (${pin}) updated and synced to Cloud!`);
 }
 
 function editAgent(agentId) {
@@ -2363,9 +2390,57 @@ async function pushToCloud(silent = false) {
   if (!sbClient) initSupabase();
   if (!sbClient) return;
   try {
-    await sbClient.from('farm_workspace').upsert({ id: 'primary_farm', data: db, updated_at: new Date() });
-    if (!silent) alert('Synced to Cloud!');
+    const { error } = await sbClient.from('farm_workspace').upsert({
+      id: 'primary_farm',
+      data: db,
+      updated_at: new Date().toISOString()
+    });
+    if (!error) {
+      if ($('cloudStatusDot')) $('cloudStatusDot').className = 'w-2 h-2 rounded-full bg-emerald-400 inline-block';
+      if (!silent) alert('Synced to Cloud!');
+    } else if (!silent) {
+      alert('Cloud sync error: ' + error.message);
+    }
   } catch (err) {}
+}
+
+// Admin Console Password Gate Logic (9133550086)
+const ADMIN_CONSOLE_PASS = '9133550086';
+
+function checkAdminGate() {
+  const screen = $('adminLockScreen');
+  if (!screen) return;
+  if (sessionStorage.getItem('pjf_admin_unlocked') === 'true') {
+    screen.classList.add('hidden');
+  } else {
+    screen.classList.remove('hidden');
+    if ($('adminGateInput')) {
+      $('adminGateInput').value = '';
+      setTimeout(() => $('adminGateInput').focus(), 100);
+    }
+  }
+}
+
+function verifyAdminConsolePassword(e) {
+  e.preventDefault();
+  const input = $('adminGateInput');
+  const err = $('adminGateError');
+  if (input.value.trim() === ADMIN_CONSOLE_PASS) {
+    sessionStorage.setItem('pjf_admin_unlocked', 'true');
+    $('adminLockScreen').classList.add('hidden');
+    err.classList.add('hidden');
+    pullFromCloud(true);
+  } else {
+    err.textContent = '❌ Incorrect Admin Password!';
+    err.classList.remove('hidden');
+    input.value = '';
+    input.focus();
+  }
+}
+
+function lockAdminConsole() {
+  sessionStorage.removeItem('pjf_admin_unlocked');
+  checkAdminGate();
 }
 
 async function pullFromCloud(silent = false) {
@@ -2674,6 +2749,7 @@ $('salaryMonthInput').value = todayStr().slice(0, 7);
 $('salaryDateInput').value = todayStr();
 $('stkInputDateTime').value = nowFormatted();
 
+checkAdminGate();
 initSupabase();
 updateWaStatusBadge();
 renderAll();
