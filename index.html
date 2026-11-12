@@ -11,8 +11,9 @@
 
   <title>Panditji Pure Natural — Fresh Desi Buffalo Milk in Sterilized Glass</title>
   
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS & Supabase -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +27,7 @@
           colors: {
             heritage: {
               900: '#0F2319',
-              800: '#1B3B2B', // Signature Forest Green
+              800: '#1B3B2B',
               700: '#254E3A',
               600: '#32674D',
               100: '#E7EFEA',
@@ -34,20 +35,15 @@
             },
             cream: {
               50: '#FDFCF9',
-              100: '#FBF8F2', // Signature Warm Cream
+              100: '#FBF8F2',
               200: '#F4ECE0',
               300: '#EBDDC9',
             },
             gilded: {
-              500: '#D4A373', // Warm Artisanal Gold
+              500: '#D4A373',
               600: '#B88252',
               700: '#946338',
               100: '#FDF6EE',
-            },
-            accent: {
-              emerald: '#059669',
-              amber: '#D97706',
-              rust: '#B45309'
             }
           },
           fontFamily: {
@@ -64,20 +60,19 @@
     /* Strict Mobile Lock against horizontal sliding & elastic bounce */
     html, body {
       width: 100%;
+      max-width: 100vw;
       overflow-x: hidden;
+      overscroll-behavior-x: none;
       touch-action: pan-y;
       -webkit-tap-highlight-color: transparent;
       background-color: #FBF8F2;
       color: #1A1A1A;
       font-family: 'Plus Jakarta Sans', sans-serif;
+      position: relative;
     }
 
-    /* Glass texture */
-    .glass-card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(212, 163, 115, 0.25);
+    * {
+      box-sizing: border-box;
     }
 
     /* Bottle Cap Radial Gradient Graphic */
@@ -86,116 +81,104 @@
       box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.4), 0 10px 25px rgba(0, 0, 0, 0.35);
     }
 
-    /* Smooth animated pulse for batch tag */
-    @keyframes subtlePulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.03); opacity: 0.92; }
-    }
-    .pulse-live {
-      animation: subtlePulse 3s ease-in-out infinite;
-    }
-
-    /* Custom subtle scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #FBF8F2;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #D4A373;
-      border-radius: 9999px;
-    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #FBF8F2; }
+    ::-webkit-scrollbar-thumb { background: #D4A373; border-radius: 9999px; }
   </style>
 </head>
 <body class="selection:bg-heritage-800 selection:text-cream-100 flex flex-col min-h-screen w-full overflow-x-hidden">
 
   <!-- TOP BAR: 9:00 PM Order Cutoff Countdown & WhatsApp Hotline -->
-  <div class="bg-heritage-900 text-cream-200 border-b border-heritage-700/60 text-xs py-2.5 px-3 sm:px-4 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5 text-center sm:text-left">
-      <div class="flex items-center gap-2">
+  <div class="bg-heritage-900 text-cream-200 border-b border-heritage-700/60 text-xs py-2 px-3 sm:px-4 sticky top-0 z-50 w-full">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left">
+      <div class="flex items-center justify-center sm:justify-start gap-1.5 flex-wrap">
         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-          🌙 9:00 PM NIGHT OWL RULE
+          🌙 9:00 PM CUT-OFF
         </span>
         <span class="text-cream-300 text-[11px] sm:text-xs">
-          Need extra milk or pause tomorrow? Order before <strong>9:00 PM</strong> tonight.
+          Need extra milk tomorrow? Order before <strong>9:00 PM</strong> tonight.
         </span>
       </div>
 
-      <div class="flex items-center gap-4 text-[11px] font-medium text-cream-200">
+      <div class="flex items-center gap-3 text-[11px] font-medium text-cream-200">
         <span class="hidden md:inline-flex items-center gap-1.5 text-emerald-400">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
           Next Dispatch: Tomorrow, 5:30 AM – 7:00 AM
         </span>
-        <a href="https://wa.me/917993394025?text=Hello%20Panditji%20Dairy%2C%20I%20want%20to%20order%20milk" target="_blank" class="flex items-center gap-1 hover:text-gilded-500 transition text-amber-200 font-semibold">
-          <span>WhatsApp Hotline: +91 79933 94025</span>
+        <a href="https://wa.me/917993394025?text=Hello%20Panditji%20Dairy%2C%20I%20want%20to%20order%20milk" target="_blank" class="hover:text-gilded-500 transition text-amber-200 font-semibold">
+          Hotline: +91 79933 94025
         </a>
       </div>
     </div>
   </div>
 
   <!-- NAVIGATION HEADER -->
-  <nav class="bg-cream-100/95 backdrop-blur-md border-b border-cream-200/80 sticky top-8 z-40">
+  <nav class="bg-cream-100/95 backdrop-blur-md border-b border-cream-200/80 sticky top-8 z-40 w-full">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
       
       <!-- Logo Branding -->
-      <a href="#" class="flex items-center gap-2.5 sm:gap-3.5 group shrink-0">
-        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-heritage-800 text-cream-100 flex items-center justify-center border-2 border-gilded-500 shadow-md group-hover:bg-heritage-900 transition-colors">
-          <span class="font-serif font-bold text-xl sm:text-2xl text-gilded-500">प</span>
+      <a href="#" class="flex items-center gap-2 sm:gap-3 group min-w-0">
+        <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-heritage-800 text-cream-100 flex items-center justify-center border-2 border-gilded-500 shadow-md shrink-0">
+          <span class="font-serif font-bold text-lg sm:text-2xl text-gilded-500">प</span>
         </div>
         <div class="min-w-0">
-          <div class="flex items-center gap-1.5 sm:gap-2">
-            <span class="font-serif text-lg sm:text-2xl font-bold tracking-tight text-heritage-900 leading-tight">
+          <div class="flex items-center gap-1.5">
+            <span class="font-serif text-base sm:text-2xl font-bold tracking-tight text-heritage-900 leading-tight truncate">
               PANDITJI
             </span>
-            <span class="text-[9px] sm:text-[10px] tracking-widest uppercase font-extrabold px-1.5 py-0.5 rounded bg-heritage-100 text-heritage-800 border border-heritage-600/20">
+            <span class="text-[9px] tracking-widest uppercase font-extrabold px-1.5 py-0.5 rounded bg-heritage-100 text-heritage-800 border border-heritage-600/20 shrink-0">
               Pure Natural
             </span>
           </div>
-          <p class="text-[10px] sm:text-[11px] font-semibold tracking-wider text-gilded-700 uppercase truncate">
-            Fresh Buffalo Milk · Dawn Delivery · Zero Plastic
+          <p class="text-[9px] sm:text-[11px] font-semibold tracking-wider text-gilded-700 uppercase truncate">
+            Fresh Buffalo Milk · Dawn Delivery
           </p>
         </div>
       </a>
 
       <!-- Desktop Navigation Links -->
-      <div class="hidden lg:flex items-center gap-7 text-sm font-semibold text-heritage-900">
+      <div class="hidden lg:flex items-center gap-6 text-sm font-semibold text-heritage-900">
         <a href="#batch-seal" class="hover:text-gilded-600 transition">Sealed Cap &amp; Fat %</a>
         <a href="#subscription-engine" class="hover:text-gilded-600 transition">Plans &amp; Calculator</a>
         <a href="#bottle-cycle" class="hover:text-gilded-600 transition">Glass Wash Cycle</a>
         <a href="#tech-autopay" class="hover:text-gilded-600 transition">UPI AutoPay &amp; SMS</a>
       </div>
 
-      <!-- Action Area: ONLY Agent App Button (PIN: 1234) + Subscribe -->
-      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-        <button type="button" onclick="openAgentModal()" class="bg-emerald-800 hover:bg-emerald-900 text-white px-3 sm:px-3.5 py-2 rounded-xl font-bold text-xs shadow-xs transition flex items-center gap-1.5 active:scale-95" title="Agent Delivery App">
-          <span>📱</span>
-          <span class="font-bold">Agent</span>
+      <!-- Action Area: Quick 20-30m Delivery + Agent App + Subscribe -->
+      <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+        <button type="button" onclick="openQuickOrderModal()" class="bg-purple-700 hover:bg-purple-800 text-white px-2.5 sm:px-3.5 py-2 rounded-xl font-bold text-[11px] sm:text-xs shadow-xs transition flex items-center gap-1 active:scale-95">
+          <span>⚡</span>
+          <span>20-30m Express</span>
         </button>
 
-        <button onclick="scrollToCalculator()" class="bg-heritage-800 hover:bg-heritage-900 text-cream-100 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border border-gilded-500/50 shadow-xs hover:shadow transition flex items-center gap-1.5 active:scale-95">
+        <button type="button" onclick="openAgentModal()" class="bg-emerald-800 hover:bg-emerald-900 text-white px-2.5 sm:px-3 py-2 rounded-xl font-bold text-[11px] sm:text-xs shadow-xs transition flex items-center gap-1 active:scale-95" title="Agent Delivery App">
+          <span>📱</span>
+          <span class="hidden sm:inline">Agent</span>
+        </button>
+
+        <button onclick="scrollToCalculator()" class="bg-heritage-800 hover:bg-heritage-900 text-cream-100 px-3 sm:px-4 py-2 rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider border border-gilded-500/50 shadow-xs transition flex items-center gap-1 active:scale-95">
           <span>Subscribe</span>
-          <span class="text-gilded-500 font-mono hidden sm:inline">→</span>
         </button>
       </div>
 
     </div>
   </nav>
 
-  <!-- HERO SECTION: The Artisanal Difference -->
-  <section class="relative pt-8 sm:pt-12 pb-16 overflow-hidden w-full">
-    <!-- Decorative background elements -->
-    <div class="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-gilded-500/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-0 left-0 translate-y-12 -translate-x-12 w-96 h-96 bg-heritage-800/5 rounded-full blur-3xl pointer-events-none"></div>
-
+  <!-- HERO SECTION -->
+  <section class="relative pt-8 sm:pt-12 pb-14 overflow-hidden w-full">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         
         <!-- Left: Narrative & Values -->
-        <div class="lg:col-span-7 space-y-6">
-          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-heritage-100 text-heritage-800 border border-heritage-800/15 text-xs font-bold uppercase tracking-wider">
-            <span class="w-2 h-2 rounded-full bg-heritage-800"></span>
-            100% Raw Desi Murrah Buffalo Milk
+        <div class="lg:col-span-7 space-y-5">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-heritage-100 text-heritage-800 border border-heritage-800/15 text-[11px] font-bold uppercase tracking-wider">
+              <span class="w-2 h-2 rounded-full bg-heritage-800"></span>
+              100% Raw Desi Murrah Buffalo Milk
+            </span>
+            <span id="heroExpressBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-300 text-[11px] font-bold">
+              ⚡ 20-30 Min Express in Sangareddy
+            </span>
           </div>
 
           <h1 class="font-serif text-3xl sm:text-5xl lg:text-6xl text-heritage-900 font-bold leading-tight">
@@ -203,41 +186,41 @@
             <span class="text-gilded-600 italic font-serif">In sealed, returnable glass.</span>
           </h1>
 
-          <p class="text-stone-700 text-base sm:text-lg max-w-xl leading-relaxed">
+          <p class="text-stone-700 text-sm sm:text-lg max-w-xl leading-relaxed">
             Naturally thick, unadulterated buffalo milk with velvety malai. Farm-milked under sanitary vacuum, delivered strictly in 4-stage RO filtered glass bottles. 
             <strong>Zero plastic pouches. Zero microplastics. Zero preservatives.</strong>
           </p>
 
           <!-- 4 Core Pillars Strip -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
-              <div class="text-lg font-bold text-heritage-800">7.5% - 8.2%</div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+            <div class="bg-white/90 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
+              <div class="text-base sm:text-lg font-bold text-heritage-800">7.5% - 8.2%</div>
               <div class="text-[11px] font-medium text-stone-500">Natural Fat Content</div>
             </div>
-            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
-              <div class="text-lg font-bold text-heritage-800">110°C Steam</div>
+            <div class="bg-white/90 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
+              <div class="text-base sm:text-lg font-bold text-heritage-800">110°C Steam</div>
               <div class="text-[11px] font-medium text-stone-500">RO Bottle Hygiene</div>
             </div>
-            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
-              <div class="text-lg font-bold text-emerald-700">UPI AutoPay</div>
+            <div class="bg-white/90 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
+              <div class="text-base sm:text-lg font-bold text-emerald-700">UPI AutoPay</div>
               <div class="text-[11px] font-medium text-stone-500">Zero Hassle Renewals</div>
             </div>
-            <div class="bg-white/80 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
-              <div class="text-lg font-bold text-heritage-800">SMS Ledger</div>
+            <div class="bg-white/90 border border-cream-300 rounded-2xl p-3 text-center shadow-xs">
+              <div class="text-base sm:text-lg font-bold text-heritage-800">SMS Ledger</div>
               <div class="text-[11px] font-medium text-stone-500">Daily Mobile Counts</div>
             </div>
           </div>
 
           <!-- CTA Buttons -->
-          <div class="flex flex-wrap items-center gap-3 sm:gap-4 pt-4">
-            <a href="#subscription-engine" class="bg-heritage-800 hover:bg-heritage-900 text-cream-100 font-bold px-6 sm:px-7 py-3.5 sm:py-4 rounded-2xl text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md hover:shadow-lg flex items-center gap-2 active:scale-95">
-              <span>Build Your Daily Plan</span>
+          <div class="flex flex-wrap items-center gap-3 pt-3">
+            <a href="#subscription-engine" class="bg-heritage-800 hover:bg-heritage-900 text-cream-100 font-bold px-5 sm:px-7 py-3.5 rounded-2xl text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md flex items-center gap-2 active:scale-95">
+              <span>Build Daily Plan</span>
               <span class="text-gilded-500">→</span>
             </a>
-            <a href="#batch-seal" class="bg-white border-2 border-stone-300 hover:border-gilded-600 text-heritage-900 font-bold px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl text-xs sm:text-sm transition active:scale-95">
-              Inspect Today's Bottle Seal
-            </a>
-            <button onclick="openAgentModal()" class="bg-emerald-50 border-2 border-emerald-600 text-emerald-900 hover:bg-emerald-100 font-bold px-5 py-3.5 rounded-2xl text-xs sm:text-sm transition flex items-center gap-2 active:scale-95">
+            <button onclick="openQuickOrderModal()" class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-5 sm:px-6 py-3.5 rounded-2xl text-xs sm:text-sm transition shadow-md flex items-center gap-2 active:scale-95">
+              <span>⚡ Quick 20-30 Min Delivery</span>
+            </button>
+            <button onclick="openAgentModal()" class="bg-emerald-50 border-2 border-emerald-600 text-emerald-900 hover:bg-emerald-100 font-bold px-4 py-3.5 rounded-2xl text-xs sm:text-sm transition flex items-center gap-1.5 active:scale-95">
               <span>📱 Agent Portal</span>
             </button>
           </div>
@@ -245,28 +228,28 @@
         </div>
 
         <!-- Right: Interactive Bottle Cap & Batch Inspector -->
-        <div class="lg:col-span-5" id="batch-seal">
-          <div class="bg-heritage-900 rounded-3xl p-6 sm:p-8 text-cream-100 border-2 border-gilded-500/40 shadow-2xl relative">
-            <div class="flex items-center justify-between border-b border-heritage-700 pb-4 mb-6">
+        <div class="lg:col-span-5 w-full" id="batch-seal">
+          <div class="bg-heritage-900 rounded-3xl p-5 sm:p-8 text-cream-100 border-2 border-gilded-500/40 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-heritage-700 pb-4 mb-5 gap-2">
               <div>
                 <span class="text-[10px] tracking-widest text-gilded-500 font-bold uppercase block">BATCH QUALITY ASSURANCE</span>
-                <h3 class="font-serif font-bold text-lg text-cream-100">Every Panditji Bottle Has a Sealed Cap</h3>
+                <h3 class="font-serif font-bold text-base sm:text-lg text-cream-100">Every Panditji Bottle Has a Sealed Cap</h3>
               </div>
-              <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono px-2 py-1 rounded-md">
-                LIVE BATCH #PND-882
+              <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono px-2 py-1 rounded-md shrink-0">
+                BATCH #PND-882
               </span>
             </div>
 
             <!-- Simulated Radial Bottle Cap Graphic -->
             <div class="flex flex-col items-center justify-center my-4">
-              <div class="relative w-44 h-44 sm:w-48 sm:h-48 rounded-full cap-seal-radial p-4 flex flex-col items-center justify-center text-center border-4 border-amber-300/80 shadow-2xl">
+              <div class="relative w-40 h-40 sm:w-48 sm:h-48 rounded-full cap-seal-radial p-3 sm:p-4 flex flex-col items-center justify-center text-center border-4 border-amber-300/80 shadow-2xl">
                 <div class="w-full h-full rounded-full border border-dashed border-amber-200/50 flex flex-col items-center justify-center p-2 text-white">
-                  <div class="text-[9px] uppercase tracking-wider font-extrabold text-amber-200">Panditji Pure Natural</div>
-                  <div class="text-2xl font-serif font-black tracking-widest my-0.5 text-white">SEALED</div>
-                  <div class="text-[10px] font-mono font-bold text-amber-300 bg-black/40 px-2 py-0.5 rounded">
+                  <div class="text-[8px] sm:text-[9px] uppercase tracking-wider font-extrabold text-amber-200">Panditji Pure Natural</div>
+                  <div class="text-xl sm:text-2xl font-serif font-black tracking-widest my-0.5 text-white">SEALED</div>
+                  <div class="text-[9px] sm:text-[10px] font-mono font-bold text-amber-300 bg-black/40 px-2 py-0.5 rounded">
                     FAT: <span id="capFatDisplay">7.8%</span> | SNF: 9.1%
                   </div>
-                  <div class="text-[8px] mt-1 font-mono text-amber-100/90" id="capMilkingTime">
+                  <div class="text-[7px] sm:text-[8px] mt-1 font-mono text-amber-100/90" id="capMilkingTime">
                     MILKED: TODAY 04:15 AM
                   </div>
                   <div class="text-[7px] text-amber-200/70 uppercase tracking-tighter">TAMPER EVIDENT CAP</div>
@@ -281,8 +264,7 @@
               </p>
             </div>
 
-            <!-- Interactive Toggle for Cap Batch Info -->
-            <div class="mt-6 pt-4 border-t border-heritage-800 grid grid-cols-2 gap-2 text-xs">
+            <div class="mt-5 pt-4 border-t border-heritage-800 grid grid-cols-2 gap-2 text-xs">
               <button onclick="setCapShift('morning')" id="capBtnMorning" class="bg-gilded-500 text-heritage-900 font-bold py-2 rounded-xl transition">
                 Morning Batch (Dawn)
               </button>
@@ -297,8 +279,32 @@
     </div>
   </section>
 
+  <!-- SECTION: Express 20-30 Min Delivery Banner -->
+  <section class="py-10 bg-purple-950 text-white border-y border-purple-800 w-full">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="space-y-2 text-center md:text-left">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-800 text-purple-200 text-xs font-bold uppercase tracking-wider">
+          <span>⚡ Instant Local Dispatch</span>
+          <span>·</span>
+          <span id="expressBannerStockTag">Checking Live Stock...</span>
+        </div>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-white">
+          Need Fresh Milk Right Now? 20–30 Min Express Delivery
+        </h2>
+        <p class="text-purple-200 text-xs sm:text-sm max-w-2xl">
+          Available across <strong>Sangareddy Town, IIT Kandi, Mamidipally, Pothireddypally, Rudraram &amp; Isnapur</strong>. Delivered in a brand-new sterilized glass bottle (full bottle price included).
+        </p>
+      </div>
+      <div class="shrink-0">
+        <button onclick="openQuickOrderModal()" class="bg-amber-400 hover:bg-amber-300 text-stone-950 font-extrabold px-6 py-4 rounded-2xl text-xs sm:text-sm uppercase tracking-wider shadow-lg transition active:scale-95">
+          Order Express Now ⚡
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- SECTION: The Glass Bottle Cycle & RO Sanitization -->
-  <section id="bottle-cycle" class="py-16 bg-cream-200/60 border-y border-cream-300/60 w-full">
+  <section id="bottle-cycle" class="py-16 bg-cream-200/60 border-b border-cream-300/60 w-full">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="max-w-3xl mx-auto text-center mb-12">
@@ -313,77 +319,55 @@
         </p>
       </div>
 
-      <!-- 4 Stages Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-xs flex flex-col justify-between">
           <div>
-            <div class="w-10 h-10 rounded-2xl bg-heritage-100 text-heritage-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">
-              01
-            </div>
+            <div class="w-10 h-10 rounded-2xl bg-heritage-100 text-heritage-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">01</div>
             <h4 class="font-bold text-heritage-900 text-base">Leave Empty Bottle Outside</h4>
             <p class="text-stone-600 text-xs mt-2 leading-relaxed">
               Simply rinse your finished bottle with tap water and leave it in your Panditji doorstep wire caddy before morning.
             </p>
           </div>
-          <div class="mt-4 pt-3 border-t border-cream-100 text-[11px] font-bold text-gilded-700">
-            Runner scans upon doorstep arrival
-          </div>
+          <div class="mt-4 pt-3 border-t border-cream-100 text-[11px] font-bold text-gilded-700">Runner scans upon doorstep arrival</div>
         </div>
 
         <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-xs flex flex-col justify-between">
           <div>
-            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">
-              02
-            </div>
+            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">02</div>
             <h4 class="font-bold text-heritage-900 text-base">Instant Wallet Deduction</h4>
             <p class="text-stone-600 text-xs mt-2 leading-relaxed">
               Every returned bottle earns an immediate cash credit: <strong>₹20</strong> (1000ml), <strong>₹10</strong> (500ml), or <strong>₹5</strong> (250ml) subtracted from your monthly invoice.
             </p>
           </div>
-          <div class="mt-4 pt-3 border-t border-cream-100 text-[11px] font-bold text-emerald-700">
-            Automated in daily SMS ledger
-          </div>
+          <div class="mt-4 pt-3 border-t border-cream-100 text-[11px] font-bold text-emerald-700">Automated in daily SMS ledger</div>
         </div>
 
         <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-xs flex flex-col justify-between">
           <div>
-            <div class="w-10 h-10 rounded-2xl bg-sky-100 text-sky-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">
-              03
-            </div>
+            <div class="w-10 h-10 rounded-2xl bg-sky-100 text-sky-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">03</div>
             <h4 class="font-bold text-heritage-900 text-base">4-Stage RO Filtered Wash</h4>
             <p class="text-stone-600 text-xs mt-2 leading-relaxed">
               Bottles undergo pressurized ultrasonic cleaning using pure Reverse Osmosis (RO) filtered water to ensure zero chemical residue.
             </p>
           </div>
-          <div class="mt-4 pt-3 border-t border-cream-100 text-[11px] font-bold text-sky-700">
-            Food-grade organic wash
-          </div>
+          <div class="mt-4 pt-3 border-t border-cream-100 text-[11px] font-bold text-sky-700">Food-grade organic wash</div>
         </div>
 
         <div class="bg-white rounded-3xl p-6 border border-cream-300/80 shadow-xs flex flex-col justify-between">
           <div>
-            <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">
-              04
-            </div>
+            <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 font-bold flex items-center justify-center font-mono mb-4 text-sm">04</div>
             <h4 class="font-bold text-heritage-900 text-base">110°C Heat Sterilization</h4>
             <p class="text-stone-600 text-xs mt-2 leading-relaxed">
               Bottles pass through a dry heat steam tunnel at 110°C before cold filling at 4°C with fresh buffalo milk and vacuum capping.
             </p>
           </div>
-          <div class="mt-4 pt-3 border-t border-cream-100 text-[11px] font-bold text-amber-700">
-            Hospital-grade hygiene guarantee
-          </div>
+          <div class="mt-4 pt-3 border-t border-cream-100 text-[11px] font-bold text-amber-700">Hospital-grade hygiene guarantee</div>
         </div>
-
       </div>
 
-      <!-- Deposit Clarification Banner -->
       <div class="mt-8 bg-white border-2 border-gilded-500/40 rounded-3xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
-          <div class="w-10 h-10 rounded-2xl bg-gilded-100 text-gilded-700 flex items-center justify-center flex-shrink-0 text-xl font-bold">
-            ₹
-          </div>
+          <div class="w-10 h-10 rounded-2xl bg-gilded-100 text-gilded-700 flex items-center justify-center flex-shrink-0 text-xl font-bold">₹</div>
           <div>
             <div class="font-bold text-heritage-900 text-sm">One-Time Refundable Security Deposit</div>
             <p class="text-xs text-stone-500">
@@ -415,12 +399,11 @@
         </p>
       </div>
 
-      <!-- Main Configurator Panel -->
       <div class="bg-white rounded-3xl border border-cream-300 shadow-xl overflow-hidden max-w-5xl mx-auto">
         <div class="grid grid-cols-1 lg:grid-cols-12">
           
           <!-- Controls (Left 7 Cols) -->
-          <div class="lg:col-span-7 p-6 sm:p-8 space-y-8 border-b lg:border-b-0 lg:border-r border-cream-200">
+          <div class="lg:col-span-7 p-5 sm:p-8 space-y-7 border-b lg:border-b-0 lg:border-r border-cream-200">
             
             <!-- Step 1: Select Bottle Size -->
             <div>
@@ -433,33 +416,30 @@
                 </span>
               </div>
 
-              <div class="grid grid-cols-3 gap-2.5 sm:gap-3">
-                <!-- 250 ML -->
-                <button type="button" onclick="setVolume('250')" id="volBtn250" class="vol-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-3 text-center transition flex flex-col justify-between active:scale-95">
-                  <span class="text-[10px] font-bold text-stone-400 uppercase">Single Cup</span>
-                  <span class="font-serif font-black text-lg sm:text-xl text-heritage-900 my-1">250 ml</span>
-                  <span class="text-xs font-bold text-stone-600">₹40 / bottle</span>
-                  <span class="mt-2 text-[10px] font-bold text-emerald-800 bg-emerald-50 py-1 rounded-lg border border-emerald-200">
+              <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                <button type="button" onclick="setVolume('250')" id="volBtn250" class="vol-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-2.5 sm:p-3 text-center transition flex flex-col justify-between active:scale-95">
+                  <span class="text-[9px] sm:text-[10px] font-bold text-stone-400 uppercase">Single Cup</span>
+                  <span class="font-serif font-black text-base sm:text-xl text-heritage-900 my-1">250 ml</span>
+                  <span class="text-[11px] sm:text-xs font-bold text-stone-600">₹40 / bottle</span>
+                  <span class="mt-2 text-[9px] sm:text-[10px] font-bold text-emerald-800 bg-emerald-50 py-1 rounded-lg border border-emerald-200">
                     -₹5 Rebate
                   </span>
                 </button>
 
-                <!-- 500 ML -->
-                <button type="button" onclick="setVolume('500')" id="volBtn500" class="vol-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-3 text-center transition flex flex-col justify-between active:scale-95">
-                  <span class="text-[10px] font-bold text-stone-400 uppercase">Couple Daily</span>
-                  <span class="font-serif font-black text-lg sm:text-xl text-heritage-900 my-1">500 ml</span>
-                  <span class="text-xs font-bold text-stone-600">₹70 / bottle</span>
-                  <span class="mt-2 text-[10px] font-bold text-emerald-800 bg-emerald-50 py-1 rounded-lg border border-emerald-200">
+                <button type="button" onclick="setVolume('500')" id="volBtn500" class="vol-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-2.5 sm:p-3 text-center transition flex flex-col justify-between active:scale-95">
+                  <span class="text-[9px] sm:text-[10px] font-bold text-stone-400 uppercase">Couple Daily</span>
+                  <span class="font-serif font-black text-base sm:text-xl text-heritage-900 my-1">500 ml</span>
+                  <span class="text-[11px] sm:text-xs font-bold text-stone-600">₹70 / bottle</span>
+                  <span class="mt-2 text-[9px] sm:text-[10px] font-bold text-emerald-800 bg-emerald-50 py-1 rounded-lg border border-emerald-200">
                     -₹10 Rebate
                   </span>
                 </button>
 
-                <!-- 1000 ML (Default) -->
-                <button type="button" onclick="setVolume('1000')" id="volBtn1000" class="vol-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-3 text-center transition flex flex-col justify-between shadow-xs active:scale-95">
-                  <span class="text-[10px] font-bold text-gilded-600 uppercase">Family Litre</span>
-                  <span class="font-serif font-black text-lg sm:text-xl text-heritage-900 my-1">1000 ml</span>
-                  <span class="text-xs font-bold text-stone-600">₹130 / bottle</span>
-                  <span class="mt-2 text-[10px] font-bold text-emerald-800 bg-emerald-100 py-1 rounded-lg border border-emerald-300">
+                <button type="button" onclick="setVolume('1000')" id="volBtn1000" class="vol-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-2.5 sm:p-3 text-center transition flex flex-col justify-between shadow-xs active:scale-95">
+                  <span class="text-[9px] sm:text-[10px] font-bold text-gilded-600 uppercase">Family Litre</span>
+                  <span class="font-serif font-black text-base sm:text-xl text-heritage-900 my-1">1000 ml</span>
+                  <span class="text-[11px] sm:text-xs font-bold text-stone-600">₹130 / bottle</span>
+                  <span class="mt-2 text-[9px] sm:text-[10px] font-bold text-emerald-800 bg-emerald-100 py-1 rounded-lg border border-emerald-300">
                     -₹20 Rebate
                   </span>
                 </button>
@@ -473,7 +453,6 @@
               </label>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <!-- Daily (30 deliveries) -->
                 <button type="button" onclick="setFrequency(30)" id="freqBtn30" class="freq-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-4 text-left transition flex items-center justify-between active:scale-95">
                   <div>
                     <div class="font-bold text-heritage-900 text-sm">Daily Dawn (Every Day)</div>
@@ -482,7 +461,6 @@
                   <span class="w-5 h-5 rounded-full border-4 border-heritage-800 flex-shrink-0"></span>
                 </button>
 
-                <!-- Alternate / Day-by-Day (15 deliveries) -->
                 <button type="button" onclick="setFrequency(15)" id="freqBtn15" class="freq-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-4 text-left transition flex items-center justify-between active:scale-95">
                   <div>
                     <div class="font-bold text-heritage-900 text-sm">Day-by-Day (Alternate)</div>
@@ -527,7 +505,6 @@
                 </span>
               </div>
 
-              <!-- Price Math Breakdown -->
               <div class="space-y-3 text-xs">
                 <div class="flex justify-between items-center text-stone-300">
                   <span id="sumBottleLine">Milk Cost (30 bottles × ₹130)</span>
@@ -536,7 +513,6 @@
 
                 <div class="flex justify-between items-center text-emerald-400 font-semibold bg-emerald-950/60 p-2.5 rounded-xl border border-emerald-800/60">
                   <span class="flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     <span>Bottle Return Rebate (<span id="sumRebateRate">₹20</span>/bottle)</span>
                   </span>
                   <span class="font-mono text-emerald-300" id="sumRebateSavings">-₹600</span>
@@ -560,7 +536,6 @@
               </div>
             </div>
 
-            <!-- AutoPay Trigger Button -->
             <div class="mt-8 pt-4 border-t border-heritage-700">
               <button onclick="openAutopayModal()" class="w-full bg-gilded-500 hover:bg-gilded-600 text-heritage-900 font-bold text-sm uppercase tracking-wider py-3.5 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95">
                 <span>Set Up UPI AutoPay &amp; Subscribe</span>
@@ -579,22 +554,18 @@
     </div>
   </section>
 
-  <!-- SECTION: Modern Technology Integration (UPI AutoPay & SMS/WhatsApp Ledger) -->
+  <!-- SECTION: Modern Technology Integration -->
   <section id="tech-autopay" class="py-16 bg-cream-100 border-t border-cream-300 w-full">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         
-        <!-- Left: SMS Ledger Preview -->
         <div class="order-2 lg:order-1">
           <div class="max-w-md mx-auto bg-stone-900 rounded-3xl p-6 text-cream-100 shadow-2xl border-4 border-stone-800 relative">
-            <!-- Simulated Mobile Header -->
             <div class="flex items-center justify-between border-b border-stone-800 pb-3 mb-4 text-xs text-stone-400">
               <span>Messages • Panditji Dairy</span>
               <span>06:45 AM</span>
             </div>
 
-            <!-- SMS Bubble 1 -->
             <div class="bg-stone-800 rounded-2xl p-4 text-xs text-stone-200 space-y-2 mb-3 border border-stone-700">
               <div class="flex items-center justify-between text-[11px] text-gilded-500 font-bold">
                 <span>🥛 MORNING DELIVERY DISPATCHED</span>
@@ -606,139 +577,31 @@
                 <br>• Cap Batch Fat: <strong>7.8% (Tag #MUR-042)</strong>
                 <br>• Live Month Balance: <strong>14/30 bottles fulfilled</strong>
               </p>
-              <div class="text-[10px] text-emerald-400 underline pt-1 block">
-                Tap to view your live visual calendar ledger
-              </div>
             </div>
 
-            <!-- SMS Bubble 2 -->
             <div class="bg-stone-800/70 rounded-2xl p-3 text-xs text-stone-300 border border-stone-700/60">
               <div class="text-[10px] text-amber-400 font-bold">🌙 NIGHT REMINDER (8:00 PM)</div>
               <p class="text-[11px] mt-1">
                 Need extra milk for guests tomorrow or want to pause? Reply 'EXTRA 1' or 'PAUSE' before 9:00 PM tonight.
               </p>
             </div>
-
-            <div class="mt-4 pt-3 text-center text-[10px] font-mono text-stone-400">
-              Zero bookkeeping required on your fridge magnet. We calculate everything automatically.
-            </div>
           </div>
         </div>
 
-        <!-- Right: Technology Explanation -->
         <div class="order-1 lg:order-2 space-y-6">
           <span class="text-xs font-bold uppercase tracking-widest text-emerald-800 bg-emerald-100 border border-emerald-300 px-3.5 py-1 rounded-full">
             Effortless Routine Management
           </span>
-
           <h2 class="font-serif text-3xl sm:text-4xl font-bold text-heritage-900">
             No need to keep count. <br>
             <span class="text-gilded-600 font-serif">We manage every drop on your mobile.</span>
           </h2>
-
           <p class="text-stone-700 text-sm sm:text-base leading-relaxed">
             Forget checking off calendar days or arguing with milkmen about missing bottles at month-end. Panditji’s digital dairy tracking keeps an automated ledger connected to your phone number.
           </p>
-
-          <div class="space-y-4 pt-2">
-            
-            <div class="flex items-start gap-3.5">
-              <div class="w-9 h-9 rounded-xl bg-heritage-800 text-gilded-500 flex items-center justify-center font-bold flex-shrink-0 text-sm">
-                ✓
-              </div>
-              <div>
-                <h4 class="font-bold text-heritage-900 text-sm">Instant Daily SMS &amp; WhatsApp Ledger</h4>
-                <p class="text-stone-600 text-xs mt-0.5">
-                  The moment our delivery runner scans your empty glass bottle, you receive an automated message showing bottles delivered, bottles returned, and remaining monthly balance.
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-3.5">
-              <div class="w-9 h-9 rounded-xl bg-heritage-800 text-gilded-500 flex items-center justify-center font-bold flex-shrink-0 text-sm">
-                ⚡
-              </div>
-              <div>
-                <h4 class="font-bold text-heritage-900 text-sm">1-Click UPI AutoPay (GPay, PhonePe, Paytm)</h4>
-                <p class="text-stone-600 text-xs mt-0.5">
-                  Authorise once via your favourite UPI app. Your monthly subscription renews smoothly with all bottle return deductions calculated upfront. No manual bank transfers.
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-3.5">
-              <div class="w-9 h-9 rounded-xl bg-heritage-800 text-gilded-500 flex items-center justify-center font-bold flex-shrink-0 text-sm">
-                🌙
-              </div>
-              <div>
-                <h4 class="font-bold text-heritage-900 text-sm">Night Owl 9:00 PM Rule</h4>
-                <p class="text-stone-600 text-xs mt-0.5">
-                  Have sudden guests tomorrow? Order an extra 500ml or 1000ml bottle before 9:00 PM tonight on WhatsApp or portal, and it will be chilling at your door by 6:00 AM.
-                </p>
-              </div>
-            </div>
-
-          </div>
         </div>
 
       </div>
-
-    </div>
-  </section>
-
-  <!-- FAQ ACCORDION -->
-  <section class="py-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-    <div class="text-center mb-10">
-      <h3 class="font-serif text-2xl sm:text-3xl font-bold text-heritage-900">
-        Answers to Common Questions
-      </h3>
-      <p class="text-stone-600 text-xs sm:text-sm mt-1">
-        Everything you need to know about our milk quality, bottles, and billing.
-      </p>
-    </div>
-
-    <div class="space-y-3">
-      
-      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-xs" onclick="toggleAccordion('f1')">
-        <div class="flex items-center justify-between font-bold text-heritage-900 text-sm">
-          <span>Why does Panditji use glass instead of standard plastic pouches?</span>
-          <span id="f1-icon" class="text-gilded-600 text-xl font-bold">+</span>
-        </div>
-        <div id="f1" class="hidden text-xs text-stone-600 mt-3 pt-3 border-t border-cream-200 leading-relaxed">
-          Warm milk packed in polyethylene pouches leaches phthalates and microplastics into the fat globules. Glass is chemically inert, non-porous, and preserves the authentic taste and thick malai layer without any toxic migration.
-        </div>
-      </div>
-
-      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-xs" onclick="toggleAccordion('f2')">
-        <div class="flex items-center justify-between font-bold text-heritage-900 text-sm">
-          <span>How does the bottle return deduction reflect on my bill?</span>
-          <span id="f2-icon" class="text-gilded-600 text-xl font-bold">+</span>
-        </div>
-        <div id="f2" class="hidden text-xs text-stone-600 mt-3 pt-3 border-t border-cream-200 leading-relaxed">
-          When you return your clean bottle each morning, our delivery partner scans its barcoded neck. ₹20 (1000ml), ₹10 (500ml), or ₹5 (250ml) is immediately logged in your digital ledger. This reduces your monthly UPI AutoPay deduction by up to ₹600/month.
-        </div>
-      </div>
-
-      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-xs" onclick="toggleAccordion('f3')">
-        <div class="flex items-center justify-between font-bold text-heritage-900 text-sm">
-          <span>Can I pause milk delivery if I go out of town?</span>
-          <span id="f3-icon" class="text-gilded-600 text-xl font-bold">+</span>
-        </div>
-        <div id="f3" class="hidden text-xs text-stone-600 mt-3 pt-3 border-t border-cream-200 leading-relaxed">
-          Yes! You can pause delivery anytime directly from WhatsApp or our customer web portal before 9:00 PM the previous evening. Any paused days carry over to extend your subscription validity automatically.
-        </div>
-      </div>
-
-      <div class="bg-white border border-cream-300 rounded-2xl p-5 cursor-pointer shadow-xs" onclick="toggleAccordion('f4')">
-        <div class="flex items-center justify-between font-bold text-heritage-900 text-sm">
-          <span>Is your buffalo milk pasteurized or raw?</span>
-          <span id="f4-icon" class="text-gilded-600 text-xl font-bold">+</span>
-        </div>
-        <div id="f4" class="hidden text-xs text-stone-600 mt-3 pt-3 border-t border-cream-200 leading-relaxed">
-          We gently low-temperature pasteurize our milk to retain natural lactoferrin and digestive enzymes while destroying harmful pathogens, then chill it immediately to 4°C for dawn dispatch.
-        </div>
-      </div>
-
     </div>
   </section>
 
@@ -746,7 +609,6 @@
   <footer class="bg-heritage-900 text-cream-200 py-12 border-t border-heritage-700/60 mt-auto w-full">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-        
         <div class="space-y-3">
           <div class="flex items-center gap-2">
             <span class="w-8 h-8 rounded-lg bg-gilded-500 text-heritage-900 font-serif font-black flex items-center justify-center text-lg">प</span>
@@ -770,7 +632,7 @@
           <h5 class="text-xs font-bold text-gilded-500 uppercase tracking-widest mb-3">Customer Service</h5>
           <ul class="text-xs space-y-2 text-stone-400">
             <li>Delivery: 5:30 AM – 7:00 AM Daily</li>
-            <li>Night Order Cut-Off: 9:00 PM</li>
+            <li>Express 20-30 Min: Sangareddy &amp; Surroundings</li>
             <li>WhatsApp: +91 79933 94025</li>
             <li>Direct Farm: Mamidipally · Sangareddy</li>
           </ul>
@@ -780,39 +642,113 @@
           <h5 class="text-xs font-bold text-gilded-500 uppercase tracking-widest mb-3">Runner Access</h5>
           <div class="flex flex-col space-y-2 text-xs">
             <button onclick="openAgentModal()" class="text-left text-emerald-400 hover:text-emerald-300 font-bold transition flex items-center gap-1.5">
-              <span>📱 Agent Delivery Portal </span>
+              <span>📱 Agent Delivery Portal</span>
             </button>
           </div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 bg-heritage-800 rounded-lg text-[10px] text-emerald-400 border border-heritage-700 font-mono mt-4">
-            <span>🔒 256-Bit SSL Protected</span>
-          </div>
         </div>
-
       </div>
 
       <div class="pt-8 border-t border-heritage-800 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-4">
         <div>© 2026 Panditji Pure Natural Dairy Farm. All rights reserved.</div>
-        <div class="flex flex-wrap gap-4 sm:gap-6">
-          <a href="#" class="hover:text-gilded-500">Privacy Policy</a>
-          <a href="#" class="hover:text-gilded-500">Terms of Subscription</a>
-          <button onclick="openAgentModal()" class="hover:text-emerald-400 font-bold transition">Agent App</button>
-        </div>
       </div>
     </div>
   </footer>
 
+  <!-- MODAL: QUICK 20-30 MIN EXPRESS ORDER (SANGAREDDY SURROUNDING) -->
+  <div id="quickOrderModal" class="fixed inset-0 bg-stone-950/80 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border-2 border-purple-600/40 max-h-[92vh] overflow-y-auto">
+      
+      <button onclick="closeQuickOrderModal()" class="absolute top-4 right-4 text-stone-400 hover:text-stone-700 p-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-purple-700 text-white font-black flex items-center justify-center text-lg">⚡</div>
+        <div>
+          <h3 class="font-serif font-bold text-lg text-heritage-900">20–30 Min Express Delivery</h3>
+          <p class="text-xs text-stone-500">Sangareddy Town &amp; Surrounding Villages</p>
+        </div>
+      </div>
+
+      <!-- Live Tank Stock Indicator -->
+      <div id="custStockStatusBox" class="p-3 rounded-2xl border mb-4 text-xs flex items-center justify-between">
+        <div>
+          <span class="font-bold block" id="custStockTitle">Checking Live Farm Tank...</span>
+          <span class="text-[11px]" id="custStockSub">Syncing with Mamidipally dairy chill tank</span>
+        </div>
+        <span class="font-mono font-black text-sm px-2.5 py-1 rounded-lg bg-white shadow-xs" id="custStockBadge">--</span>
+      </div>
+
+      <form onsubmit="submitCustomerQuickOrder(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Your Name</label>
+          <input type="text" id="cqName" required placeholder="e.g. Karthik Rao" class="w-full rounded-xl border border-stone-300 p-2.5 text-stone-900">
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Mobile Number</label>
+          <input type="tel" id="cqPhone" required pattern="[0-9]{10}" placeholder="10-digit WhatsApp mobile" class="w-full rounded-xl border border-stone-300 p-2.5 font-mono text-stone-900">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Area (Sangareddy)</label>
+            <select id="cqArea" class="w-full rounded-xl border border-stone-300 p-2.5 text-stone-900 bg-white">
+              <option value="Sangareddy">Sangareddy Town</option>
+              <option value="IIT Kandi">IIT Kandi</option>
+              <option value="Mamidipally">Mamidipally</option>
+              <option value="Pothireddypally">Pothireddypally</option>
+              <option value="Rudraram">Rudraram</option>
+              <option value="Isnapur">Isnapur</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Bottle Size</label>
+            <select id="cqSize" onchange="recalcCustomerQuickPrice()" class="w-full rounded-xl border border-stone-300 p-2.5 text-stone-900 bg-white font-bold">
+              <option value="1000" selected>1000 ml (1 Litre)</option>
+              <option value="500">500 ml</option>
+              <option value="250">250 ml</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">House No / Landmark</label>
+          <input type="text" id="cqHno" required placeholder="H.No, Colony / Apartment Name" class="w-full rounded-xl border border-stone-300 p-2.5 text-stone-900">
+        </div>
+
+        <!-- Full Price Breakdown (Milk + Glass Bottle Included) -->
+        <div class="bg-cream-100 rounded-2xl p-3.5 border border-cream-300 space-y-1">
+          <div class="flex justify-between text-stone-600">
+            <span>Fresh Buffalo Milk:</span>
+            <b id="cqMilkPrice">₹130</b>
+          </div>
+          <div class="flex justify-between text-stone-600">
+            <span>New Sterilized Glass Bottle:</span>
+            <b id="cqBottlePrice">₹80</b>
+          </div>
+          <div class="flex justify-between text-sm font-black text-heritage-900 border-t border-cream-300 pt-1.5 mt-1">
+            <span>Total Payable (Cash / UPI on Delivery):</span>
+            <span id="cqTotalPrice">₹210</span>
+          </div>
+          <p class="text-[10px] text-stone-500 pt-0.5">Includes glass bottle cost. Keep the bottle for future subscriptions to get ₹20/₹10/₹5 return rebates!</p>
+        </div>
+
+        <button type="submit" id="cqSubmitBtn" class="w-full bg-purple-700 hover:bg-purple-800 disabled:bg-gray-400 text-white font-bold py-3.5 rounded-xl uppercase tracking-wider text-xs shadow-md transition active:scale-95">
+          ⚡ Place 20–30 Min Express Order
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL: Agent Access Passcode (PIN: 1234) -->
   <div id="agentAccessModal" class="fixed inset-0 bg-stone-950/80 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl relative border-2 border-emerald-800 text-center space-y-4">
-      
       <button onclick="closeAgentModal()" class="absolute top-4 right-4 text-stone-400 hover:text-stone-700 p-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
 
-      <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-900 font-black text-xl flex items-center justify-center mx-auto border border-emerald-600/30">
-        📱
-      </div>
-
+      <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-900 font-black text-xl flex items-center justify-center mx-auto border border-emerald-600/30">📱</div>
       <div>
         <h3 class="font-serif font-bold text-lg text-heritage-900">Agent Portal Access</h3>
         <p class="text-xs text-stone-500 mt-1">Enter route passcode to launch app</p>
@@ -821,7 +757,7 @@
       <form onsubmit="verifyAgentPin(event)" class="space-y-3 text-xs">
         <div>
           <label class="block font-bold text-stone-700 uppercase tracking-wider mb-1 text-[11px]">Security PIN</label>
-          <input type="password" id="agentPinInput" maxlength="10" placeholder="XXXXXX" autofocus required class="w-full border border-stone-300 rounded-xl p-2.5 text-center font-bold tracking-widest text-lg focus:outline-none focus:border-heritage-800">
+          <input type="password" id="agentPinInput" maxlength="10" placeholder="1234" required class="w-full border border-stone-300 rounded-xl p-2.5 text-center font-bold tracking-widest text-lg focus:outline-none focus:border-heritage-800">
           <p id="agentPinError" class="text-xs text-red-600 font-bold hidden mt-1.5"></p>
         </div>
         <button type="submit" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-3 rounded-xl uppercase tracking-wider text-xs shadow-md transition active:scale-95">
@@ -831,10 +767,9 @@
     </div>
   </div>
 
-  <!-- MODAL: UPI AutoPay & Subscription Checkout Simulation -->
+  <!-- MODAL: UPI AutoPay & Subscription Checkout -->
   <div id="autopayModal" class="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative border-2 border-gilded-500/40">
-      
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative border-2 border-gilded-500/40 max-h-[92vh] overflow-y-auto">
       <button onclick="closeAutopayModal()" class="absolute top-4 right-4 text-stone-400 hover:text-stone-700 p-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
@@ -847,7 +782,6 @@
         </div>
       </div>
 
-      <!-- Plan Summary Card inside Modal -->
       <div class="bg-cream-100 rounded-2xl p-4 border border-cream-300 text-xs space-y-2 mb-5">
         <div class="flex justify-between text-heritage-900 font-semibold">
           <span id="modalPlanDesc">1 Bottle (1000ml) • Daily (30 days)</span>
@@ -856,76 +790,49 @@
         <div class="text-[11px] text-emerald-700 font-medium" id="modalSavingsHighlight">
           Includes ₹600 monthly rebate on bottle returns!
         </div>
-        <div class="text-[10px] text-stone-500 pt-1 border-t border-cream-200">
-          First charge includes one-time bottle security deposit of <span id="modalDepositAmt">₹80</span> (refundable).
-        </div>
       </div>
 
-      <!-- Form Inputs -->
       <form onsubmit="handleAutopaySubmit(event)" class="space-y-4 text-xs">
         <div>
-          <label class="block font-bold text-stone-700 mb-1">Mobile Number (For Daily SMS Ledger &amp; WhatsApp)</label>
-          <div class="flex">
-            <span class="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-stone-300 bg-stone-100 text-stone-600 font-mono font-bold">+91</span>
-            <input type="tel" required pattern="[0-9]{10}" placeholder="98765 43210" class="w-full rounded-r-xl border border-stone-300 p-2.5 font-mono text-stone-900 focus:outline-none focus:border-heritage-800">
+          <label class="block font-bold text-stone-700 mb-1">Full Name</label>
+          <input type="text" id="subCustName" required placeholder="e.g. Ananya Sharma" class="w-full rounded-xl border border-stone-300 p-2.5 text-stone-900">
+        </div>
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Mobile Number</label>
+          <input type="tel" id="subCustPhone" required pattern="[0-9]{10}" placeholder="9876543210" class="w-full rounded-xl border border-stone-300 p-2.5 font-mono text-stone-900">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Area / Location</label>
+            <select id="subCustArea" class="w-full rounded-xl border border-stone-300 p-2.5 text-stone-900 bg-white">
+              <option value="IIT Kandi">IIT Kandi</option>
+              <option value="Sangareddy">Sangareddy</option>
+              <option value="Mamidipally">Mamidipally</option>
+              <option value="Rudraram">Rudraram</option>
+              <option value="Patancheru">Patancheru</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">House / Flat No</label>
+            <input type="text" id="subCustHno" required placeholder="H.No 3-45" class="w-full rounded-xl border border-stone-300 p-2.5 text-stone-900">
           </div>
         </div>
-
-        <div>
-          <label class="block font-bold text-stone-700 mb-1">Doorstep Delivery Address</label>
-          <input type="text" required placeholder="Flat / House No., Tower, Apartment Name" class="w-full rounded-xl border border-stone-300 p-2.5 text-stone-900 focus:outline-none focus:border-heritage-800">
-        </div>
-
-        <div>
-          <label class="block font-bold text-stone-700 mb-2">Select AutoPay UPI Application</label>
-          <div class="grid grid-cols-3 gap-2">
-            <label class="border-2 border-stone-200 rounded-xl p-2.5 text-center cursor-pointer hover:border-gilded-500 has-[:checked]:border-heritage-800 has-[:checked]:bg-heritage-50">
-              <input type="radio" name="upiApp" value="GPay" checked class="sr-only">
-              <span class="font-bold text-stone-800 block text-xs">Google Pay</span>
-              <span class="text-[9px] text-stone-500 font-mono">UPI Mandate</span>
-            </label>
-            <label class="border-2 border-stone-200 rounded-xl p-2.5 text-center cursor-pointer hover:border-gilded-500 has-[:checked]:border-heritage-800 has-[:checked]:bg-heritage-50">
-              <input type="radio" name="upiApp" value="PhonePe" class="sr-only">
-              <span class="font-bold text-stone-800 block text-xs">PhonePe</span>
-              <span class="text-[9px] text-stone-500 font-mono">UPI Mandate</span>
-            </label>
-            <label class="border-2 border-stone-200 rounded-xl p-2.5 text-center cursor-pointer hover:border-gilded-500 has-[:checked]:border-heritage-800 has-[:checked]:bg-heritage-50">
-              <input type="radio" name="upiApp" value="Paytm" class="sr-only">
-              <span class="font-bold text-stone-800 block text-xs">Paytm</span>
-              <span class="text-[9px] text-stone-500 font-mono">UPI Mandate</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="pt-3">
-          <button type="submit" class="w-full bg-heritage-800 hover:bg-heritage-900 text-cream-100 font-bold py-3.5 rounded-xl uppercase tracking-wider text-xs shadow-md transition active:scale-95">
-            Authorize AutoPay &amp; Start Tomorrow
-          </button>
-        </div>
+        <button type="submit" class="w-full bg-heritage-800 hover:bg-heritage-900 text-cream-100 font-bold py-3.5 rounded-xl uppercase tracking-wider text-xs shadow-md transition active:scale-95">
+          Authorize AutoPay &amp; Start Tomorrow
+        </button>
       </form>
-
     </div>
   </div>
 
   <!-- MODAL: Confirmation Success Message -->
   <div id="successModal" class="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-center">
-      <div class="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold mb-4">
-        ✓
-      </div>
-      <h3 class="font-serif font-bold text-xl text-heritage-900">Subscription &amp; AutoPay Active!</h3>
-      <p class="text-xs text-stone-600 mt-2 leading-relaxed">
-        Your first sealed glass bottle of fresh <strong>Panditji Buffalo Milk</strong> will arrive tomorrow between <strong>5:30 AM – 7:00 AM</strong>.
+      <div class="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold mb-4">✓</div>
+      <h3 class="font-serif font-bold text-xl text-heritage-900" id="successModalTitle">Order Confirmed!</h3>
+      <p class="text-xs text-stone-600 mt-2 leading-relaxed" id="successModalDesc">
+        Your request has been dispatched to our farm console.
       </p>
-
-      <div class="my-4 bg-cream-100 p-3 rounded-2xl border border-cream-300 text-left text-[11px] space-y-1">
-        <div class="font-bold text-heritage-900">What happens tomorrow:</div>
-        <div class="text-stone-600">• Our runner places your sanitized bottle in your doorstep basket.</div>
-        <div class="text-stone-600">• You will receive an SMS with your bottle's certified Fat % &amp; batch details.</div>
-        <div class="text-stone-600">• Keep the empty bottle rinsed outside tomorrow evening for automatic rebate.</div>
-      </div>
-
-      <button onclick="closeSuccessModal()" class="w-full bg-heritage-800 text-cream-100 font-bold text-xs py-3 rounded-xl uppercase tracking-wider active:scale-95">
+      <button onclick="closeSuccessModal()" class="w-full mt-5 bg-heritage-800 text-cream-100 font-bold text-xs py-3 rounded-xl uppercase tracking-wider active:scale-95">
         Done
       </button>
     </div>
@@ -933,34 +840,172 @@
 
   <!-- JAVASCRIPT APPLICATION LOGIC -->
   <script>
-    // System State
-    const dairyState = {
-      volume: '1000',      // '250', '500', '1000'
-      frequencyDays: 30,   // 30 (daily) or 15 (alternate)
-      quantity: 1,         // bottles per delivery
-      pricingRules: {
-        '250': {
-          label: '250ml',
-          basePrice: 40,
-          returnRebate: 5,
-          deposit: 30
-        },
-        '500': {
-          label: '500ml',
-          basePrice: 70,
-          returnRebate: 10,
-          deposit: 60
-        },
-        '1000': {
-          label: '1000ml (1 Litre)',
-          basePrice: 130,
-          returnRebate: 20,
-          deposit: 80
+    const DEFAULT_SB_URL = 'https://nvqszaywblhdxhlhiuxp.supabase.co';
+    const DEFAULT_SB_KEY = 'sb_publishable_Pkn8vXc6unUaY2ZPTFf9Rg_LZwu3GDm';
+    let sbClient = null;
+    let liveTankLitres = 4.0; // Default fallback until cloud sync completes
+
+    const todayStr = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+    function initSupabase() {
+      if (window.supabase) {
+        sbClient = window.supabase.createClient(DEFAULT_SB_URL, DEFAULT_SB_KEY);
+      }
+    }
+
+    // Fetch live tank stock from Supabase so customer site knows if < 1L Out of Stock
+    async function checkLiveTankStock() {
+      if (!sbClient) initSupabase();
+      let db = JSON.parse(localStorage.getItem('pjf_admin_ops') || '{"procurements":[],"deliveries":[]}');
+
+      try {
+        if (sbClient) {
+          const { data } = await sbClient.from('farm_workspace').select('data').eq('id', 'primary_farm').single();
+          if (data && data.data) {
+            db = data.data;
+            localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+          }
         }
+      } catch(e) {}
+
+      const today = todayStr();
+      const milkIn = (db.procurements || [])
+        .filter(p => String(p.date) === String(today))
+        .reduce((sum, p) => sum + (Number(p.litres) || 0), 0);
+
+      const milkOut = (db.deliveries || [])
+        .filter(d => String(d.date) === String(today) && (d.status === 'delivered' || d.status === 'planned'))
+        .reduce((sum, d) => sum + (Number(d.size) || 0), 0) / 1000;
+
+      // If no procurements logged yet in browser, assume 10L default morning batch unless explicitly < 1L
+      liveTankLitres = (db.procurements && db.procurements.length > 0) ? Number((milkIn - milkOut).toFixed(2)) : 10.0;
+      updateStockDisplays();
+      return db;
+    }
+
+    function updateStockDisplays() {
+      const bannerTag = document.getElementById('expressBannerStockTag');
+      const box = document.getElementById('custStockStatusBox');
+      const title = document.getElementById('custStockTitle');
+      const sub = document.getElementById('custStockSub');
+      const badge = document.getElementById('custStockBadge');
+      const btn = document.getElementById('cqSubmitBtn');
+
+      if (liveTankLitres < 1.0) {
+        if (bannerTag) bannerTag.textContent = '🚫 Out of Stock Today';
+        if (box) box.className = 'p-3 rounded-2xl border border-red-300 bg-red-50 text-red-900 mb-4 text-xs flex items-center justify-between';
+        if (title) title.textContent = 'Out of Stock for Express Delivery';
+        if (sub) sub.textContent = 'Today\'s chill tank batch is sold out (< 1L left).';
+        if (badge) badge.textContent = 'OUT OF STOCK';
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = '🚫 Out of Stock (< 1L Remaining)';
+        }
+      } else {
+        if (bannerTag) bannerTag.textContent = `✓ ${liveTankLitres.toFixed(1)}L Available Now`;
+        if (box) box.className = 'p-3 rounded-2xl border border-emerald-300 bg-emerald-50 text-emerald-900 mb-4 text-xs flex items-center justify-between';
+        if (title) title.textContent = 'Fresh Milk In Stock!';
+        if (sub) sub.textContent = 'Ready for 20–30 min delivery in Sangareddy';
+        if (badge) badge.textContent = `${liveTankLitres.toFixed(1)} L Left`;
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '⚡ Place 20–30 Min Express Order';
+        }
+      }
+    }
+
+    // Quick 20-30m Express Modal
+    async function openQuickOrderModal() {
+      document.getElementById('quickOrderModal').classList.remove('hidden');
+      recalcCustomerQuickPrice();
+      await checkLiveTankStock();
+    }
+
+    function closeQuickOrderModal() {
+      document.getElementById('quickOrderModal').classList.add('hidden');
+    }
+
+    function recalcCustomerQuickPrice() {
+      const size = document.getElementById('cqSize').value;
+      const rates = {
+        '1000': { milk: 130, bottle: 80, total: 210 },
+        '500':  { milk: 70,  bottle: 60, total: 130 },
+        '250':  { milk: 40,  bottle: 30, total: 70 }
+      };
+      const r = rates[size] || rates['1000'];
+      document.getElementById('cqMilkPrice').textContent = `₹${r.milk}`;
+      document.getElementById('cqBottlePrice').textContent = `₹${r.bottle}`;
+      document.getElementById('cqTotalPrice').textContent = `₹${r.total}`;
+    }
+
+    async function submitCustomerQuickOrder(e) {
+      e.preventDefault();
+      const db = await checkLiveTankStock();
+      const size = Number(document.getElementById('cqSize').value);
+
+      if (liveTankLitres < 1.0 || liveTankLitres < (size / 1000)) {
+        return alert('Sorry! Fresh milk stock for today is currently sold out (< 1L remaining).');
+      }
+
+      const rates = { 1000: 210, 500: 130, 250: 70 };
+      const totalAmount = rates[size] || 210;
+      const name = document.getElementById('cqName').value.trim();
+      const phone = document.getElementById('cqPhone').value.trim();
+      const area = document.getElementById('cqArea').value;
+      const hno = document.getElementById('cqHno').value.trim();
+
+      const assignedAgent = (db.agents && db.agents.length > 0) ? db.agents[0].name : 'Agent 1';
+
+      db.deliveries = db.deliveries || [];
+      db.deliveries.push({
+        id: uid(),
+        date: todayStr(),
+        batch: 'Morning',
+        customerId: 'quick_' + uid(),
+        customerName: name,
+        customerPhone: phone,
+        area: area,
+        hno: hno,
+        product: 'Buffalo Milk (Express 20-30m)',
+        size: size,
+        rate: totalAmount,
+        agent: assignedAgent,
+        status: 'planned',
+        isQuick: true,
+        bottlesReturned: 0,
+        bottlesRebate: 0
+      });
+
+      localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+      if (sbClient) {
+        await sbClient.from('farm_workspace').upsert({ id: 'primary_farm', data: db, updated_at: new Date() });
+      }
+
+      closeQuickOrderModal();
+      e.target.reset();
+
+      document.getElementById('successModalTitle').textContent = '⚡ Express Order Dispatched!';
+      document.getElementById('successModalDesc').innerHTML = `Our runner (<strong>${assignedAgent}</strong>) will deliver your <strong>${size}ml</strong> sealed glass bottle to <strong>${hno}, ${area}</strong> within <strong>20–30 minutes</strong>.<br><br>Total Payable on Delivery: <strong>₹${totalAmount}</strong> (Includes New Glass Bottle).`;
+      document.getElementById('successModal').classList.remove('hidden');
+    }
+
+    // System State for Monthly Subscription Calculator
+    const dairyState = {
+      volume: '1000',
+      frequencyDays: 30,
+      quantity: 1,
+      pricingRules: {
+        '250':  { label: '250ml', basePrice: 40, returnRebate: 5, deposit: 30 },
+        '500':  { label: '500ml', basePrice: 70, returnRebate: 10, deposit: 60 },
+        '1000': { label: '1000ml (1 Litre)', basePrice: 130, returnRebate: 20, deposit: 80 }
       }
     };
 
-    // Agent Passcode Modal Logic (PIN: 1234)
     function openAgentModal() {
       const modal = document.getElementById('agentAccessModal');
       const pin = document.getElementById('agentPinInput');
@@ -979,7 +1024,6 @@
       e.preventDefault();
       const pin = document.getElementById('agentPinInput');
       const err = document.getElementById('agentPinError');
-
       if (pin.value.trim() === '1234') {
         window.location.href = 'agent.html';
       } else {
@@ -989,50 +1033,39 @@
       }
     }
 
-    // Set Volume
     function setVolume(vol) {
       dairyState.volume = vol;
-      
-      // Update UI button highlights
       ['250', '500', '1000'].forEach(v => {
         const btn = document.getElementById(`volBtn${v}`);
         if (v === vol) {
-          btn.className = "vol-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-3 text-center transition flex flex-col justify-between shadow-xs active:scale-95";
+          btn.className = "vol-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-2.5 sm:p-3 text-center transition flex flex-col justify-between shadow-xs active:scale-95";
         } else {
-          btn.className = "vol-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-3 text-center transition flex flex-col justify-between active:scale-95";
+          btn.className = "vol-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-2.5 sm:p-3 text-center transition flex flex-col justify-between active:scale-95";
         }
       });
-
       const rule = dairyState.pricingRules[vol];
       document.getElementById('bottleSavingsTag').innerText = `₹${rule.returnRebate} return rebate applied`;
       recalculateEstimate();
     }
 
-    // Set Frequency
     function setFrequency(days) {
       dairyState.frequencyDays = days;
-
       const btn30 = document.getElementById('freqBtn30');
       const btn15 = document.getElementById('freqBtn15');
-
       if (days === 30) {
         btn30.className = "freq-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-4 text-left transition flex items-center justify-between active:scale-95";
         btn30.querySelector('span').className = "w-5 h-5 rounded-full border-4 border-heritage-800 flex-shrink-0";
-
         btn15.className = "freq-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-4 text-left transition flex items-center justify-between active:scale-95";
         btn15.querySelector('span').className = "w-5 h-5 rounded-full border-2 border-stone-300 flex-shrink-0";
       } else {
         btn15.className = "freq-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-4 text-left transition flex items-center justify-between active:scale-95";
         btn15.querySelector('span').className = "w-5 h-5 rounded-full border-4 border-heritage-800 flex-shrink-0";
-
         btn30.className = "freq-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-4 text-left transition flex items-center justify-between active:scale-95";
         btn30.querySelector('span').className = "w-5 h-5 rounded-full border-2 border-stone-300 flex-shrink-0";
       }
-
       recalculateEstimate();
     }
 
-    // Change Bottle Quantity
     function changeQty(delta) {
       const newQty = dairyState.quantity + delta;
       if (newQty >= 1 && newQty <= 6) {
@@ -1042,37 +1075,28 @@
       }
     }
 
-    // Core Dynamic Math Recalculation
     function recalculateEstimate() {
       const rule = dairyState.pricingRules[dairyState.volume];
       const totalBottlesInMonth = dairyState.frequencyDays * dairyState.quantity;
-      
       const totalBaseCost = totalBottlesInMonth * rule.basePrice;
       const totalRebateSavings = totalBottlesInMonth * rule.returnRebate;
       const netEffectiveTotal = totalBaseCost - totalRebateSavings;
       const netEffectivePerBottle = rule.basePrice - rule.returnRebate;
 
-      // Update right panel breakdown
       document.getElementById('sumBottleLine').innerText = `Milk Cost (${totalBottlesInMonth} bottles × ₹${rule.basePrice})`;
       document.getElementById('sumBaseCost').innerText = `₹${totalBaseCost.toLocaleString('en-IN')}`;
-      
       document.getElementById('sumRebateRate').innerText = `₹${rule.returnRebate}`;
       document.getElementById('sumRebateSavings').innerText = `-₹${totalRebateSavings.toLocaleString('en-IN')}`;
-      
       document.getElementById('sumDeposit').innerText = `₹${(rule.deposit * dairyState.quantity).toLocaleString('en-IN')}`;
-      
       document.getElementById('sumEffectiveTotal').innerText = `₹${netEffectiveTotal.toLocaleString('en-IN')}`;
       document.getElementById('sumEffectivePerBottle').innerText = `Effective net: ₹${netEffectivePerBottle} per ${rule.label} bottle`;
 
-      // Update Modal Strings
       const freqLabel = dairyState.frequencyDays === 30 ? 'Daily (30 days)' : 'Day-by-Day (15 days)';
       document.getElementById('modalPlanDesc').innerText = `${dairyState.quantity} Bottle (${rule.label}) • ${freqLabel}`;
       document.getElementById('modalNetRate').innerText = `₹${netEffectiveTotal.toLocaleString('en-IN')}/mo`;
       document.getElementById('modalSavingsHighlight').innerText = `Includes ₹${totalRebateSavings.toLocaleString('en-IN')} monthly rebate on empty bottle returns!`;
-      document.getElementById('modalDepositAmt').innerText = `₹${rule.deposit * dairyState.quantity}`;
     }
 
-    // Sealed Cap Shift Demo
     function setCapShift(shift) {
       const fat = document.getElementById('capFatDisplay');
       const time = document.getElementById('capMilkingTime');
@@ -1092,55 +1116,62 @@
       }
     }
 
-    // Modal Controls
-    function openAutopayModal() {
-      document.getElementById('autopayModal').classList.remove('hidden');
-    }
+    function openAutopayModal() { document.getElementById('autopayModal').classList.remove('hidden'); }
+    function closeAutopayModal() { document.getElementById('autopayModal').classList.add('hidden'); }
 
-    function closeAutopayModal() {
-      document.getElementById('autopayModal').classList.add('hidden');
-    }
-
-    function handleAutopaySubmit(e) {
+    async function handleAutopaySubmit(e) {
       e.preventDefault();
+      const db = await checkLiveTankStock();
+      const rule = dairyState.pricingRules[dairyState.volume];
+      const name = document.getElementById('subCustName').value.trim();
+      const phone = document.getElementById('subCustPhone').value.trim();
+      const area = document.getElementById('subCustArea').value;
+      const hno = document.getElementById('subCustHno').value.trim();
+
+      db.customers = db.customers || [];
+      db.customers.push({
+        id: uid(),
+        name: name,
+        phone: phone,
+        area: area,
+        hno: hno,
+        address: area,
+        product: 'Buffalo Milk (Pure Natural)',
+        size: Number(dairyState.volume) * dairyState.quantity,
+        rate: rule.basePrice * dairyState.quantity,
+        frequency: dairyState.frequencyDays === 30 ? 'Daily' : 'Alternate days',
+        agent: (db.agents && db.agents.length > 0) ? db.agents[0].name : 'Agent 1',
+        active: true
+      });
+
+      localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+      if (sbClient) {
+        await sbClient.from('farm_workspace').upsert({ id: 'primary_farm', data: db, updated_at: new Date() });
+      }
+
       closeAutopayModal();
+      document.getElementById('successModalTitle').textContent = 'Subscription & AutoPay Active!';
+      document.getElementById('successModalDesc').innerHTML = `Welcome <strong>${name}</strong>! Your first sealed glass bottle of fresh <strong>Panditji Buffalo Milk</strong> will arrive tomorrow between <strong>5:30 AM – 7:00 AM</strong>.`;
       document.getElementById('successModal').classList.remove('hidden');
     }
 
-    function closeSuccessModal() {
-      document.getElementById('successModal').classList.add('hidden');
-    }
+    function closeSuccessModal() { document.getElementById('successModal').classList.add('hidden'); }
+    function scrollToCalculator() { document.getElementById('subscription-engine').scrollIntoView({ behavior: 'smooth' }); }
 
-    function scrollToCalculator() {
-      document.getElementById('subscription-engine').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    // FAQ Accordion
-    function toggleAccordion(id) {
-      const content = document.getElementById(id);
-      const icon = document.getElementById(`${id}-icon`);
-      if (content.classList.contains('hidden')) {
-        content.classList.remove('hidden');
-        icon.innerText = '−';
-      } else {
-        content.classList.add('hidden');
-        icon.innerText = '+';
-      }
-    }
-
-    // Keyboard navigation
     window.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         closeAgentModal();
+        closeQuickOrderModal();
         closeAutopayModal();
         closeSuccessModal();
       }
     });
 
-    // Init on load
     window.onload = function() {
+      initSupabase();
       setVolume('1000');
       setFrequency(30);
+      checkLiveTankStock();
     };
   </script>
 </body>
