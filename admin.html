@@ -11,6 +11,7 @@
     .panel { background: #ffffff; border: 1px solid #d8e5dc; border-radius: 14px; padding: 18px; box-shadow: 0 4px 14px rgba(20,53,37,0.04); }
     .btn { background: #185237; color: #ffffff; padding: 8px 14px; border-radius: 9px; font-weight: 600; font-size: 13px; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
     .btn:hover { background: #123e2a; }
+    .btn:disabled { background: #9ca3af; cursor: not-allowed; }
     .btn-secondary { background: #e8f1eb; color: #185237; padding: 8px 14px; border-radius: 9px; font-weight: 600; font-size: 13px; cursor: pointer; }
     .btn-secondary:hover { background: #dceade; }
     .btn-wa { background: #25D366; color: #ffffff; padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
@@ -45,20 +46,22 @@
       <p class="text-xs text-emerald-200">Mamidipally · IIT Kandi · Sangareddy · Central Operations</p>
     </div>
   </div>
-  <div class="flex items-center gap-3 text-xs flex-wrap">
+  <div class="flex items-center gap-2.5 text-xs flex-wrap">
+    <button class="bg-purple-700 hover:bg-purple-600 px-3 py-1.5 rounded-lg border border-purple-400/40 font-bold flex items-center gap-1.5 shadow" onclick="openQuickDeliveryModal()">
+      <span>⚡ Quick 20-30m Express</span>
+    </button>
     <button class="bg-[#1b4d35] hover:bg-[#235d40] px-3 py-1.5 rounded-lg border border-emerald-500/30 flex items-center gap-1.5" onclick="openCloudModal()">
-      <span>☁️ Supabase Cloud</span>
+      <span>☁️ Cloud</span>
       <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 inline-block" title="Cloud Active"></span>
     </button>
     <button class="bg-[#1b4d35] hover:bg-[#235d40] px-3 py-1.5 rounded-lg border border-emerald-500/30 font-semibold flex items-center gap-1.5" onclick="openAgentManageModal()">
-      <span>👮 Manage Agents</span>
+      <span>👮 Agents</span>
     </button>
     <button class="bg-emerald-800/80 hover:bg-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-400/30 font-semibold flex items-center gap-1.5" onclick="openWaConfigModal()">
-      <span>⚙️ WhatsApp API</span>
+      <span>⚙️ WhatsApp</span>
       <span id="waApiStatusDot" class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
     </button>
-    <a href="agent.html" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg font-bold">📱 Open Agent App</a>
-    <span class="text-emerald-200 font-semibold">📞 7993394025</span>
+    <a href="agent.html" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg font-bold">📱 Agent App</a>
   </div>
 </header>
 
@@ -69,8 +72,7 @@
     <button class="nav-btn" onclick="show('vendors', this)">🐄 Vendors &amp; Intake</button>
     <button class="nav-btn" onclick="show('customers', this)">👥 Customers &amp; Search</button>
     <button class="nav-btn" onclick="show('dispatch', this)">🚚 Route Dispatch</button>
-    <button class="nav-btn" onclick="openAgentManageModal()">👮 Manage Agents</button>
-    <button class="nav-btn" onclick="show('agentView', this)">📱 Agent Mobile View</button>
+    <button class="nav-btn" onclick="show('agentView', this)">👮 Agent History &amp; Salary</button>
     <button class="nav-btn" onclick="show('stickers', this)">🏷️ Pre-Cut A4 Stickers</button>
     <button class="nav-btn" onclick="show('bottles', this)">🍾 Glass Bottle Ledger</button>
     <button class="nav-btn" onclick="show('billing', this)">🧾 Monthly Invoices</button>
@@ -81,7 +83,7 @@
   <!-- Main Content -->
   <main class="p-4 md:p-6 flex-1 max-w-7xl mx-auto space-y-5">
 
-    <!-- VIEW: OVERVIEW WITH MILK RECONCILIATION -->
+    <!-- VIEW: OVERVIEW WITH MILK RECONCILIATION & QUICK DELIVERY -->
     <section id="overview" class="view space-y-4">
       <div class="panel flex flex-wrap items-center justify-between gap-3 bg-white">
         <div class="flex items-center gap-3 flex-wrap">
@@ -101,7 +103,11 @@
             <option value="Evening">Evening Batch</option>
           </select>
         </div>
-        <div class="text-xs text-gray-500 font-medium" id="scopeNotice">Live Milk Inflow vs. Outflow</div>
+        <div class="flex items-center gap-2">
+          <button class="btn bg-purple-700 hover:bg-purple-800 text-xs" onclick="openQuickDeliveryModal()">
+            ⚡ Quick 20-30 Min Delivery (Sangareddy)
+          </button>
+        </div>
       </div>
 
       <!-- Milk Balance Reconciliation Banner -->
@@ -119,7 +125,7 @@
         <div class="panel border-l-4 border-amber-500 bg-amber-50/20">
           <div class="text-xs text-gray-700 uppercase font-bold">Tank Balance (Remaining)</div>
           <div id="kMilkBalance" class="text-2xl font-black mt-1 text-amber-900">0.0 L</div>
-          <div class="text-[11px] text-gray-600 mt-0.5" id="kMilkBalanceStatus">Chill tank surplus</div>
+          <div class="text-[11px] font-bold mt-0.5" id="kMilkBalanceStatus">Chill tank surplus</div>
         </div>
         <div class="panel border-l-4 border-green-700">
           <div class="text-xs text-gray-500 uppercase font-semibold">Net Milk Margin</div>
@@ -162,61 +168,29 @@
         </div>
       </div>
 
-      <!-- Log Milk Intake Form -->
       <form class="panel grid sm:grid-cols-3 lg:grid-cols-6 gap-3" onsubmit="addProcurement(event)">
         <h3 class="font-bold text-sm sm:col-span-3 lg:col-span-6 border-b pb-2 text-[#143525]">+ Record Milk Procurement</h3>
-        <div>
-          <label>Date</label>
-          <input type="date" id="pDate" required>
-        </div>
+        <div><label>Date</label><input type="date" id="pDate" required></div>
         <div>
           <label>Shift</label>
-          <select id="pShift">
-            <option value="Morning">Morning</option>
-            <option value="Evening">Evening</option>
-          </select>
+          <select id="pShift"><option value="Morning">Morning</option><option value="Evening">Evening</option></select>
         </div>
-        <div>
-          <label>Vendor</label>
-          <select id="pVendorSelect" onchange="autoFillVendorRate()" required></select>
-        </div>
-        <div>
-          <label>Quantity (Litres)</label>
-          <input type="number" step="0.5" min="0.5" id="pLitres" value="4" required oninput="calcProcurementTotal()">
-        </div>
-        <div>
-          <label>Rate / Litre (₹)</label>
-          <input type="number" step="1" min="1" id="pRate" value="80" required oninput="calcProcurementTotal()">
-        </div>
-        <div>
-          <label>Total Amount (₹)</label>
-          <input type="number" id="pTotal" value="320" readonly class="bg-gray-100 font-bold text-emerald-900">
-        </div>
+        <div><label>Vendor</label><select id="pVendorSelect" onchange="autoFillVendorRate()" required></select></div>
+        <div><label>Quantity (Litres)</label><input type="number" step="0.5" min="0.5" id="pLitres" value="4" required oninput="calcProcurementTotal()"></div>
+        <div><label>Rate / Litre (₹)</label><input type="number" step="1" min="1" id="pRate" value="80" required oninput="calcProcurementTotal()"></div>
+        <div><label>Total Amount (₹)</label><input type="number" id="pTotal" value="320" readonly class="bg-gray-100 font-bold text-emerald-900"></div>
         <div class="sm:col-span-3 lg:col-span-6 flex justify-end">
           <button class="btn px-8">Save Intake Entry</button>
         </div>
       </form>
 
-      <!-- Manage Vendors & Vendor Directory -->
       <div class="grid lg:grid-cols-3 gap-4">
         <form class="panel space-y-3" onsubmit="addVendor(event)">
           <h3 class="font-bold text-sm border-b pb-2 text-[#143525]">+ Register New Vendor</h3>
-          <div>
-            <label>Vendor Name</label>
-            <input id="vName" placeholder="e.g. Mani" required>
-          </div>
-          <div>
-            <label>Mobile Number</label>
-            <input id="vPhone" pattern="[0-9]{10}" placeholder="9849011223" required>
-          </div>
-          <div>
-            <label>Village / Location</label>
-            <input id="vLoc" placeholder="e.g. Mamidipally" required>
-          </div>
-          <div>
-            <label>Default Rate (₹/L)</label>
-            <input type="number" id="vDefaultRate" value="80" required>
-          </div>
+          <div><label>Vendor Name</label><input id="vName" placeholder="e.g. Mani" required></div>
+          <div><label>Mobile Number</label><input id="vPhone" pattern="[0-9]{10}" placeholder="9849011223" required></div>
+          <div><label>Village / Location</label><input id="vLoc" placeholder="e.g. Mamidipally" required></div>
+          <div><label>Default Rate (₹/L)</label><input type="number" id="vDefaultRate" value="80" required></div>
           <button class="btn w-full">Save Vendor</button>
         </form>
 
@@ -227,27 +201,18 @@
           </div>
           <table>
             <thead>
-              <tr>
-                <th>Vendor Name</th>
-                <th>Village</th>
-                <th>Mobile</th>
-                <th>Rate / L</th>
-                <th>Supplied (L)</th>
-                <th>Total Bill (₹)</th>
-                <th>Actions</th>
-              </tr>
+              <tr><th>Vendor Name</th><th>Village</th><th>Mobile</th><th>Rate / L</th><th>Supplied (L)</th><th>Total Bill (₹)</th><th>Actions</th></tr>
             </thead>
             <tbody id="vendorDirectoryRows"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- Procurement Intake Register with Delete Entry -->
       <div class="panel overflow-x-auto">
         <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
           <div>
             <h3 class="font-bold text-sm text-[#143525]">Milk Procurement History Log</h3>
-            <p class="text-xs text-gray-500">Every intake record can be checked or deleted if entered by mistake</p>
+            <p class="text-xs text-gray-500">Delete accidental entries to recalculate tank balance</p>
           </div>
           <div class="flex items-center gap-2">
             <label class="mb-0 text-xs text-gray-600">Filter Vendor:</label>
@@ -258,14 +223,7 @@
         </div>
         <table>
           <thead>
-            <tr>
-              <th>Date &amp; Shift</th>
-              <th>Vendor</th>
-              <th>Volume (L)</th>
-              <th>Rate / L</th>
-              <th>Total Cost</th>
-              <th>Actions</th>
-            </tr>
+            <tr><th>Date &amp; Shift</th><th>Vendor</th><th>Volume (L)</th><th>Rate / L</th><th>Total Cost</th><th>Actions</th></tr>
           </thead>
           <tbody id="procurementRows"></tbody>
         </table>
@@ -281,17 +239,10 @@
         </div>
       </div>
 
-      <!-- Add Customer Form -->
       <form class="panel grid sm:grid-cols-3 lg:grid-cols-4 gap-3" onsubmit="addCustomer(event)">
         <h3 class="font-bold text-sm sm:col-span-3 lg:col-span-4 border-b pb-2 text-[#143525]">+ Register New Customer</h3>
-        <div>
-          <label>Full Name</label>
-          <input id="cName" required placeholder="e.g. Ramesh Sharma">
-        </div>
-        <div>
-          <label>Mobile Number (10 digits)</label>
-          <input id="cPhone" pattern="[0-9]{10}" required placeholder="9876543210">
-        </div>
+        <div><label>Full Name</label><input id="cName" required placeholder="e.g. Ramesh Sharma"></div>
+        <div><label>Mobile Number (10 digits)</label><input id="cPhone" pattern="[0-9]{10}" required placeholder="9876543210"></div>
         <div>
           <label>Area / Location</label>
           <select id="cArea">
@@ -303,20 +254,11 @@
             <option value="Other">Other</option>
           </select>
         </div>
-        <div>
-          <label>House / Flat No (H.No)</label>
-          <input id="cHno" required placeholder="H.No 3-45/A, Sadar Bazar">
-        </div>
-        <div class="sm:col-span-2">
-          <label>Detailed Address / Landmark</label>
-          <input id="cAddress" required placeholder="Near Faculty Quarters / Temple">
-        </div>
+        <div><label>House / Flat No (H.No)</label><input id="cHno" required placeholder="H.No 3-45/A, Sadar Bazar"></div>
+        <div class="sm:col-span-2"><label>Detailed Address / Landmark</label><input id="cAddress" required placeholder="Near Faculty Quarters / Temple"></div>
         <div>
           <label>Milk Product</label>
-          <select id="cProduct">
-            <option>Buffalo Milk (Pure Natural)</option>
-            <option>Cow Milk (Pure Desi)</option>
-          </select>
+          <select id="cProduct"><option>Buffalo Milk (Pure Natural)</option><option>Cow Milk (Pure Desi)</option></select>
         </div>
         <div>
           <label>Bottle Size &amp; Rate</label>
@@ -326,55 +268,36 @@
             <option value="1000-130" selected>1000 ml / 1L (₹130)</option>
           </select>
         </div>
-        <div>
-          <label>Rate Per Delivery (₹)</label>
-          <input id="cRate" type="number" value="130" required>
-        </div>
+        <div><label>Rate Per Delivery (₹)</label><input id="cRate" type="number" value="130" required></div>
         <div>
           <label>Frequency</label>
-          <select id="cFrequency">
-            <option value="Daily">Daily</option>
-            <option value="Alternate days">Alternate Days (Day-by-Day)</option>
-          </select>
+          <select id="cFrequency"><option value="Daily">Daily</option><option value="Alternate days">Alternate Days (Day-by-Day)</option></select>
         </div>
-        <div>
-          <label>Default Route Runner</label>
-          <select id="cAgent"></select>
-        </div>
+        <div><label>Default Route Runner</label><select id="cAgent"></select></div>
         <div class="sm:col-span-2 lg:col-span-4 flex justify-end">
           <button class="btn px-8">Save Customer Profile</button>
         </div>
       </form>
 
-      <!-- Customer Table -->
       <div class="panel overflow-x-auto">
         <table>
           <thead>
-            <tr>
-              <th>H.No</th>
-              <th>Name</th>
-              <th>Area / Location</th>
-              <th>Mobile</th>
-              <th>Product / Size</th>
-              <th>Frequency</th>
-              <th>Rate</th>
-              <th>Assigned Agent</th>
-              <th>Actions</th>
-            </tr>
+            <tr><th>H.No</th><th>Name</th><th>Area / Location</th><th>Mobile</th><th>Product / Size</th><th>Frequency</th><th>Rate</th><th>Assigned Agent</th><th>Actions</th></tr>
           </thead>
           <tbody id="customerRows"></tbody>
         </table>
       </div>
     </section>
 
-    <!-- VIEW: ROUTE DISPATCH & PRE-CHECKLIST DISPATCH PLANNER -->
+    <!-- VIEW: ROUTE DISPATCH & SELECTIVE RESCHEDULE -->
     <section id="dispatch" class="view hidden space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 class="text-lg font-bold">Route Dispatch Planner &amp; Customer Checklist</h2>
-          <p class="text-xs text-gray-500">Every customer is autofilled &amp; pre-selected by default. Uncheck anyone who is unavailable today before confirming dispatch.</p>
+          <h2 class="text-lg font-bold">Route Dispatch Planner &amp; Selective Reschedule</h2>
+          <p class="text-xs text-gray-500">Schedule active subscribers, unlock/reassign skipped stops, or selectively reschedule individual customers.</p>
         </div>
         <div class="flex gap-2">
+          <button class="btn bg-purple-700 hover:bg-purple-800 text-xs py-1.5" onclick="openQuickDeliveryModal()">⚡ Quick 20-30m Express</button>
           <button class="btn text-xs py-1.5" onclick="openAgentManageModal()">👮 Manage Agents</button>
           <button class="btn-secondary" onclick="printDeliveryManifest()">🖨️ Print Delivery Sheet</button>
         </div>
@@ -385,7 +308,7 @@
         <div class="grid sm:grid-cols-3 lg:grid-cols-4 gap-3 border-b pb-3 items-end">
           <div>
             <label>Dispatch Date</label>
-            <input id="dDate" type="date" required onchange="renderPreDispatchList()">
+            <input id="dDate" type="date" required onchange="renderPreDispatchList(); renderDispatchRows();">
           </div>
           <div>
             <label>Shift / Batch</label>
@@ -400,18 +323,16 @@
           </div>
           <div>
             <button class="btn w-full py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold" onclick="commitSelectedDispatch()">
-              🚀 Schedule &amp; Send Direct (<span id="btnCommitCount">0</span>)
+              🚀 Schedule (<span id="btnCommitCount">0</span>) Selected Stops
             </button>
           </div>
         </div>
 
-        <!-- Checklist Controls Bar -->
         <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
           <div class="flex items-center gap-2">
             <span class="font-bold text-gray-700">Autofill Selection:</span>
-            <button type="button" class="tag-bubble bg-emerald-100 text-emerald-900 font-bold border border-emerald-300" onclick="selectAllDispatch(true)">✓ Select All (Autofill)</button>
+            <button type="button" class="tag-bubble bg-emerald-100 text-emerald-900 font-bold border border-emerald-300" onclick="selectAllDispatch(true)">✓ Select All</button>
             <button type="button" class="tag-bubble bg-gray-100 text-gray-700 border border-gray-300" onclick="selectAllDispatch(false)">✕ Uncheck All</button>
-            <span class="text-gray-500 ml-2 font-medium">Uncheck customers who asked for pause today.</span>
           </div>
           <div class="flex items-center gap-2">
             <label class="mb-0 text-gray-600">Filter Checklist Area:</label>
@@ -426,19 +347,12 @@
           </div>
         </div>
 
-        <!-- Interactive Customer Dispatch Checklist Table -->
-        <div class="overflow-x-auto max-h-80 overflow-y-auto border rounded-lg">
+        <div class="overflow-x-auto max-h-72 overflow-y-auto border rounded-lg">
           <table class="bg-white">
             <thead class="sticky top-0 z-10 shadow-sm">
               <tr>
                 <th class="w-10 text-center"><input type="checkbox" id="chkMaster" checked onchange="toggleMasterCheckbox(this.checked)"></th>
-                <th>H.No / Address</th>
-                <th>Customer Name &amp; Phone</th>
-                <th>Area</th>
-                <th>Product &amp; Qty</th>
-                <th>Frequency</th>
-                <th>Assign Runner</th>
-                <th>Status</th>
+                <th>H.No / Address</th><th>Customer Name &amp; Phone</th><th>Area</th><th>Product &amp; Qty</th><th>Frequency</th><th>Assign Runner</th><th>Status</th>
               </tr>
             </thead>
             <tbody id="preDispatchRows"></tbody>
@@ -446,7 +360,7 @@
         </div>
       </div>
 
-      <!-- Area Filtering & Bulk Reassignment for Current Stops -->
+      <!-- Area Filtering & Selective Reschedule Bar -->
       <div class="panel bg-[#f8faf8] border-2 border-emerald-900/10 grid md:grid-cols-2 gap-4">
         <div class="space-y-1">
           <label class="text-[#143525]">📍 Filter Scheduled Stops by Area</label>
@@ -472,30 +386,37 @@
             </select>
             <span class="self-center text-xs text-gray-500">to</span>
             <select id="bulkTargetAgent" class="bg-white text-xs"></select>
-            <button type="button" class="btn text-xs shrink-0" onclick="bulkReassignByLocation()">Reassign All</button>
+            <button type="button" class="btn text-xs shrink-0" onclick="bulkReassignByLocation()">Reassign Area</button>
           </div>
         </div>
       </div>
 
-      <!-- Scheduled Stops Table -->
+      <!-- Scheduled Stops Table with Selective Customer Reschedule -->
       <div class="panel overflow-x-auto">
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="font-bold text-sm text-[#143525]">Scheduled Drops for Date: <span id="dispDateLabel" class="text-emerald-800"></span></h3>
+        <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
+          <div>
+            <h3 class="font-bold text-sm text-[#143525]">Scheduled Drops for Date: <span id="dispDateLabel" class="text-emerald-800"></span></h3>
+            <p class="text-xs text-gray-500">Check specific customers below to reschedule ONLY selected stops to another date or unlock skipped drops</p>
+          </div>
           <div class="flex items-center gap-2">
-            <button class="btn-secondary text-xs py-1" onclick="sendDirectBatchAssignmentMessages()">📲 Direct Broadcast to All Scheduled</button>
+            <button class="btn bg-amber-600 hover:bg-amber-700 text-white text-xs py-1.5" onclick="openSelectiveRescheduleModal()">
+              🗓️ Reschedule Selected (<span id="selectedStopsCount">0</span>)
+            </button>
+            <button class="btn-secondary text-xs py-1.5" onclick="sendDirectBatchAssignmentMessages()">📲 Direct Broadcast</button>
           </div>
         </div>
         <table>
           <thead>
             <tr>
+              <th class="w-8 text-center"><input type="checkbox" id="dispMasterChk" onchange="toggleAllScheduledChecks(this.checked)"></th>
               <th>H.No / Customer</th>
-              <th>Area / Locality</th>
+              <th>Area</th>
               <th>Mobile</th>
-              <th>Item &amp; Quantity</th>
+              <th>Item &amp; Qty</th>
               <th>Current Agent</th>
-              <th>Reassign Agent</th>
+              <th>Reassign / Unlock</th>
               <th>Status</th>
-              <th>Direct Notification</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="dispatchRows"></tbody>
@@ -503,31 +424,80 @@
       </div>
     </section>
 
-    <!-- VIEW: AGENT MOBILE VIEW -->
+    <!-- VIEW: AGENT HISTORY & SALARY CALCULATOR -->
     <section id="agentView" class="view hidden space-y-4">
       <div class="panel bg-[#143525] text-white">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h2 class="text-base font-bold">Agent Delivery Console (Admin Live View)</h2>
-            <p class="text-xs text-emerald-200">Doorstep drop verification &amp; automatic customer receipt dispatch</p>
+            <h2 class="text-base font-bold">👮 Agent Delivery History &amp; Salary Calculator</h2>
+            <p class="text-xs text-emerald-200">Track exact timestamps of every drop and compute agent payouts based on completed stops</p>
           </div>
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <label class="text-white text-xs mb-0">Agent:</label>
-            <select id="agentFilter" class="bg-white text-gray-800 text-xs py-1" onchange="renderAgentCards()"></select>
-          </div>
+          <button class="btn bg-emerald-600 hover:bg-emerald-500 text-xs" onclick="openAgentManageModal()">+ Add / Edit Agents</button>
         </div>
       </div>
 
-      <div id="agentCards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      <!-- Salary & History Filter Bar -->
+      <div class="panel grid sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end bg-white">
+        <div>
+          <label>Select Agent</label>
+          <select id="salaryAgentFilter" onchange="renderAgentHistoryAndSalary()">
+            <option value="ALL">All Delivery Agents</option>
+          </select>
+        </div>
+        <div>
+          <label>Period Scope</label>
+          <select id="salaryPeriodType" onchange="toggleSalaryDateInputs()">
+            <option value="month">By Month</option>
+            <option value="day">By Specific Day</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
+        <div id="salMonthWrap">
+          <label>Month</label>
+          <input type="month" id="salaryMonthInput" onchange="renderAgentHistoryAndSalary()">
+        </div>
+        <div id="salDayWrap" class="hidden">
+          <label>Date</label>
+          <input type="date" id="salaryDateInput" onchange="renderAgentHistoryAndSalary()">
+        </div>
+        <div>
+          <label>Rate Per Delivered Stop (₹)</label>
+          <input type="number" id="salaryPerStopRate" value="15" min="1" oninput="renderAgentHistoryAndSalary()">
+        </div>
+      </div>
 
-      <!-- Agent Timestamp & Activity Audit Log -->
+      <!-- Salary Summary KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="panel border-l-4 border-emerald-600">
+          <div class="text-xs text-gray-500 uppercase font-semibold">Completed Stops</div>
+          <div id="salTotalStops" class="text-2xl font-black mt-1 text-emerald-800">0</div>
+          <div class="text-[11px] text-gray-500 mt-0.5">Verified doorstep drops</div>
+        </div>
+        <div class="panel border-l-4 border-red-500">
+          <div class="text-xs text-gray-500 uppercase font-semibold">Skipped Stops</div>
+          <div id="salSkippedStops" class="text-2xl font-black mt-1 text-red-700">0</div>
+          <div class="text-[11px] text-gray-500 mt-0.5">Not counted in payout</div>
+        </div>
+        <div class="panel border-l-4 border-blue-600">
+          <div class="text-xs text-gray-500 uppercase font-semibold">Empty Bottles Returned</div>
+          <div id="salBottlesRecd" class="text-2xl font-black mt-1 text-blue-800">0</div>
+          <div class="text-[11px] text-gray-500 mt-0.5">Collected by agent</div>
+        </div>
+        <div class="panel border-l-4 border-amber-500 bg-amber-50/30">
+          <div class="text-xs text-gray-700 uppercase font-bold">Calculated Salary Payout</div>
+          <div id="salTotalPayable" class="text-2xl font-black mt-1 text-amber-900">₹0</div>
+          <div class="text-[11px] text-amber-800 font-semibold mt-0.5" id="salFormulaHint">0 stops × ₹15/stop</div>
+        </div>
+      </div>
+
+      <!-- Agent Timestamp & Activity Audit Log Table -->
       <div class="panel overflow-x-auto">
         <div class="flex justify-between items-center mb-3">
           <div>
-            <h3 class="font-bold text-sm text-[#143525]">📋 Agent Delivery Time &amp; Activity Log</h3>
-            <p class="text-xs text-gray-500">Live record of which agent delivered which stop and at what exact time</p>
+            <h3 class="font-bold text-sm text-[#143525]">📋 Detailed Agent Delivery Time &amp; Activity Log</h3>
+            <p class="text-xs text-gray-500">Exact date, time, customer stop, and status recorded from agent mobile app</p>
           </div>
-          <button class="btn-secondary text-xs py-1" onclick="pullFromCloud(false)">🔄 Refresh Cloud Logs</button>
+          <button class="btn-secondary text-xs py-1" onclick="pullFromCloud(false)">🔄 Sync Latest Logs</button>
         </div>
         <table>
           <thead>
@@ -537,6 +507,7 @@
               <th>Agent</th>
               <th>H.No / Customer</th>
               <th>Area</th>
+              <th>Volume</th>
               <th>Bottles Recd</th>
               <th>Status</th>
             </tr>
@@ -546,7 +517,7 @@
       </div>
     </section>
 
-    <!-- VIEW: PRE-CUT A4 STICKERS (16-SHEET 105x34mm WITH BUFFER) -->
+    <!-- VIEW: PRE-CUT A4 STICKERS -->
     <section id="stickers" class="view hidden space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -591,36 +562,10 @@
     <!-- VIEW: BOTTLE LEDGER -->
     <section id="bottles" class="view hidden space-y-4">
       <h2 class="text-lg font-bold">Glass Bottle Tracking &amp; Savings Ledger</h2>
-      <div class="panel grid sm:grid-cols-4 gap-3">
-        <div>
-          <label>1000ml Return Rebate</label>
-          <div class="text-base font-bold text-emerald-800">₹20 deduction / bottle</div>
-        </div>
-        <div>
-          <label>500ml Return Rebate</label>
-          <div class="text-base font-bold text-emerald-800">₹10 deduction / bottle</div>
-        </div>
-        <div>
-          <label>250ml Return Rebate</label>
-          <div class="text-base font-bold text-emerald-800">₹5 deduction / bottle</div>
-        </div>
-        <div>
-          <label>Sterilization Standard</label>
-          <div class="text-xs text-gray-600 mt-1">4-Stage RO Washed &amp; 110°C Steam Sanitized</div>
-        </div>
-      </div>
-
       <div class="panel overflow-x-auto">
         <table>
           <thead>
-            <tr>
-              <th>Date</th>
-              <th>Customer</th>
-              <th>Action</th>
-              <th>Size</th>
-              <th>Quantity Returned</th>
-              <th>Customer Savings (₹)</th>
-            </tr>
+            <tr><th>Date</th><th>Customer</th><th>Action</th><th>Size</th><th>Quantity Returned</th><th>Customer Savings (₹)</th></tr>
           </thead>
           <tbody id="bottleRows"></tbody>
         </table>
@@ -641,15 +586,7 @@
       <div class="panel overflow-x-auto">
         <table>
           <thead>
-            <tr>
-              <th>Invoice #</th>
-              <th>Customer Name</th>
-              <th>Deliveries</th>
-              <th>Milk Bill (₹)</th>
-              <th>Bottle Return Rebate (₹)</th>
-              <th>Net Due (₹)</th>
-              <th>Direct WhatsApp</th>
-            </tr>
+            <tr><th>Invoice #</th><th>Customer Name</th><th>Deliveries</th><th>Milk Bill (₹)</th><th>Bottle Return Rebate (₹)</th><th>Net Due (₹)</th><th>Direct WhatsApp</th></tr>
           </thead>
           <tbody id="billRows"></tbody>
         </table>
@@ -657,6 +594,130 @@
     </section>
 
   </main>
+</div>
+
+<!-- MODAL: QUICK 20-30 MIN EXPRESS DELIVERY (SANGAREDDY SURROUNDING) -->
+<div id="quickDeliveryModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl relative max-h-[92vh] overflow-y-auto border-2 border-purple-600/30">
+    <div class="flex justify-between items-start border-b pb-3 mb-3">
+      <div>
+        <span class="bg-purple-100 text-purple-900 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded">⚡ Express 20-30 Min Dispatch</span>
+        <h3 class="font-bold text-base text-gray-900 mt-1">Quick Delivery (Sangareddy &amp; Surrounding)</h3>
+      </div>
+      <button class="text-gray-400 hover:text-gray-700 text-lg font-bold" onclick="closeQuickDeliveryModal()">✕</button>
+    </div>
+
+    <!-- Live Tank Stock Indicator -->
+    <div id="quickStockBanner" class="p-3 rounded-xl border mb-3 text-xs flex items-center justify-between">
+      <div>
+        <span class="font-bold block">Available Chill Tank Stock Today:</span>
+        <span class="text-[11px]" id="quickStockSub">Checking remaining milk...</span>
+      </div>
+      <span class="text-lg font-black" id="quickStockLitres">0.0 L</span>
+    </div>
+
+    <form id="quickDeliveryForm" class="space-y-3 text-xs" onsubmit="submitQuickDelivery(event)">
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label>Customer Name</label>
+          <input id="qName" required placeholder="New / Walk-in Customer">
+        </div>
+        <div>
+          <label>Mobile Number (10 digits)</label>
+          <input id="qPhone" pattern="[0-9]{10}" required placeholder="9876543210">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label>Area (Sangareddy Surroundings)</label>
+          <select id="qArea">
+            <option value="Sangareddy">Sangareddy Town</option>
+            <option value="IIT Kandi">IIT Kandi</option>
+            <option value="Mamidipally">Mamidipally</option>
+            <option value="Pothireddypally">Pothireddypally</option>
+            <option value="Rudraram">Rudraram</option>
+            <option value="Isnapur">Isnapur</option>
+          </select>
+        </div>
+        <div>
+          <label>House / Landmark</label>
+          <input id="qHno" required placeholder="H.No / Street / Shop">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label>Bottle Size</label>
+          <select id="qSize" onchange="recalcQuickDeliveryPrice()">
+            <option value="1000" selected>1000 ml (1 Litre)</option>
+            <option value="500">500 ml</option>
+            <option value="250">250 ml</option>
+          </select>
+        </div>
+        <div>
+          <label>Assign Runner</label>
+          <select id="qAgent"></select>
+        </div>
+      </div>
+
+      <!-- Full Amount Breakdown (Milk + Glass Bottle Included so zero loss!) -->
+      <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1">
+        <div class="flex justify-between text-gray-600">
+          <span>Milk Cost:</span>
+          <b id="qMilkCostDisplay">₹130</b>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>New Glass Bottle Price Included:</span>
+          <b id="qBottleCostDisplay">₹80</b>
+        </div>
+        <div class="flex justify-between text-sm font-black text-emerald-900 border-t pt-1 mt-1">
+          <span>Total Payable by Customer:</span>
+          <span id="qTotalPriceDisplay">₹210</span>
+        </div>
+        <p class="text-[10px] text-gray-500">Includes full glass bottle price to protect against bottle loss on new orders.</p>
+      </div>
+
+      <div id="quickOutOfStockMsg" class="hidden p-2.5 bg-red-100 border border-red-300 text-red-900 font-bold rounded-lg text-center">
+        🚫 OUT OF STOCK — Remaining tank milk is less than 1L!
+      </div>
+
+      <button type="submit" id="qSubmitBtn" class="btn w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white font-bold">
+        ⚡ Dispatch 20-30 Min Express Stop
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: SELECTIVE CUSTOMER RESCHEDULE -->
+<div id="selectiveRescheduleModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-md w-full p-5 shadow-2xl relative">
+    <div class="flex justify-between items-center border-b pb-3 mb-3">
+      <div>
+        <h3 class="font-bold text-base text-[#143525]">🗓️ Reschedule Selected Customers</h3>
+        <p class="text-xs text-gray-500">Move ONLY the selected stops to a new date or unlock skipped drops</p>
+      </div>
+      <button onclick="closeSelectiveRescheduleModal()" class="text-gray-400 hover:text-gray-700 font-bold">✕</button>
+    </div>
+
+    <form class="space-y-3 text-xs" onsubmit="confirmSelectiveReschedule(event)">
+      <div class="bg-amber-50 border border-amber-200 p-2.5 rounded text-amber-900 font-semibold">
+        Selected Customers: <span id="reschedCustList" class="font-bold"></span>
+      </div>
+      <div>
+        <label>Target Delivery Date</label>
+        <input type="date" id="reschedTargetDate" required>
+      </div>
+      <div>
+        <label>Assign / Reassign Runner (Unlocks Skipped Status)</label>
+        <select id="reschedTargetAgent"></select>
+      </div>
+      <div class="pt-2 flex gap-2">
+        <button type="button" class="btn-secondary flex-1" onclick="closeSelectiveRescheduleModal()">Cancel</button>
+        <button type="submit" class="btn flex-1">Confirm Reschedule</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <!-- VENDOR STATEMENT & BILL MODAL -->
@@ -696,13 +757,7 @@
     <div class="max-h-56 overflow-y-auto border rounded-lg text-xs mb-3">
       <table>
         <thead class="sticky top-0 bg-gray-50">
-          <tr>
-            <th>Date &amp; Shift</th>
-            <th>Litres</th>
-            <th>Rate</th>
-            <th>Amount (₹)</th>
-            <th>Action</th>
-          </tr>
+          <tr><th>Date &amp; Shift</th><th>Litres</th><th>Rate</th><th>Amount (₹)</th><th>Action</th></tr>
         </thead>
         <tbody id="vBillEntriesBody"></tbody>
       </table>
@@ -730,18 +785,9 @@
       <input type="hidden" id="agEditId">
       <h4 class="font-bold text-emerald-900" id="agFormTitle">+ Register New Agent</h4>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <div>
-          <label>Agent Name</label>
-          <input id="agName" required placeholder="e.g. Agent 4 / Raju">
-        </div>
-        <div>
-          <label>Mobile Number</label>
-          <input id="agPhone" required pattern="[0-9]{10}" placeholder="9876543210">
-        </div>
-        <div>
-          <label>Passcode / PIN</label>
-          <input id="agPin" required value="1234" placeholder="Default: 1234">
-        </div>
+        <div><label>Agent Name</label><input id="agName" required placeholder="e.g. Agent 4 / Raju"></div>
+        <div><label>Mobile Number</label><input id="agPhone" required pattern="[0-9]{10}" placeholder="9876543210"></div>
+        <div><label>Passcode / PIN</label><input id="agPin" required value="1234" placeholder="Default: 1234"></div>
       </div>
       <div class="flex justify-end gap-2 pt-1">
         <button type="button" id="agCancelEditBtn" class="btn-secondary text-xs hidden" onclick="resetAgentForm()">Cancel</button>
@@ -752,13 +798,7 @@
     <div class="overflow-x-auto border rounded-lg text-xs">
       <table>
         <thead>
-          <tr>
-            <th>Agent Name</th>
-            <th>Mobile Number</th>
-            <th>PIN / Passcode</th>
-            <th>Assigned Stops Today</th>
-            <th>Actions</th>
-          </tr>
+          <tr><th>Agent Name</th><th>Mobile Number</th><th>PIN / Passcode</th><th>Stops Today</th><th>Actions</th></tr>
         </thead>
         <tbody id="agentTableRows"></tbody>
       </table>
@@ -787,46 +827,14 @@
           <option value="manual">Manual Fallback (Open WhatsApp Web/App URLs)</option>
         </select>
       </div>
-
-      <div id="waFieldUrl">
-        <label>API Endpoint / Webhook URL</label>
-        <input id="waApiUrl" placeholder="https://graph.facebook.com/v19.0/YOUR_PHONE_ID/messages">
-      </div>
-
-      <div id="waFieldToken">
-        <label>Bearer Token / Access Key</label>
-        <input id="waApiKey" type="password" placeholder="EAA... or API Token">
-      </div>
-
-      <div id="waFieldPhoneId">
-        <label>Sender Phone Number ID / Instance ID</label>
-        <input id="waPhoneId" placeholder="e.g. 104829103984920">
-      </div>
-
+      <div id="waFieldUrl"><label>API Endpoint / Webhook URL</label><input id="waApiUrl" placeholder="https://graph.facebook.com/v19.0/YOUR_PHONE_ID/messages"></div>
+      <div id="waFieldToken"><label>Bearer Token / Access Key</label><input id="waApiKey" type="password" placeholder="EAA... or API Token"></div>
+      <div id="waFieldPhoneId"><label>Sender Phone Number ID / Instance ID</label><input id="waPhoneId" placeholder="e.g. 104829103984920"></div>
       <div class="pt-2 flex gap-2">
         <button type="button" class="btn-secondary flex-1" onclick="testWaConnection()">Test Connection</button>
         <button type="submit" class="btn flex-1">Save Configuration</button>
       </div>
     </form>
-  </div>
-</div>
-
-<!-- BATCH BROADCAST PROGRESS MODAL -->
-<div id="batchProgressModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-xl max-w-md w-full p-5 shadow-2xl relative">
-    <h3 class="font-bold text-base text-[#143525]">Direct WhatsApp Dispatch</h3>
-    <p class="text-xs text-gray-500 mb-3" id="batchProgressSub">Sending messages directly to customers...</p>
-    <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
-      <div id="batchProgressBar" class="bg-emerald-600 h-3 rounded-full transition-all duration-200" style="width: 0%"></div>
-    </div>
-    <div class="flex justify-between text-xs text-gray-600 mb-3">
-      <span id="batchProgressText">0 / 0 sent</span>
-      <span id="batchProgressPercent">0%</span>
-    </div>
-    <div class="max-h-48 overflow-y-auto border rounded bg-gray-50 p-2 text-[11px] space-y-1" id="batchProgressLogs"></div>
-    <div class="mt-3 flex justify-end">
-      <button id="batchCloseBtn" class="btn-secondary text-xs" disabled onclick="closeBatchProgressModal()">Close</button>
-    </div>
   </div>
 </div>
 
@@ -931,9 +939,6 @@
     <form class="space-y-3 text-xs" onsubmit="saveCloudConfig(event)">
       <div><label>Supabase Project URL</label><input id="sbUrl" value="https://nvqszaywblhdxhlhiuxp.supabase.co" required></div>
       <div><label>Supabase Publishable / Anon Key</label><input id="sbKey" type="password" value="sb_publishable_Pkn8vXc6unUaY2ZPTFf9Rg_LZwu3GDm" required></div>
-      <div class="bg-emerald-50 p-2.5 rounded border border-emerald-200 text-emerald-900 leading-relaxed">
-        <b>Connected to Panditji Cloud:</b> Real-time sync enables the runner's mobile app (<code>agent.html</code>) to write doorstep deliveries directly to this console.
-      </div>
       <div class="flex gap-2 pt-2">
         <button type="button" class="btn-secondary flex-1" onclick="pullFromCloud(false)">Pull Cloud Data</button>
         <button type="submit" class="btn flex-1">Connect &amp; Push</button>
@@ -945,7 +950,6 @@
 <script>
 const $ = id => document.getElementById(id);
 
-// Local Date formatter (fixes UTC 5:30 AM dawn bug)
 const todayStr = () => {
   const d = new Date();
   const year = d.getFullYear();
@@ -962,6 +966,7 @@ let overviewScope = 'day';
 let currentModalCustomerId = null;
 let currentBillVendorId = null;
 let checklistSelectionMap = {};
+let selectedScheduledIds = new Set();
 
 let db = JSON.parse(localStorage.getItem('pjf_admin_ops') || JSON.stringify({
   agents: [
@@ -981,7 +986,8 @@ let db = JSON.parse(localStorage.getItem('pjf_admin_ops') || JSON.stringify({
   ],
   deliveries: [],
   bottles: [],
-  invoices: []
+  invoices: [],
+  agentLogs: []
 }));
 
 const DEFAULT_SB_URL = 'https://nvqszaywblhdxhlhiuxp.supabase.co';
@@ -1007,6 +1013,206 @@ function show(viewId, btn) {
 }
 
 // -------------------------------------------------------------
+// CALCULATE TANK BALANCE IN REAL TIME
+// -------------------------------------------------------------
+function getTodayTankBalanceLitres() {
+  const today = todayStr();
+  const milkIn = (db.procurements || [])
+    .filter(p => String(p.date) === String(today))
+    .reduce((sum, p) => sum + (Number(p.litres) || 0), 0);
+
+  const milkOut = (db.deliveries || [])
+    .filter(d => String(d.date) === String(today) && (d.status === 'delivered' || d.status === 'planned'))
+    .reduce((sum, d) => sum + (Number(d.size) || 0), 0) / 1000;
+
+  return Number((milkIn - milkOut).toFixed(2));
+}
+
+// -------------------------------------------------------------
+// QUICK 20-30 MIN EXPRESS DELIVERY (SANGAREDDY SURROUNDING)
+// -------------------------------------------------------------
+function openQuickDeliveryModal() {
+  updateRunnerDropdowns();
+  const remLitres = getTodayTankBalanceLitres();
+  const stockEl = $('quickStockLitres');
+  const subEl = $('quickStockSub');
+  const bannerEl = $('quickStockBanner');
+  const outMsg = $('quickOutOfStockMsg');
+  const submitBtn = $('qSubmitBtn');
+
+  stockEl.textContent = `${remLitres.toFixed(1)} L`;
+
+  if (remLitres < 1.0) {
+    bannerEl.className = 'p-3 rounded-xl border border-red-300 bg-red-50 text-red-900 mb-3 text-xs flex items-center justify-between';
+    subEl.textContent = 'Below 1L threshold — Out of stock!';
+    outMsg.classList.remove('hidden');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '🚫 Out of Stock (< 1L Remaining)';
+  } else {
+    bannerEl.className = 'p-3 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 mb-3 text-xs flex items-center justify-between';
+    subEl.textContent = 'Ready for immediate 20-30 min express run';
+    outMsg.classList.add('hidden');
+    submitBtn.disabled = false;
+    submitBtn.textContent = '⚡ Dispatch 20-30 Min Express Stop';
+  }
+
+  recalcQuickDeliveryPrice();
+  $('quickDeliveryModal').classList.remove('hidden');
+}
+
+function closeQuickDeliveryModal() {
+  $('quickDeliveryModal').classList.add('hidden');
+}
+
+function recalcQuickDeliveryPrice() {
+  const size = $('qSize').value;
+  // Full amount including bottle price so zero loss for new customers:
+  // 1000ml: 130 milk + 80 bottle = 210
+  // 500ml: 70 milk + 60 bottle = 130
+  // 250ml: 40 milk + 30 bottle = 70
+  const rates = {
+    '1000': { milk: 130, bottle: 80, total: 210 },
+    '500':  { milk: 70,  bottle: 60, total: 130 },
+    '250':  { milk: 40,  bottle: 30, total: 70 }
+  };
+  const r = rates[size] || rates['1000'];
+
+  $('qMilkCostDisplay').textContent = `₹${r.milk}`;
+  $('qBottleCostDisplay').textContent = `₹${r.bottle}`;
+  $('qTotalPriceDisplay').textContent = `₹${r.total}`;
+
+  // Also check if requested size exceeds tank balance
+  const remLitres = getTodayTankBalanceLitres();
+  const reqLitres = Number(size) / 1000;
+  const submitBtn = $('qSubmitBtn');
+  if (remLitres < 1.0 || remLitres < reqLitres) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = '🚫 Out of Stock';
+  } else {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '⚡ Dispatch 20-30 Min Express Stop';
+  }
+}
+
+async function submitQuickDelivery(e) {
+  e.preventDefault();
+  const remLitres = getTodayTankBalanceLitres();
+  const size = Number($('qSize').value);
+  if (remLitres < 1.0 || remLitres < (size / 1000)) {
+    return alert('🚫 Out of Stock! Not enough milk remaining in tank.');
+  }
+
+  const rates = { 1000: 210, 500: 130, 250: 70 };
+  const totalAmount = rates[size] || 210;
+  const agent = $('qAgent').value;
+  const name = $('qName').value.trim();
+  const phone = $('qPhone').value.trim();
+  const area = $('qArea').value;
+  const hno = $('qHno').value.trim();
+  const today = todayStr();
+
+  const expressStop = {
+    id: uid(),
+    date: today,
+    batch: 'Morning',
+    customerId: 'quick_' + uid(),
+    customerName: name,
+    customerPhone: phone,
+    area: area,
+    hno: hno,
+    product: 'Buffalo Milk (Express 20-30m)',
+    size: size,
+    rate: totalAmount,
+    agent: agent,
+    status: 'planned',
+    isQuick: true,
+    bottlesReturned: 0,
+    bottlesRebate: 0
+  };
+
+  db.deliveries.push(expressStop);
+  save();
+  closeQuickDeliveryModal();
+  e.target.reset();
+
+  alert(`⚡ Express 20-30 Min Delivery assigned to ${agent} for ${name} (${area})! Total Collect: ₹${totalAmount}`);
+
+  const msg = `Namaste ${name} ji 🙏\n\nYour Express 20-30 Min Milk Order from Panditji Dairy Farm is on the way with ${agent}!\n\nItem: ${size}ml Pure Natural Buffalo Milk (Includes New Glass Bottle)\nTotal Amount Payable: ₹${totalAmount}\n\nHelpline: 7993394025`;
+  await sendDirectWhatsAppMessage(phone, msg);
+}
+
+// -------------------------------------------------------------
+// SELECTIVE RESCHEDULE & UNLOCK FOR PARTICULAR CUSTOMERS
+// -------------------------------------------------------------
+function toggleScheduledStopCheck(delId, checked) {
+  if (checked) selectedScheduledIds.add(delId);
+  else selectedScheduledIds.delete(delId);
+  updateSelectedStopsBadge();
+}
+
+function toggleAllScheduledChecks(checked) {
+  const today = $('dDate').value || todayStr();
+  const areaFilter = $('filterArea') ? $('filterArea').value : 'ALL';
+  let list = db.deliveries.filter(d => String(d.date) === String(today));
+  if (areaFilter !== 'ALL') list = list.filter(d => d.area === areaFilter);
+
+  selectedScheduledIds.clear();
+  if (checked) {
+    list.forEach(d => selectedScheduledIds.add(d.id));
+  }
+  renderDispatchRows();
+}
+
+function updateSelectedStopsBadge() {
+  if ($('selectedStopsCount')) {
+    $('selectedStopsCount').textContent = selectedScheduledIds.size;
+  }
+}
+
+function openSelectiveRescheduleModal() {
+  if (selectedScheduledIds.size === 0) {
+    return alert('Please check at least one customer checkbox in the Scheduled Drops table first.');
+  }
+  updateRunnerDropdowns();
+  const names = [];
+  selectedScheduledIds.forEach(id => {
+    const d = db.deliveries.find(x => x.id === id);
+    if (d) names.push(d.customerName);
+  });
+  $('reschedCustList').textContent = names.join(', ');
+  $('reschedTargetDate').value = $('dDate').value || todayStr();
+  $('selectiveRescheduleModal').classList.remove('hidden');
+}
+
+function closeSelectiveRescheduleModal() {
+  $('selectiveRescheduleModal').classList.add('hidden');
+}
+
+function confirmSelectiveReschedule(e) {
+  e.preventDefault();
+  const newDate = $('reschedTargetDate').value;
+  const newAgent = $('reschedTargetAgent').value;
+
+  let count = 0;
+  selectedScheduledIds.forEach(id => {
+    const d = db.deliveries.find(x => x.id === id);
+    if (d) {
+      d.date = newDate;
+      d.agent = newAgent;
+      d.status = 'planned'; // Unlocks skipped drops so agent can deliver!
+      delete d.skippedAt;
+      delete d.skippedBy;
+      count++;
+    }
+  });
+
+  selectedScheduledIds.clear();
+  save();
+  closeSelectiveRescheduleModal();
+  alert(`Rescheduled & unlocked ${count} selected customer stop(s) to ${newDate} with ${newAgent}!`);
+}
+
+// -------------------------------------------------------------
 // VENDORS & PROCUREMENT ENGINE
 // -------------------------------------------------------------
 function addVendor(e) {
@@ -1027,7 +1233,7 @@ function addVendor(e) {
 function deleteVendor(vendorId) {
   const v = (db.vendors || []).find(x => x.id === vendorId);
   if (!v) return;
-  if (confirm(`Delete vendor "${v.name}"? Historical procurement entries will remain.`)) {
+  if (confirm(`Delete vendor "${v.name}"?`)) {
     db.vendors = db.vendors.filter(x => x.id !== vendorId);
     save();
   }
@@ -1183,7 +1389,7 @@ function printVendorBillSlip() {
 }
 
 // -------------------------------------------------------------
-// AGENTS MANAGEMENT ENGINE
+// AGENTS MANAGEMENT & SALARY / HISTORY CALCULATOR
 // -------------------------------------------------------------
 function openAgentManageModal() {
   $('agentManageModal').classList.remove('hidden');
@@ -1290,7 +1496,84 @@ function updateRunnerDropdowns() {
   if ($('editCAgent')) $('editCAgent').innerHTML = runnerOptions;
   if ($('dDefaultAgent')) $('dDefaultAgent').innerHTML = runnerOptions;
   if ($('bulkTargetAgent')) $('bulkTargetAgent').innerHTML = runnerOptions;
-  if ($('agentFilter')) $('agentFilter').innerHTML = runnerOptions;
+  if ($('qAgent')) $('qAgent').innerHTML = runnerOptions;
+  if ($('reschedTargetAgent')) $('reschedTargetAgent').innerHTML = runnerOptions;
+  if ($('salaryAgentFilter')) {
+    const curVal = $('salaryAgentFilter').value || 'ALL';
+    $('salaryAgentFilter').innerHTML = '<option value="ALL">All Delivery Agents</option>' + runnerOptions;
+    $('salaryAgentFilter').value = curVal;
+  }
+}
+
+function toggleSalaryDateInputs() {
+  const type = $('salaryPeriodType').value;
+  if (type === 'month') {
+    $('salMonthWrap').classList.remove('hidden');
+    $('salDayWrap').classList.add('hidden');
+  } else if (type === 'day') {
+    $('salDayWrap').classList.remove('hidden');
+    $('salMonthWrap').classList.add('hidden');
+  } else {
+    $('salMonthWrap').classList.add('hidden');
+    $('salDayWrap').classList.add('hidden');
+  }
+  renderAgentHistoryAndSalary();
+}
+
+function renderAgentHistoryAndSalary() {
+  const selectedAgent = $('salaryAgentFilter').value || 'ALL';
+  const periodType = $('salaryPeriodType').value;
+  const monthVal = $('salaryMonthInput').value || todayStr().slice(0, 7);
+  const dateVal = $('salaryDateInput').value || todayStr();
+  const ratePerStop = parseFloat($('salaryPerStopRate').value) || 0;
+
+  let logs = (db.agentLogs && db.agentLogs.length > 0)
+    ? db.agentLogs
+    : (db.deliveries || []).filter(d => d.status === 'delivered' || d.status === 'skipped').map(d => ({
+        date: d.date,
+        time: d.deliveredAt || d.skippedAt || 'Recorded',
+        agentName: d.agent,
+        hno: d.hno,
+        customerName: d.customerName,
+        area: d.area || 'Local',
+        size: d.size,
+        bottlesReturned: d.bottlesReturned || 0,
+        action: d.status === 'delivered' ? 'Delivered' : 'Skipped'
+      }));
+
+  if (selectedAgent !== 'ALL') {
+    logs = logs.filter(l => String(l.agentName || '').trim() === String(selectedAgent).trim());
+  }
+
+  if (periodType === 'month') {
+    logs = logs.filter(l => l.date && l.date.startsWith(monthVal));
+  } else if (periodType === 'day') {
+    logs = logs.filter(l => String(l.date) === String(dateVal));
+  }
+
+  const completedStops = logs.filter(l => l.action === 'Delivered').length;
+  const skippedStops = logs.filter(l => l.action === 'Skipped').length;
+  const totalBottles = logs.reduce((sum, l) => sum + (Number(l.bottlesReturned) || 0), 0);
+  const totalSalary = completedStops * ratePerStop;
+
+  $('salTotalStops').textContent = completedStops;
+  $('salSkippedStops').textContent = skippedStops;
+  $('salBottlesRecd').textContent = totalBottles;
+  $('salTotalPayable').textContent = money(totalSalary);
+  $('salFormulaHint').textContent = `${completedStops} stops × ₹${ratePerStop}/stop`;
+
+  $('adminAgentLogRows').innerHTML = logs.slice().reverse().map(l => `
+    <tr>
+      <td>${esc(l.date)}</td>
+      <td class="font-mono font-bold text-emerald-900">${esc(l.time)}</td>
+      <td><b>${esc(l.agentName)}</b></td>
+      <td><b>${esc(l.hno)}</b> · ${esc(l.customerName)}</td>
+      <td>${esc(l.area)}</td>
+      <td>${l.size || 1000} ml</td>
+      <td>${l.bottlesReturned}</td>
+      <td><span class="badge ${l.action === 'Delivered' ? 'badge-delivered' : 'badge-skipped'}">${esc(l.action)}</span></td>
+    </tr>
+  `).join('') || `<tr><td colspan="8" class="text-center py-4 text-gray-400">No agent delivery records found for this filter.</td></tr>`;
 }
 
 // -------------------------------------------------------------
@@ -1335,7 +1618,7 @@ function renderOverviewMetrics() {
   const salesRevenue = deliveredStops.reduce((sum, d) => sum + (Number(d.rate) || 0), 0);
   const totalBottleRebates = deliveredStops.reduce((sum, d) => sum + (Number(d.bottlesRebate) || 0), 0);
 
-  const balanceLitres = (milkInLitres - milkOutLitres).toFixed(1);
+  const balanceLitres = Number((milkInLitres - milkOutLitres).toFixed(1));
   const netMargin = (salesRevenue - totalBottleRebates) - procurementCost;
 
   $('kMilkIn').textContent = `${milkInLitres.toFixed(1)} L`;
@@ -1343,12 +1626,21 @@ function renderOverviewMetrics() {
   $('kMilkOut').textContent = `${milkOutLitres.toFixed(1)} L`;
   $('kMilkOutRev').textContent = `Sales: ${money(salesRevenue - totalBottleRebates)}`;
   $('kMilkBalance').textContent = `${balanceLitres > 0 ? '+' : ''}${balanceLitres} L`;
-  $('kMilkBalanceStatus').textContent = balanceLitres >= 0 ? 'Surplus in chill tank' : 'Deficit / Shortage';
+
+  const balStatusEl = $('kMilkBalanceStatus');
+  if (balanceLitres < 1.0) {
+    balStatusEl.textContent = '⚠️ Low Stock (< 1L) — Quick Order Locked';
+    balStatusEl.className = 'text-[11px] font-bold text-red-600 mt-0.5';
+  } else {
+    balStatusEl.textContent = '✓ Chill tank surplus available';
+    balStatusEl.className = 'text-[11px] font-bold text-emerald-700 mt-0.5';
+  }
+
   $('kNetProfit').textContent = money(netMargin);
 }
 
 // -------------------------------------------------------------
-// CUSTOMERS & EDITING
+// CUSTOMERS & EDITING (AUTOMATICALLY SYNCS AGENT ASSIGNMENT!)
 // -------------------------------------------------------------
 function autoFillRate() {
   $('cRate').value = $('cSizeRate').value.split('-')[1];
@@ -1364,7 +1656,7 @@ function autoFillEditRate() {
 function addCustomer(e) {
   e.preventDefault();
   const [size, defaultRate] = $('cSizeRate').value.split('-');
-  db.customers.push({
+  const cust = {
     id: uid(),
     name: $('cName').value.trim(),
     phone: $('cPhone').value.trim(),
@@ -1377,13 +1669,16 @@ function addCustomer(e) {
     frequency: $('cFrequency').value,
     agent: $('cAgent').value,
     active: true
-  });
+  };
+  db.customers.push(cust);
+  checklistSelectionMap[cust.id] = { selected: true, agent: cust.agent };
   save();
   e.target.reset();
   alert('Customer registered!');
 }
 
 function openEditCustomerModal(id) {
+  updateRunnerDropdowns();
   const c = db.customers.find(x => x.id === id);
   if (!c) return;
   $('editCId').value = c.id;
@@ -1423,7 +1718,14 @@ function saveCustomerEdits(e) {
   c.agent = $('editCAgent').value;
   c.active = ($('editCActive').value === 'true');
 
-  db.deliveries.filter(d => d.customerId === c.id && d.status === 'planned').forEach(d => {
+  // 1. Update checklistSelectionMap immediately so Route Dispatch checklist shows new agent!
+  checklistSelectionMap[c.id] = {
+    selected: checklistSelectionMap[c.id] ? checklistSelectionMap[c.id].selected : true,
+    agent: c.agent
+  };
+
+  // 2. Also update any active planned deliveries for this customer!
+  (db.deliveries || []).filter(d => d.customerId === c.id && d.status === 'planned').forEach(d => {
     d.customerName = c.name;
     d.customerPhone = c.phone;
     d.hno = c.hno;
@@ -1431,12 +1733,13 @@ function saveCustomerEdits(e) {
     d.product = c.product;
     d.size = c.size;
     d.rate = c.rate;
+    d.agent = c.agent;
   });
 
   save();
   closeEditModal();
   if (currentModalCustomerId === id) openCustomerModal(id);
-  alert('Customer profile updated!');
+  alert(`Customer profile & assigned runner (${c.agent}) updated everywhere!`);
 }
 
 function renderCustomers() {
@@ -1678,12 +1981,16 @@ async function commitSelectedDispatch() {
   alert(`Scheduled ${addedStops.length} stops!`);
 }
 
+// Reassigning a stop in Dispatch also unlocks it if it was previously skipped!
 async function reassignAgent(deliveryId, newAgent) {
   const d = db.deliveries.find(x => x.id === deliveryId);
   if (!d) return;
   const wasSkipped = d.status === 'skipped';
   d.agent = newAgent;
-  if (wasSkipped) d.status = 'planned';
+  if (wasSkipped) {
+    d.status = 'planned'; // Unlocks the slot for the newly assigned agent!
+    delete d.skippedAt;
+  }
   save();
 
   const text = `Namaste ${d.customerName} ji 🙏\nYour delivery runner is updated to *${d.agent}* for ${d.date}.`;
@@ -1700,10 +2007,13 @@ function bulkReassignByLocation() {
 
   stops.forEach(d => {
     d.agent = targetAgent;
-    if (d.status === 'skipped') d.status = 'planned';
+    if (d.status === 'skipped') {
+      d.status = 'planned';
+      delete d.skippedAt;
+    }
   });
   save();
-  alert(`Reassigned ${stops.length} stops to ${targetAgent}.`);
+  alert(`Reassigned & unlocked ${stops.length} stops in ${targetArea} to ${targetAgent}.`);
 }
 
 async function sendAgentAssignedMsg(deliveryId) {
@@ -1723,119 +2033,33 @@ function renderDispatchRows() {
 
   $('dispatchRows').innerHTML = list.map(d => {
     const isSkipped = d.status === 'skipped';
+    const isChecked = selectedScheduledIds.has(d.id);
     return `
       <tr class="${isSkipped ? 'bg-red-50/70' : ''}">
-        <td><b>${esc(d.hno)}</b><br><span class="text-xs">${esc(d.customerName)}</span></td>
+        <td class="text-center">
+          <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleScheduledStopCheck('${d.id}', this.checked)">
+        </td>
+        <td>
+          <b>${esc(d.hno)}</b> ${d.isQuick ? '<span class="bg-purple-600 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">⚡ EXPRESS</span>' : ''}<br>
+          <span class="text-xs">${esc(d.customerName)}</span>
+        </td>
         <td>${esc(d.area || 'Local')}</td>
         <td>${esc(d.customerPhone)}</td>
-        <td>${d.size}ml</td>
+        <td>${d.size}ml (₹${d.rate})</td>
         <td><b>${esc(d.agent)}</b></td>
         <td>
-          <select class="text-xs py-1 w-32 border rounded" onchange="reassignAgent('${d.id}', this.value)">
+          <select class="text-xs py-1 w-32 border rounded ${isSkipped ? 'border-red-400 bg-red-50 font-bold' : ''}" onchange="reassignAgent('${d.id}', this.value)">
             ${(db.agents || []).map(a => `<option value="${esc(a.name)}" ${d.agent === a.name ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}
           </select>
+          ${isSkipped ? '<div class="text-[9px] text-red-700 font-bold">Reassign to Unlock</div>' : ''}
         </td>
         <td><span class="badge badge-${d.status}">${d.status}</span></td>
         <td><button class="btn-wa text-xs" onclick="sendAgentAssignedMsg('${d.id}')">📲 Notify</button></td>
       </tr>
     `;
-  }).join('') || `<tr><td colspan="8" class="text-center py-4 text-gray-500">No scheduled dispatches.</td></tr>`;
-}
+  }).join('') || `<tr><td colspan="9" class="text-center py-4 text-gray-500">No scheduled dispatches.</td></tr>`;
 
-// -------------------------------------------------------------
-// AGENT VIEW INSIDE ADMIN
-// -------------------------------------------------------------
-function setQuickBottles(deliveryId, count) {
-  const d = db.deliveries.find(x => x.id === deliveryId);
-  if (d) { d.bottlesReturned = Number(count); renderAgentCards(); }
-}
-
-function setManualBottles(deliveryId, val) {
-  const d = db.deliveries.find(x => x.id === deliveryId);
-  if (d) { d.bottlesReturned = Math.max(0, parseInt(val) || 0); renderAgentCards(); }
-}
-
-async function markDelivered(deliveryId) {
-  const d = db.deliveries.find(x => x.id === deliveryId);
-  if (!d) return;
-
-  let ratePerBottle = 20;
-  if (d.size === 500) ratePerBottle = 10;
-  if (d.size === 250) ratePerBottle = 5;
-
-  const returnedCount = Number(d.bottlesReturned) || 0;
-  const totalRebate = returnedCount * ratePerBottle;
-  const exactTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-
-  d.status = 'delivered';
-  d.bottlesReturned = returnedCount;
-  d.bottlesRebate = totalRebate;
-  d.deliveredAt = exactTime;
-  d.deliveredBy = d.agent;
-
-  if (returnedCount > 0) {
-    db.bottles.push({
-      id: uid(),
-      date: d.date,
-      customerId: d.customerId,
-      customerName: d.customerName,
-      size: d.size,
-      count: returnedCount,
-      rebate: totalRebate
-    });
-  }
-
-  db.agentLogs = db.agentLogs || [];
-  db.agentLogs.push({
-    id: uid(),
-    date: d.date,
-    time: exactTime,
-    agentName: d.agent,
-    customerName: d.customerName,
-    hno: d.hno,
-    area: d.area || 'Local',
-    size: d.size,
-    bottlesReturned: returnedCount,
-    action: 'Delivered'
-  });
-
-  save();
-  const text = `Namaste ${d.customerName} ji 🙏\nDelivered by ${d.agent} at ${exactTime}. Empty bottles returned: ${returnedCount}. Rebate: ₹${totalRebate}.`;
-  await sendDirectWhatsAppMessage(d.customerPhone, text);
-}
-
-function markSkipped(deliveryId) {
-  const d = db.deliveries.find(x => x.id === deliveryId);
-  if (d) { d.status = 'skipped'; save(); }
-}
-
-function renderAgentCards() {
-  const filterAgent = $('agentFilter').value;
-  const today = $('dDate').value || todayStr();
-  const stops = db.deliveries.filter(d => d.agent === filterAgent && String(d.date) === String(today) && d.status === 'planned');
-
-  $('agentCards').innerHTML = stops.map(d => `
-    <div class="panel border-2 border-emerald-900/10 space-y-3">
-      <div class="flex justify-between items-start">
-        <div>
-          <span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">📍 ${esc(d.area)}</span>
-          <div class="text-xs font-bold mt-1">H.No: ${esc(d.hno)}</div>
-          <h3 class="font-bold text-base">${esc(d.customerName)}</h3>
-        </div>
-        <span class="text-xs font-bold bg-amber-100 px-2 py-1 rounded">${d.size} ml</span>
-      </div>
-      <div>
-        <label class="text-xs font-bold">Empty Bottles Received:</label>
-        <div class="flex gap-1.5 mt-1 items-center">
-          ${[0, 1, 2, 3, 4].map(num => `<button type="button" class="tag-bubble ${d.bottlesReturned === num ? 'active' : ''}" onclick="setQuickBottles('${d.id}', ${num})">${num}</button>`).join('')}
-        </div>
-      </div>
-      <div class="pt-2 flex gap-2">
-        <button class="btn w-full text-xs" onclick="markDelivered('${d.id}')">✓ Delivered</button>
-        <button class="btn-secondary text-xs text-red-700" onclick="markSkipped('${d.id}')">Skip</button>
-      </div>
-    </div>
-  `).join('') || `<div class="panel col-span-full text-center py-8 text-gray-500">No pending stops for ${filterAgent}.</div>`;
+  updateSelectedStopsBadge();
 }
 
 // -------------------------------------------------------------
@@ -2078,34 +2302,6 @@ function exportBills() {
   a.click();
 }
 
-function renderAdminAgentLogs() {
-  if (!$('adminAgentLogRows')) return;
-  const logs = (db.agentLogs && db.agentLogs.length > 0)
-    ? db.agentLogs
-    : (db.deliveries || []).filter(d => d.status === 'delivered' || d.status === 'skipped').map(d => ({
-        date: d.date,
-        time: d.deliveredAt || 'Completed',
-        agentName: d.agent,
-        hno: d.hno,
-        customerName: d.customerName,
-        area: d.area || 'Local',
-        bottlesReturned: d.bottlesReturned || 0,
-        action: d.status === 'delivered' ? 'Delivered' : 'Skipped'
-      }));
-
-  $('adminAgentLogRows').innerHTML = logs.slice().reverse().map(l => `
-    <tr>
-      <td>${esc(l.date)}</td>
-      <td class="font-mono font-bold text-emerald-900">${esc(l.time)}</td>
-      <td><b>${esc(l.agentName)}</b></td>
-      <td><b>${esc(l.hno)}</b> · ${esc(l.customerName)}</td>
-      <td>${esc(l.area)}</td>
-      <td>${l.bottlesReturned}</td>
-      <td><span class="badge ${l.action === 'Delivered' ? 'badge-delivered' : 'badge-skipped'}">${esc(l.action)}</span></td>
-    </tr>
-  `).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-400">No agent delivery timestamps recorded yet.</td></tr>`;
-}
-
 function renderActiveView(activeId) {
   const today = $('dDate').value || todayStr();
 
@@ -2114,7 +2310,7 @@ function renderActiveView(activeId) {
     renderOverviewMetrics();
     $('overviewList').innerHTML = (db.deliveries || []).filter(d => String(d.date) === String(today)).map(d => `
       <tr>
-        <td><b>${esc(d.hno)}</b><br><small>${esc(d.customerName)}</small></td>
+        <td><b>${esc(d.hno)}</b> ${d.isQuick ? '<span class="bg-purple-600 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">⚡ EXPRESS</span>' : ''}<br><small>${esc(d.customerName)}</small></td>
         <td>${esc(d.area)}</td>
         <td>${esc(d.product)}</td>
         <td>${d.size} ml</td>
@@ -2144,8 +2340,7 @@ function renderActiveView(activeId) {
   }
   else if (activeId === 'agentView') {
     updateRunnerDropdowns();
-    renderAgentCards();
-    renderAdminAgentLogs();
+    renderAgentHistoryAndSalary();
   }
   else if (activeId === 'stickers') {
     renderA4Grid();
@@ -2179,8 +2374,9 @@ $('pDate').value = todayStr();
 $('ovDate').value = todayStr();
 $('ovMonth').value = todayStr().slice(0, 7);
 $('billMonth').value = todayStr().slice(0, 7);
+$('salaryMonthInput').value = todayStr().slice(0, 7);
+$('salaryDateInput').value = todayStr();
 $('stkInputDateTime').value = nowFormatted();
-if ($('clockHeader')) $('clockHeader').textContent = nowFormatted().slice(-8);
 
 initSupabase();
 updateWaStatusBadge();
