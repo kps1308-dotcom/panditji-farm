@@ -1034,6 +1034,7 @@
       volume: '1000',
       frequencyDays: 30,
       quantity: 1,
+      quantities: {'1000': 1, '500': 0, '250': 0},
       pricingRules: {
         '250':  { label: '250ml', basePrice: 40, returnRebate: 5, deposit: 30 },
         '500':  { label: '500ml', basePrice: 70, returnRebate: 10, deposit: 60 },
@@ -1161,19 +1162,27 @@
       const hno = document.getElementById('subCustHno').value.trim();
 
       db.customers = db.customers || [];
+      const bottleMix = Object.fromEntries(Object.entries(dairyState.quantities).filter(([size, qty]) => qty > 0));
+      const bottleCount = Object.values(bottleMix).reduce((sum, qty) => sum + qty, 0);
+      if (!bottleCount) { alert('Please choose at least one bottle quantity before subscribing.'); return; }
+      const deliveryMilk = Object.entries(bottleMix).reduce((sum, [size, qty]) => sum + dairyState.pricingRules[size].basePrice * qty, 0);
+      const deliveryRebate = Object.entries(bottleMix).reduce((sum, [size, qty]) => sum + dairyState.pricingRules[size].returnRebate * qty, 0);
+      const deliveryDeposit = Object.entries(bottleMix).reduce((sum, [size, qty]) => sum + dairyState.pricingRules[size].deposit * qty, 0);
+      const totalMl = Object.entries(bottleMix).reduce((sum, [size, qty]) => sum + Number(size) * qty, 0);
       db.customers.push({
-        id: uid(),
-        name: name,
-        phone: phone,
-        area: area,
-        hno: hno,
-        address: area,
-        product: 'Buffalo Milk (Pure Natural)',
-        size: Number(dairyState.volume) * dairyState.quantity,
-        rate: rule.basePrice * dairyState.quantity,
+        id: uid(), name, phone, area, hno, address: `${hno}, ${area}`,
+        product: 'Panditji Buffalo Milk',
+        bottleMix, bottleCount, totalMl,
+        size: totalMl, rate: deliveryMilk, rebatePerDelivery: deliveryRebate,
+        deposit: deliveryDeposit,
+        monthlyMilkCost: deliveryMilk * dairyState.frequencyDays,
+        monthlyReturnRebate: deliveryRebate * dairyState.frequencyDays,
+        monthlyNet: (deliveryMilk - deliveryRebate) * dairyState.frequencyDays,
         frequency: dairyState.frequencyDays === 30 ? 'Daily' : 'Alternate days',
+        deliveriesPerMonth: dairyState.frequencyDays,
+        subscriptionStatus: 'Pending AutoPay mandate approval',
         agent: (db.agents && db.agents.length > 0) ? db.agents[0].name : 'Agent 1',
-        active: true
+        active: true, createdAt: new Date().toISOString()
       });
 
       localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
@@ -1182,8 +1191,8 @@
       }
 
       closeAutopayModal();
-      document.getElementById('successModalTitle').textContent = 'Subscription & AutoPay Active!';
-      document.getElementById('successModalDesc').innerHTML = `Welcome <strong>${name}</strong>! Your first sealed glass bottle of fresh <strong>Panditji Buffalo Milk</strong> will arrive tomorrow between <strong>5:30 AM – 7:00 AM</strong>.`;
+      document.getElementById('successModalTitle').textContent = 'Subscription Request Registered';
+      document.getElementById('successModalDesc').innerHTML = `Welcome <strong>${name}</strong>! Your selected bottle mix has been saved. <strong>UPI AutoPay is not yet activated</strong>; a payment provider mandate/approval flow must be connected before recurring payments or delivery can be confirmed.`;
       document.getElementById('successModal').classList.remove('hidden');
     }
 
