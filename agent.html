@@ -41,12 +41,11 @@
     <form onsubmit="handleAgentLogin(event)" class="space-y-3 text-left">
       <div>
         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Mobile Number</label>
-        <input type="tel" id="loginPhone" required placeholder="Enter registered mobile" value="9876543210" pattern="[0-9]{10}" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:border-emerald-600 focus:outline-none">
-        <p class="text-[10px] text-gray-400 mt-1">Default: 9876543210 / 9876543211 / 9876543212</p>
+        <input type="tel" id="loginPhone" name="agent_mobile_no" autocomplete="off" required placeholder="Enter registered 10-digit mobile" pattern="[0-9]{10}" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:border-emerald-600 focus:outline-none">
       </div>
       <div>
         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Passcode / PIN</label>
-        <input type="password" id="loginPin" required placeholder="Default: 1234" value="1234" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:border-emerald-600 focus:outline-none text-center font-bold tracking-widest text-lg">
+        <input type="password" id="loginPin" name="agent_secret_pin" autocomplete="new-password" required placeholder="Enter your PIN" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:border-emerald-600 focus:outline-none text-center font-bold tracking-widest text-lg">
       </div>
 
       <p id="loginError" class="text-xs text-red-600 font-bold hidden text-center"></p>
@@ -245,8 +244,8 @@ async function handleAgentLogin(e) {
   }
 
   const expectedPin = String(match.pin || '1234').trim();
-  if (pin !== expectedPin && pin !== '1234') {
-    errEl.textContent = 'Incorrect PIN! Default is 1234.';
+  if (pin !== expectedPin) {
+    errEl.textContent = 'Incorrect PIN! Please enter the updated passcode set by Admin.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -348,12 +347,15 @@ function setManualBottles(delId, val) {
   }
 }
 
-// Mark Stop Delivered + Record Exact Timestamp & Audit Log
+// Mark Stop Delivered + Record Exact Timestamp & Audit Log + Reliable Cloud Sync
 async function markStopDelivered(delId) {
   if (selectedDateOffset !== 0) {
     alert('Deliveries can only be completed on Today\'s route.');
     return;
   }
+
+  // Pull latest cloud state first so we merge safely without overwriting other stops
+  await syncPullCloud(true);
 
   const d = (db.deliveries || []).find(x => String(x.id) === String(delId));
   if (!d) {
@@ -361,12 +363,14 @@ async function markStopDelivered(delId) {
     return;
   }
 
-  // Strictly block if stop was already skipped or locked!
   if (d.status === 'skipped') {
     alert('🚫 This stop was skipped and is LOCKED. Contact Admin to reassign or unlock it.');
     return;
   }
-  if (d.status === 'delivered') return;
+  if (d.status === 'delivered') {
+    renderStops();
+    return;
+  }
 
   let ratePerBottle = 20;
   if (Number(d.size) === 500) ratePerBottle = 10;
@@ -382,7 +386,6 @@ async function markStopDelivered(delId) {
   d.deliveredAt = exactTime;
   d.deliveredBy = currentAgent.name;
 
-  // Record in Bottle Ledger
   if (returnedCount > 0) {
     db.bottles = db.bottles || [];
     db.bottles.push({
@@ -396,7 +399,6 @@ async function markStopDelivered(delId) {
     });
   }
 
-  // Record in Agent Activity Audit Log (Day, Stop, Exact Time)
   db.agentLogs = db.agentLogs || [];
   db.agentLogs.push({
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -414,16 +416,21 @@ async function markStopDelivered(delId) {
     action: 'Delivered'
   });
 
+  // 1. Save Locally & Re-render immediately
   localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
   renderStops();
+
+  // 2. Push upstream to Supabase Cloud BEFORE opening external WhatsApp link
   await syncPushCloud();
 
-  // WhatsApp Receipt
+  // 3. Open WhatsApp receipt after cloud sync completes
   const quickNote = d.isQuick ? `\nExpress Order Total Paid (incl. Bottle): ₹${d.rate}` : `\nEmpty Bottles Received: ${returnedCount}\nBottle Rebate: ₹${totalRebate}`;
   const msg = `Namaste ${d.customerName} ji 🙏\n\nYour fresh milk has been delivered by ${currentAgent.name} at ${exactTime}!\n\nItem: ${d.product} (${d.size}ml)${quickNote}\n\nThank you! Panditji Dairy Farm.`;
-  try {
-    window.open(`https://wa.me/91${d.customerPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-  } catch(e) {}
+  setTimeout(() => {
+    try {
+      window.open(`https://wa.me/91${d.customerPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    } catch(e) {}
+  }, 150);
 }
 
 // Mark Stop Skipped — PERMANENTLY LOCKS STOP FOR AGENT UNTIL ADMIN REASSIGNS
@@ -650,14 +657,26 @@ function esc(str) {
 
 async function syncPushCloud() {
   if (!sb) initSupabase();
-  if (!sb) return;
+  if (!sb) return false;
   try {
     $('syncBtnText').textContent = 'Saving...';
-    await sb.from('farm_workspace').upsert({ id: 'primary_farm', data: db, updated_at: new Date() });
-    $('syncBtnText').textContent = 'Saved ✓';
+    const { error } = await sb.from('farm_workspace').upsert({
+      id: 'primary_farm',
+      data: db,
+      updated_at: new Date().toISOString()
+    });
+    if (error) {
+      console.error('Supabase push error:', error);
+      $('syncBtnText').textContent = 'Retry Sync';
+      return false;
+    }
+    $('syncBtnText').textContent = 'Synced ✓';
     setTimeout(() => { if ($('syncBtnText')) $('syncBtnText').textContent = 'Sync'; }, 2000);
+    return true;
   } catch(e) {
-    $('syncBtnText').textContent = 'Sync';
+    console.error('Supabase network error:', e);
+    $('syncBtnText').textContent = 'Retry Sync';
+    return false;
   }
 }
 
@@ -666,14 +685,37 @@ async function syncPullCloud(silent = false) {
   if (!sb) return;
   try {
     $('syncBtnText').textContent = '...';
-    const { data } = await sb.from('farm_workspace').select('data').eq('id', 'primary_farm').single();
-    if (data && data.data) {
-      if ((data.data.deliveries && data.data.deliveries.length > 0) || (data.data.agents && data.data.agents.length > 0)) {
-        db = data.data;
-        localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
-        if (currentTab === 'stops') renderStops();
-        else renderAgentLogs();
+    const { data, error } = await sb.from('farm_workspace').select('data').eq('id', 'primary_farm').single();
+    if (!error && data && data.data) {
+      // Preserve any unsaved local bottle counts on planned stops before replacing db
+      const localPlannedBottles = {};
+      (db.deliveries || []).forEach(ld => {
+        if (ld.status === 'planned' && Number(ld.bottlesReturned) > 0) {
+          localPlannedBottles[String(ld.id)] = Number(ld.bottlesReturned);
+        }
+      });
+
+      db = data.data;
+
+      (db.deliveries || []).forEach(cd => {
+        if (cd.status === 'planned' && localPlannedBottles[String(cd.id)] !== undefined) {
+          cd.bottlesReturned = localPlannedBottles[String(cd.id)];
+        }
+      });
+
+      // Refresh currentAgent profile if logged in (in case Admin updated name/PIN)
+      if (currentAgent && db.agents) {
+        const updatedMe = db.agents.find(a => String(a.id) === String(currentAgent.id) || String(a.phone).trim() === String(currentAgent.phone).trim());
+        if (updatedMe) {
+          currentAgent = updatedMe;
+          localStorage.setItem('pjf_agent_session', JSON.stringify(currentAgent));
+          if ($('headerAgentName')) $('headerAgentName').textContent = currentAgent.name;
+        }
       }
+
+      localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+      if (currentTab === 'stops') renderStops();
+      else renderAgentLogs();
       if (!silent) alert('Synced with live dairy records!');
     }
     $('syncBtnText').textContent = 'Sync';
