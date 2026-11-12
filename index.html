@@ -88,81 +88,79 @@
 </head>
 <body class="selection:bg-heritage-800 selection:text-cream-100 flex flex-col min-h-screen w-full overflow-x-hidden">
 
-  <!-- TOP BAR: 9:00 PM Order Cutoff Countdown & WhatsApp Hotline -->
-  <div class="bg-heritage-900 text-cream-200 border-b border-heritage-700/60 text-xs py-2 px-3 sm:px-4 sticky top-0 z-50 w-full">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left">
-      <div class="flex items-center justify-center sm:justify-start gap-1.5 flex-wrap">
-        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-          🌙 9:00 PM CUT-OFF
-        </span>
-        <span class="text-cream-300 text-[11px] sm:text-xs">
-          Need extra milk tomorrow? Order before <strong>9:00 PM</strong> tonight.
-        </span>
-      </div>
+  <!-- UNIFIED STICKY MOBILE-FIRST HEADER -->
+  <header class="sticky top-0 z-50 w-full shadow-xs">
+    <!-- Top Notice Bar -->
+    <div class="bg-heritage-900 text-cream-200 border-b border-heritage-700/60 text-xs py-1.5 px-3 sm:px-4 w-full">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left">
+        <div class="flex items-center justify-center sm:justify-start gap-1.5 flex-wrap">
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            🌙 9:00 PM CUT-OFF
+          </span>
+          <span class="text-cream-300 text-[10px] sm:text-xs">
+            Need extra milk tomorrow? Order before <strong>9:00 PM</strong> tonight.
+          </span>
+        </div>
 
-      <div class="flex items-center gap-3 text-[11px] font-medium text-cream-200">
-        <span class="hidden md:inline-flex items-center gap-1.5 text-emerald-400">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          Next Dispatch: Tomorrow, 5:30 AM – 7:00 AM
-        </span>
-        <a href="https://wa.me/917993394025?text=Hello%20Panditji%20Dairy%2C%20I%20want%20to%20order%20milk" target="_blank" class="hover:text-gilded-500 transition text-amber-200 font-semibold">
-          Hotline: +91 79933 94025
-        </a>
+        <div class="hidden sm:flex items-center gap-3 text-[11px] font-medium text-cream-200">
+          <span class="hidden md:inline-flex items-center gap-1.5 text-emerald-400">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            Next Dispatch: Tomorrow, 5:30 AM – 7:00 AM
+          </span>
+          <a href="https://wa.me/917993394025?text=Hello%20Panditji%20Dairy%2C%20I%20want%20to%20order%20milk" target="_blank" class="hover:text-gilded-500 transition text-amber-200 font-semibold">
+            Hotline: +91 79933 94025
+          </a>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- NAVIGATION HEADER -->
-  <nav class="bg-cream-100/95 backdrop-blur-md border-b border-cream-200/80 sticky top-8 z-40 w-full">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
-      
-      <!-- Logo Branding -->
-      <a href="#" class="flex items-center gap-2 sm:gap-3 group min-w-0">
-        <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-heritage-800 text-cream-100 flex items-center justify-center border-2 border-gilded-500 shadow-md shrink-0">
-          <span class="font-serif font-bold text-lg sm:text-2xl text-gilded-500">प</span>
-        </div>
-        <div class="min-w-0">
-          <div class="flex items-center gap-1.5">
-            <span class="font-serif text-base sm:text-2xl font-bold tracking-tight text-heritage-900 leading-tight truncate">
-              PANDITJI
-            </span>
-            <span class="text-[9px] tracking-widest uppercase font-extrabold px-1.5 py-0.5 rounded bg-heritage-100 text-heritage-800 border border-heritage-600/20 shrink-0">
-              Pure Natural
-            </span>
+    <!-- Main Navigation Bar (Zero Overlap Mobile Layout) -->
+    <nav class="bg-cream-100/95 backdrop-blur-md border-b border-cream-200/80 w-full">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-20 flex items-center justify-between gap-2">
+        
+        <!-- Logo Branding -->
+        <a href="#" class="flex items-center gap-2 sm:gap-3 group shrink-0">
+          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-heritage-800 text-cream-100 flex items-center justify-center border-2 border-gilded-500 shadow-sm shrink-0">
+            <span class="font-serif font-bold text-lg sm:text-2xl text-gilded-500">प</span>
           </div>
-          <p class="text-[9px] sm:text-[11px] font-semibold tracking-wider text-gilded-700 uppercase truncate">
-            Fresh Buffalo Milk · Dawn Delivery
-          </p>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-serif text-base sm:text-2xl font-bold tracking-tight text-heritage-900 leading-none">
+                PANDITJI
+              </span>
+              <span class="hidden sm:inline-block text-[9px] tracking-widest uppercase font-extrabold px-1.5 py-0.5 rounded bg-heritage-100 text-heritage-800 border border-heritage-600/20">
+                Pure Natural
+              </span>
+            </div>
+            <p class="hidden sm:block text-[10px] sm:text-[11px] font-semibold tracking-wider text-gilded-700 uppercase mt-0.5">
+              Fresh Buffalo Milk · Dawn Delivery
+            </p>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden lg:flex items-center gap-6 text-sm font-semibold text-heritage-900">
+          <a href="#batch-seal" class="hover:text-gilded-600 transition">Sealed Cap &amp; Fat %</a>
+          <a href="#subscription-engine" class="hover:text-gilded-600 transition">Plans &amp; Calculator</a>
+          <a href="#bottle-cycle" class="hover:text-gilded-600 transition">Glass Wash Cycle</a>
+          <a href="#tech-autopay" class="hover:text-gilded-600 transition">UPI AutoPay &amp; SMS</a>
         </div>
-      </a>
 
-      <!-- Desktop Navigation Links -->
-      <div class="hidden lg:flex items-center gap-6 text-sm font-semibold text-heritage-900">
-        <a href="#batch-seal" class="hover:text-gilded-600 transition">Sealed Cap &amp; Fat %</a>
-        <a href="#subscription-engine" class="hover:text-gilded-600 transition">Plans &amp; Calculator</a>
-        <a href="#bottle-cycle" class="hover:text-gilded-600 transition">Glass Wash Cycle</a>
-        <a href="#tech-autopay" class="hover:text-gilded-600 transition">UPI AutoPay &amp; SMS</a>
+        <!-- Customer Action Buttons Only (Clean Fit on Small Mobile Screens) -->
+        <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <button type="button" onclick="openQuickOrderModal()" class="bg-purple-700 hover:bg-purple-800 text-white px-2.5 sm:px-3.5 py-2 rounded-xl font-bold text-[11px] sm:text-xs shadow-xs transition flex items-center gap-1 active:scale-95">
+            <span>⚡</span>
+            <span>Express</span>
+          </button>
+
+          <button onclick="scrollToCalculator()" class="bg-heritage-800 hover:bg-heritage-900 text-cream-100 px-3 sm:px-4 py-2 rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider border border-gilded-500/50 shadow-xs transition flex items-center gap-1 active:scale-95">
+            <span>Subscribe</span>
+          </button>
+        </div>
+
       </div>
-
-      <!-- Action Area: Quick 20-30m Delivery + Agent App + Subscribe -->
-      <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-        <button type="button" onclick="openQuickOrderModal()" class="bg-purple-700 hover:bg-purple-800 text-white px-2.5 sm:px-3.5 py-2 rounded-xl font-bold text-[11px] sm:text-xs shadow-xs transition flex items-center gap-1 active:scale-95">
-          <span>⚡</span>
-          <span>20-30m Express</span>
-        </button>
-
-        <button type="button" onclick="openAgentModal()" class="bg-emerald-800 hover:bg-emerald-900 text-white px-2.5 sm:px-3 py-2 rounded-xl font-bold text-[11px] sm:text-xs shadow-xs transition flex items-center gap-1 active:scale-95" title="Agent Delivery App">
-          <span>📱</span>
-          <span class="hidden sm:inline">Agent</span>
-        </button>
-
-        <button onclick="scrollToCalculator()" class="bg-heritage-800 hover:bg-heritage-900 text-cream-100 px-3 sm:px-4 py-2 rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider border border-gilded-500/50 shadow-xs transition flex items-center gap-1 active:scale-95">
-          <span>Subscribe</span>
-        </button>
-      </div>
-
-    </div>
-  </nav>
+    </nav>
+  </header>
 
   <!-- HERO SECTION -->
   <section class="relative pt-8 sm:pt-12 pb-14 overflow-hidden w-full">
@@ -212,16 +210,13 @@
           </div>
 
           <!-- CTA Buttons -->
-          <div class="flex flex-wrap items-center gap-3 pt-3">
-            <a href="#subscription-engine" class="bg-heritage-800 hover:bg-heritage-900 text-cream-100 font-bold px-5 sm:px-7 py-3.5 rounded-2xl text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md flex items-center gap-2 active:scale-95">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3">
+            <a href="#subscription-engine" class="bg-heritage-800 hover:bg-heritage-900 text-cream-100 font-bold px-6 py-3.5 rounded-2xl text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 active:scale-95">
               <span>Build Daily Plan</span>
               <span class="text-gilded-500">→</span>
             </a>
-            <button onclick="openQuickOrderModal()" class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-5 sm:px-6 py-3.5 rounded-2xl text-xs sm:text-sm transition shadow-md flex items-center gap-2 active:scale-95">
-              <span>⚡ Quick 20-30 Min Delivery</span>
-            </button>
-            <button onclick="openAgentModal()" class="bg-emerald-50 border-2 border-emerald-600 text-emerald-900 hover:bg-emerald-100 font-bold px-4 py-3.5 rounded-2xl text-xs sm:text-sm transition flex items-center gap-1.5 active:scale-95">
-              <span>📱 Agent Portal</span>
+            <button onclick="openQuickOrderModal()" class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-6 py-3.5 rounded-2xl text-xs sm:text-sm transition shadow-md flex items-center justify-center gap-2 active:scale-95">
+              <span>⚡ Quick 20–30 Min Delivery</span>
             </button>
           </div>
 
