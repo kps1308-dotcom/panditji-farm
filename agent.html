@@ -3,39 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  
-  <!-- Prevent Localhost & Browser Cache Locking -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-
-  <!-- Mobile App / PWA Standalone Setup -->
   <meta name="theme-color" content="#123826">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Panditji Agent">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23123826'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='%2348bb78' font-weight='bold' font-family='sans-serif'>PJ</text></svg>">
-  
   <title>Panditji Dairy | Agent Delivery Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    /* Strict Lock against horizontal sliding, elastic bounce & misaligned gestures */
     html, body {
       width: 100%;
       height: 100%;
       overflow-x: hidden;
-      overscroll-behavior-y: none;
       touch-action: pan-y;
       -webkit-tap-highlight-color: transparent;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #f0f4f1;
       color: #143525;
     }
-    
-    /* Responsive Touch-friendly Button Boundaries */
     .bubble {
       border: 1.5px solid #a3c4b0;
       border-radius: 8px;
@@ -51,9 +37,7 @@
       user-select: none;
       transition: background 0.1s, transform 0.1s;
     }
-    .bubble:active {
-      transform: scale(0.94);
-    }
+    .bubble:active { transform: scale(0.94); }
     .bubble.active {
       background: #165636;
       color: #ffffff;
@@ -71,17 +55,6 @@
   </style>
 </head>
 <body class="flex flex-col min-h-screen">
-
-<!-- PWA INSTALL PROMPT TOAST -->
-<div id="pwaInstallBar" class="hidden bg-[#165636] text-white px-4 py-2.5 text-xs flex items-center justify-between shrink-0 shadow-lg z-50">
-  <div class="flex items-center gap-2">
-    <span>📲</span>
-    <span class="font-medium">Install Panditji App on your phone screen</span>
-  </div>
-  <button id="pwaInstallBtn" class="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-3 py-1 rounded-lg text-xs shadow">
-    Install
-  </button>
-</div>
 
 <!-- AGENT AUTHENTICATION SCREEN (PIN: 1234) -->
 <div id="loginScreen" class="fixed inset-0 bg-[#123826] z-50 flex items-center justify-center p-4">
@@ -111,10 +84,6 @@
         Unlock Delivery Route
       </button>
     </form>
-
-    <div class="pt-2 border-t text-[11px] text-gray-400">
-      Localhost caching issue? <button onclick="purgeLocalCache()" class="underline text-emerald-700 font-bold">Clear Local Cache</button>
-    </div>
   </div>
 </div>
 
@@ -135,12 +104,9 @@
       </div>
       
       <div class="flex items-center gap-1.5 shrink-0">
-        <button onclick="syncWithCloud()" class="h-8 px-2 rounded-lg bg-[#1b4e36] hover:bg-[#236345] text-xs font-semibold flex items-center gap-1" title="Sync Cloud">
+        <button onclick="pullFromCloud(false)" class="h-8 px-2 rounded-lg bg-[#1b4e36] hover:bg-[#236345] text-xs font-semibold flex items-center gap-1" title="Sync Cloud">
           <span>🔄</span>
-          <span class="text-[10px] hidden sm:inline">Sync</span>
-        </button>
-        <button onclick="purgeLocalCache()" class="h-8 px-2 rounded-lg bg-[#1b4e36] text-[10px] font-semibold text-amber-200" title="Purge Localhost Cache">
-          Reset
+          <span class="text-[10px]">Sync</span>
         </button>
         <button onclick="handleLogout()" class="h-8 px-2.5 rounded-lg bg-red-900/70 hover:bg-red-800 text-red-200 text-xs font-bold">
           Exit
@@ -167,8 +133,6 @@
 
   <!-- MAIN SCROLLABLE CONTENT AREA -->
   <main class="flex-1 p-3 space-y-3 w-full max-w-md mx-auto overflow-y-auto">
-    
-    <!-- Search & Shift Filter -->
     <div class="flex gap-2 w-full">
       <input type="text" id="runnerSearch" placeholder="🔍 Search H.No, Name..." class="flex-1 min-w-0 bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-600" oninput="renderStops()">
       <select id="shiftFilter" class="bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs font-bold shrink-0" onchange="renderStops()">
@@ -178,7 +142,7 @@
       </select>
     </div>
 
-    <!-- Agent Quick Summary Metric Strip -->
+    <!-- Quick Metric Strip -->
     <div class="grid grid-cols-3 gap-2 w-full">
       <div class="bg-white p-2 rounded-xl border border-gray-200 text-center">
         <div class="text-[9px] uppercase font-bold text-gray-500">Stops</div>
@@ -194,59 +158,41 @@
       </div>
     </div>
 
-    <!-- Customer Stops List (Cards never overflow or slide horizontally) -->
+    <!-- Customer Stops List -->
     <div id="agentStopsContainer" class="space-y-3 w-full pb-8"></div>
   </main>
-
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
-const todayStr = () => new Date().toISOString().slice(0, 10);
+
+// Local Date formatter (fixes UTC 5:30 AM dawn bug)
+const getLocalDateString = (offsetDays = 0) => {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
 
-// Supabase synchronization parameters
 const DEFAULT_SB_URL = 'https://nvqszaywblhdxhlhiuxp.supabase.co';
 const DEFAULT_SB_KEY = 'sb_publishable_Pkn8vXc6unUaY2ZPTFf9Rg_LZwu3GDm';
 
-// Initial DB template with sample customer stops so you see instant output on test
-const defaultDbData = {
+let db = JSON.parse(localStorage.getItem('pjf_admin_ops') || JSON.stringify({
   agents: [
     { id: 'a1', name: 'Agent 1', phone: '9876543210', pin: '1234' },
     { id: 'a2', name: 'Agent 2', phone: '9876543211', pin: '1234' },
     { id: 'a3', name: 'Agent 3', phone: '9876543212', pin: '1234' }
   ],
-  deliveries: [
-    { id: 'd1', date: todayStr(), batch: 'Morning', customerId: 'c1', customerName: 'Sanjay Reddy', customerPhone: '9849012345', area: 'IIT Kandi', hno: 'Plot 42, H.No 1-12/A', product: 'Buffalo Milk (Pure Natural)', size: 1000, rate: 130, agent: 'Agent 1', status: 'planned', bottlesReturned: 0, bottlesRebate: 0 },
-    { id: 'd2', date: todayStr(), batch: 'Morning', customerId: 'c2', customerName: 'Lakshmi Narayana', customerPhone: '9849054321', area: 'Sangareddy', hno: 'Flat 204, Sri Nivas', product: 'Buffalo Milk (Pure Natural)', size: 500, rate: 70, agent: 'Agent 1', status: 'planned', bottlesReturned: 0, bottlesRebate: 0 },
-    { id: 'd3', date: todayStr(), batch: 'Morning', customerId: 'c3', customerName: 'Dr. Venkat Raman', customerPhone: '9123456789', area: 'IIT Kandi', hno: 'Faculty Qtr B-12', product: 'Buffalo Milk (Pure Natural)', size: 1000, rate: 130, agent: 'Agent 1', status: 'planned', bottlesReturned: 0, bottlesRebate: 0 }
-  ],
+  deliveries: [],
   bottles: []
-};
-
-let db = JSON.parse(localStorage.getItem('pjf_admin_ops') || JSON.stringify(defaultDbData));
-
-// If old localStorage is missing deliveries, restore default stops
-if (!db.deliveries || db.deliveries.length === 0) {
-  db.deliveries = defaultDbData.deliveries;
-}
+}));
 
 let currentAgent = null;
-let selectedDateOffset = 0;
-
-function purgeLocalCache() {
-  if (confirm('Clear local app cache & reload latest state?')) {
-    localStorage.removeItem('pjf_admin_ops');
-    localStorage.removeItem('pjf_agent_session');
-    location.reload(true);
-  }
-}
-
-function getTargetDateStr() {
-  const d = new Date();
-  d.setDate(d.getDate() + selectedDateOffset);
-  return d.toISOString().slice(0, 10);
-}
+let selectedDateOffset = 0; // -1 = prev, 0 = today, 1 = next
 
 function checkExistingSession() {
   const saved = localStorage.getItem('pjf_agent_session');
@@ -267,7 +213,12 @@ function handleAgentLogin(e) {
   const pin = $('loginPin').value.trim();
   const errEl = $('loginError');
 
-  const agentsList = db.agents || defaultDbData.agents;
+  const agentsList = db.agents || [
+    { id: 'a1', name: 'Agent 1', phone: '9876543210', pin: '1234' },
+    { id: 'a2', name: 'Agent 2', phone: '9876543211', pin: '1234' },
+    { id: 'a3', name: 'Agent 3', phone: '9876543212', pin: '1234' }
+  ];
+
   let match = agentsList.find(a => String(a.phone).trim() === phone);
 
   if (!match) {
@@ -303,7 +254,7 @@ function handleLogout() {
   }
 }
 
-function launchAgentApp() {
+async function launchAgentApp() {
   $('loginScreen').classList.add('hidden');
   $('appContainer').classList.remove('hidden');
   $('headerAgentName').textContent = currentAgent.name;
@@ -311,7 +262,7 @@ function launchAgentApp() {
   selectedDateOffset = 0;
   updateDateHeader();
   renderStops();
-  syncWithCloud(true);
+  await pullFromCloud(true);
 }
 
 function changeDateOffset(delta) {
@@ -321,7 +272,7 @@ function changeDateOffset(delta) {
 }
 
 function updateDateHeader() {
-  const targetDate = getTargetDateStr();
+  const targetDate = getLocalDateString(selectedDateOffset);
   const d = new Date(targetDate + 'T00:00:00');
   const dateFormatted = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
   const notice = $('readOnlyNotice');
@@ -344,12 +295,6 @@ function updateDateHeader() {
   }
 }
 
-function save() {
-  localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
-  renderStops();
-  syncWithCloud(true);
-}
-
 function setQuickBottles(delId, count) {
   if (selectedDateOffset !== 0) return;
   const d = (db.deliveries || []).find(x => x.id === delId);
@@ -368,6 +313,7 @@ function setManualBottles(delId, val) {
   }
 }
 
+// Fixed Delivery Action: Updates locally and pushes to Supabase immediately
 async function markStopDelivered(delId) {
   if (selectedDateOffset !== 0) {
     return alert('Deliveries can only be completed on Today’s route.');
@@ -397,25 +343,33 @@ async function markStopDelivered(delId) {
     });
   }
 
-  save();
+  // 1. Save Locally & Render
+  localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+  renderStops();
 
+  // 2. Push to Supabase Cloud
+  await pushToCloud(true);
+
+  // 3. Send WhatsApp receipt
   const msg = `Namaste ${d.customerName} ji 🙏\n\nYour milk has been delivered by ${d.agent}!\n\nItem: ${d.product} (${d.size}ml)\nEmpty Bottles Received: ${d.bottlesReturned || 0}\nBottle Rebate: ₹${totalRebate}\n\nPure fresh glass bottle milk. Thank you!\nPanditji Dairy Farm Mamidipally.`;
   window.open(`https://wa.me/91${d.customerPhone}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-function markStopSkipped(delId) {
+async function markStopSkipped(delId) {
   if (selectedDateOffset !== 0) return;
   const d = (db.deliveries || []).find(x => x.id === delId);
   if (!d) return;
   d.status = 'skipped';
-  save();
+  localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+  renderStops();
+  await pushToCloud(true);
 }
 
 function renderStops() {
   if (!currentAgent) return;
   const q = ($('runnerSearch').value || '').toLowerCase().trim();
   const shift = $('shiftFilter').value;
-  const targetDate = getTargetDateStr();
+  const targetDate = getLocalDateString(selectedDateOffset);
   const isToday = selectedDateOffset === 0;
 
   let stops = (db.deliveries || []).filter(d => d.date === targetDate && d.agent === currentAgent.name);
@@ -520,49 +474,9 @@ function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
 }
 
-// Standalone PWA Installation Logic
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  $('pwaInstallBar').classList.remove('hidden');
-});
-
-$('pwaInstallBtn')?.addEventListener('click', async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      $('pwaInstallBar').classList.add('hidden');
-    }
-    deferredPrompt = null;
-  }
-});
-
-// Inline Data URI Web Manifest for instant Installability
-const manifestData = {
-  name: "Panditji Dairy Agent",
-  short_name: "PJ Agent",
-  start_url: "agent.html",
-  display: "standalone",
-  background_color: "#f0f4f1",
-  theme_color: "#123826",
-  icons: [
-    {
-      src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='35' fill='%23123826'/><text x='96' y='125' font-size='95' text-anchor='middle' fill='%2348bb78' font-weight='bold' font-family='sans-serif'>PJ</text></svg>",
-      sizes: "192x192",
-      type: "image/svg+xml"
-    }
-  ]
-};
-const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
-const manifestURL = URL.createObjectURL(manifestBlob);
-const link = document.createElement('link');
-link.rel = 'manifest';
-link.href = manifestURL;
-document.head.appendChild(link);
-
-// Cloud Sync
+// -------------------------------------------------------------
+// SUPABASE PUSH & PULL PROTOCOL
+// -------------------------------------------------------------
 let sb = null;
 function initSupabase() {
   if (window.supabase) {
@@ -570,7 +484,24 @@ function initSupabase() {
   }
 }
 
-async function syncWithCloud(silent = false) {
+// Push to Cloud
+async function pushToCloud(silent = true) {
+  if (!sb) initSupabase();
+  if (!sb) return;
+  try {
+    const { error } = await sb.from('farm_workspace').upsert({
+      id: 'primary_farm',
+      data: db,
+      updated_at: new Date().toISOString()
+    });
+    if (error && !silent) alert('Sync error: ' + error.message);
+  } catch(e) {
+    console.warn('Push error:', e);
+  }
+}
+
+// Pull from Cloud (Loads latest stops created by Admin)
+async function pullFromCloud(silent = false) {
   if (!sb) initSupabase();
   if (!sb) return;
   try {
