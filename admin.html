@@ -519,6 +519,31 @@
       </div>
 
       <div id="agentCards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+
+      <!-- Agent Timestamp & Activity Audit Log -->
+      <div class="panel overflow-x-auto">
+        <div class="flex justify-between items-center mb-3">
+          <div>
+            <h3 class="font-bold text-sm text-[#143525]">📋 Agent Delivery Time &amp; Activity Log</h3>
+            <p class="text-xs text-gray-500">Live record of which agent delivered which stop and at what exact time</p>
+          </div>
+          <button class="btn-secondary text-xs py-1" onclick="pullFromCloud(false)">🔄 Refresh Cloud Logs</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Exact Time</th>
+              <th>Agent</th>
+              <th>H.No / Customer</th>
+              <th>Area</th>
+              <th>Bottles Recd</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="adminAgentLogRows"></tbody>
+        </table>
+      </div>
     </section>
 
     <!-- VIEW: PRE-CUT A4 STICKERS (16-SHEET 105x34mm WITH BUFFER) -->
@@ -978,7 +1003,7 @@ function show(viewId, btn) {
   $(viewId).classList.remove('hidden');
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  renderAll();
+  renderActiveView(viewId);
 }
 
 // -------------------------------------------------------------
@@ -1738,24 +1763,44 @@ async function markDelivered(deliveryId) {
   if (d.size === 500) ratePerBottle = 10;
   if (d.size === 250) ratePerBottle = 5;
 
-  const totalRebate = (d.bottlesReturned || 0) * ratePerBottle;
-  d.status = 'delivered';
-  d.bottlesRebate = totalRebate;
+  const returnedCount = Number(d.bottlesReturned) || 0;
+  const totalRebate = returnedCount * ratePerBottle;
+  const exactTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
-  if (d.bottlesReturned > 0) {
+  d.status = 'delivered';
+  d.bottlesReturned = returnedCount;
+  d.bottlesRebate = totalRebate;
+  d.deliveredAt = exactTime;
+  d.deliveredBy = d.agent;
+
+  if (returnedCount > 0) {
     db.bottles.push({
       id: uid(),
       date: d.date,
       customerId: d.customerId,
       customerName: d.customerName,
       size: d.size,
-      count: d.bottlesReturned,
+      count: returnedCount,
       rebate: totalRebate
     });
   }
 
+  db.agentLogs = db.agentLogs || [];
+  db.agentLogs.push({
+    id: uid(),
+    date: d.date,
+    time: exactTime,
+    agentName: d.agent,
+    customerName: d.customerName,
+    hno: d.hno,
+    area: d.area || 'Local',
+    size: d.size,
+    bottlesReturned: returnedCount,
+    action: 'Delivered'
+  });
+
   save();
-  const text = `Namaste ${d.customerName} ji 🙏\nDelivered by ${d.agent}. Empty bottles returned: ${d.bottlesReturned}. Rebate: ₹${totalRebate}.`;
+  const text = `Namaste ${d.customerName} ji 🙏\nDelivered by ${d.agent} at ${exactTime}. Empty bottles returned: ${returnedCount}. Rebate: ₹${totalRebate}.`;
   await sendDirectWhatsAppMessage(d.customerPhone, text);
 }
 
@@ -2033,62 +2078,112 @@ function exportBills() {
   a.click();
 }
 
-function renderAll() {
-  const today = $('dDate').value || todayStr();
-  $('todayLabel').textContent = today;
-  $('ovDate').value = $('ovDate').value || today;
-  $('ovMonth').value = $('ovMonth').value || today.slice(0, 7);
+function renderAdminAgentLogs() {
+  if (!$('adminAgentLogRows')) return;
+  const logs = (db.agentLogs && db.agentLogs.length > 0)
+    ? db.agentLogs
+    : (db.deliveries || []).filter(d => d.status === 'delivered' || d.status === 'skipped').map(d => ({
+        date: d.date,
+        time: d.deliveredAt || 'Completed',
+        agentName: d.agent,
+        hno: d.hno,
+        customerName: d.customerName,
+        area: d.area || 'Local',
+        bottlesReturned: d.bottlesReturned || 0,
+        action: d.status === 'delivered' ? 'Delivered' : 'Skipped'
+      }));
 
-  $('pVendorSelect').innerHTML = (db.vendors || []).map(v => `<option value="${v.id}">${esc(v.name)} (${esc(v.location)})</option>`).join('');
-  if ($('vendorHistoryFilter')) {
-    $('vendorHistoryFilter').innerHTML = '<option value="ALL">All Vendors</option>' + (db.vendors || []).map(v => `<option value="${v.id}">${esc(v.name)}</option>`).join('');
-  }
-
-  renderOverviewMetrics();
-  renderProcurementRows();
-  renderVendorDirectoryRows();
-  updateRunnerDropdowns();
-  renderCustomers();
-  renderPreDispatchList();
-  renderDispatchRows();
-  renderAgentCards();
-
-  $('overviewList').innerHTML = db.deliveries.filter(d => String(d.date) === String(today)).map(d => `
+  $('adminAgentLogRows').innerHTML = logs.slice().reverse().map(l => `
     <tr>
-      <td><b>${esc(d.hno)}</b><br><small>${esc(d.customerName)}</small></td>
-      <td>${esc(d.area)}</td>
-      <td>${esc(d.product)}</td>
-      <td>${d.size} ml</td>
-      <td><b>${esc(d.agent)}</b></td>
-      <td><span class="badge badge-${d.status}">${d.status}</span></td>
-      <td>${d.bottlesReturned || 0}</td>
-      <td><button class="btn-wa text-xs" onclick="sendAgentAssignedMsg('${d.id}')">📲 Notify</button></td>
+      <td>${esc(l.date)}</td>
+      <td class="font-mono font-bold text-emerald-900">${esc(l.time)}</td>
+      <td><b>${esc(l.agentName)}</b></td>
+      <td><b>${esc(l.hno)}</b> · ${esc(l.customerName)}</td>
+      <td>${esc(l.area)}</td>
+      <td>${l.bottlesReturned}</td>
+      <td><span class="badge ${l.action === 'Delivered' ? 'badge-delivered' : 'badge-skipped'}">${esc(l.action)}</span></td>
     </tr>
-  `).join('') || `<tr><td colspan="8" class="text-center py-4 text-gray-400">No stops today.</td></tr>`;
-
-  $('bottleRows').innerHTML = (db.bottles || []).slice().reverse().map(b => `
-    <tr>
-      <td>${b.date}</td><td>${esc(b.customerName)}</td><td><span class="badge badge-delivered">Returned</span></td><td>${b.size} ml</td><td>${b.count}</td><td class="font-bold text-emerald-800">-${money(b.rebate)}</td>
-    </tr>
-  `).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-400">No bottle records.</td></tr>`;
-
-  $('billRows').innerHTML = (db.invoices || []).slice().reverse().map(i => `
-    <tr>
-      <td><b>${i.invoiceNo}</b></td><td>${esc(i.customerName)}</td><td>${i.totalDrops} days</td><td>${money(i.grossMilk)}</td><td class="text-emerald-700">-${money(i.bottleDeduction)}</td><td class="font-black">${money(i.netPayable)}</td>
-      <td><button class="btn-wa text-xs" onclick="sendInvoiceWhatsApp('${i.id}')">WhatsApp</button></td>
-    </tr>
-  `).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-400">No invoices generated.</td></tr>`;
+  `).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-400">No agent delivery timestamps recorded yet.</td></tr>`;
 }
 
-// Initial Setup
+function renderActiveView(activeId) {
+  const today = $('dDate').value || todayStr();
+
+  if (activeId === 'overview') {
+    $('todayLabel').textContent = today;
+    renderOverviewMetrics();
+    $('overviewList').innerHTML = (db.deliveries || []).filter(d => String(d.date) === String(today)).map(d => `
+      <tr>
+        <td><b>${esc(d.hno)}</b><br><small>${esc(d.customerName)}</small></td>
+        <td>${esc(d.area)}</td>
+        <td>${esc(d.product)}</td>
+        <td>${d.size} ml</td>
+        <td><b>${esc(d.agent)}</b></td>
+        <td><span class="badge badge-${d.status}">${d.status}</span></td>
+        <td>${d.bottlesReturned || 0}</td>
+        <td><button class="btn-wa text-xs" onclick="sendAgentAssignedMsg('${d.id}')">📲 Notify</button></td>
+      </tr>
+    `).join('') || `<tr><td colspan="8" class="text-center py-4 text-gray-400">No stops today.</td></tr>`;
+  }
+  else if (activeId === 'vendors') {
+    $('pVendorSelect').innerHTML = (db.vendors || []).map(v => `<option value="${v.id}">${esc(v.name)} (${esc(v.location)})</option>`).join('');
+    if ($('vendorHistoryFilter')) {
+      $('vendorHistoryFilter').innerHTML = '<option value="ALL">All Vendors</option>' + (db.vendors || []).map(v => `<option value="${v.id}">${esc(v.name)}</option>`).join('');
+    }
+    renderVendorDirectoryRows();
+    renderProcurementRows();
+  }
+  else if (activeId === 'customers') {
+    updateRunnerDropdowns();
+    renderCustomers();
+  }
+  else if (activeId === 'dispatch') {
+    updateRunnerDropdowns();
+    renderPreDispatchList();
+    renderDispatchRows();
+  }
+  else if (activeId === 'agentView') {
+    updateRunnerDropdowns();
+    renderAgentCards();
+    renderAdminAgentLogs();
+  }
+  else if (activeId === 'stickers') {
+    renderA4Grid();
+  }
+  else if (activeId === 'bottles') {
+    $('bottleRows').innerHTML = (db.bottles || []).slice().reverse().map(b => `
+      <tr>
+        <td>${b.date}</td><td>${esc(b.customerName)}</td><td><span class="badge badge-delivered">Returned</span></td><td>${b.size} ml</td><td>${b.count}</td><td class="font-bold text-emerald-800">-${money(b.rebate)}</td>
+      </tr>
+    `).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-400">No bottle records.</td></tr>`;
+  }
+  else if (activeId === 'billing') {
+    $('billRows').innerHTML = (db.invoices || []).slice().reverse().map(i => `
+      <tr>
+        <td><b>${i.invoiceNo}</b></td><td>${esc(i.customerName)}</td><td>${i.totalDrops} days</td><td>${money(i.grossMilk)}</td><td class="text-emerald-700">-${money(i.bottleDeduction)}</td><td class="font-black">${money(i.netPayable)}</td>
+        <td><button class="btn-wa text-xs" onclick="sendInvoiceWhatsApp('${i.id}')">WhatsApp</button></td>
+      </tr>
+    `).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-400">No invoices generated for this month.</td></tr>`;
+  }
+}
+
+function renderAll() {
+  const visibleSection = document.querySelector('.view:not(.hidden)');
+  const activeId = visibleSection ? visibleSection.id : 'overview';
+  renderActiveView(activeId);
+}
+
+// Single Clean Boot Sequence
 $('dDate').value = todayStr();
 $('pDate').value = todayStr();
+$('ovDate').value = todayStr();
+$('ovMonth').value = todayStr().slice(0, 7);
 $('billMonth').value = todayStr().slice(0, 7);
 $('stkInputDateTime').value = nowFormatted();
-$('clockHeader').textContent = nowFormatted().slice(-8);
+if ($('clockHeader')) $('clockHeader').textContent = nowFormatted().slice(-8);
+
 initSupabase();
 updateWaStatusBadge();
-renderA4Grid();
 renderAll();
 pullFromCloud(true);
 </script>
