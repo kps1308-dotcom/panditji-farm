@@ -266,9 +266,44 @@
     <!-- VIEW: CUSTOMERS & SEARCH -->
     <section id="customers" class="view hidden space-y-4">
       <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        <h2 class="text-lg font-bold">Customer Directory &amp; Search</h2>
-        <div class="w-full md:w-80">
-          <input type="text" id="custSearch" placeholder="🔍 Search H.No, Name, Location, Mobile..." oninput="renderCustomers()">
+        <div>
+          <h2 class="text-lg font-bold">Customer Directory &amp; Lifecycle Management</h2>
+          <p class="text-xs text-gray-500">Duplicate mobile numbers are blocked. Customers with no milk delivery for &gt;30 days automatically move to Inactive.</p>
+        </div>
+      </div>
+
+      <!-- Search & Multi-Filter Bar -->
+      <div class="panel bg-[#f8faf8] grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+        <div>
+          <label>🔍 Search Customer</label>
+          <input type="text" id="custSearch" placeholder="H.No, Name, Mobile, Landmark..." oninput="renderCustomers()">
+        </div>
+        <div>
+          <label>Filter by Status</label>
+          <select id="custStatusFilter" onchange="renderCustomers()" class="font-bold">
+            <option value="ALL">All Statuses</option>
+            <option value="active">✓ Active Subscribers</option>
+            <option value="paused">⏸️ Paused (Amber)</option>
+            <option value="inactive">⛔ Inactive &gt;1 Month (Red)</option>
+          </select>
+        </div>
+        <div>
+          <label>Filter by Area</label>
+          <select id="custAreaFilter" onchange="renderCustomers()">
+            <option value="ALL">All Areas</option>
+            <option value="IIT Kandi">IIT Kandi</option>
+            <option value="Sangareddy">Sangareddy</option>
+            <option value="Mamidipally">Mamidipally</option>
+            <option value="Rudraram">Rudraram</option>
+            <option value="Patancheru">Patancheru</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label>Filter by Assigned Agent</label>
+          <select id="custAgentFilter" onchange="renderCustomers()">
+            <option value="ALL">All Runners</option>
+          </select>
         </div>
       </div>
 
@@ -313,9 +348,29 @@
       </form>
 
       <div class="panel overflow-x-auto">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3 text-xs">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="font-bold text-gray-700">Row Legend:</span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-900 border border-emerald-200 font-semibold">White = Active</span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 font-semibold">Amber = Paused</span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-100 text-red-900 border border-red-300 font-semibold">Red = Inactive (&gt;30d no milk)</span>
+          </div>
+          <span class="font-bold text-gray-600" id="custCountSummary">0 customers</span>
+        </div>
         <table>
           <thead>
-            <tr><th>H.No</th><th>Name</th><th>Area / Location</th><th>Mobile</th><th>Product / Size</th><th>Frequency</th><th>Rate</th><th>Assigned Agent</th><th>Actions</th></tr>
+            <tr>
+              <th>H.No</th>
+              <th>Name</th>
+              <th>Area / Location</th>
+              <th>Mobile</th>
+              <th>Plan / Size</th>
+              <th>Frequency</th>
+              <th>Rate</th>
+              <th>Agent</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody id="customerRows"></tbody>
         </table>
@@ -385,7 +440,7 @@
             <thead class="sticky top-0 z-10 shadow-sm">
               <tr>
                 <th class="w-10 text-center"><input type="checkbox" id="chkMaster" checked onchange="toggleMasterCheckbox(this.checked)"></th>
-                <th>H.No / Address</th><th>Customer Name &amp; Phone</th><th>Area</th><th>Product &amp; Qty</th><th>Frequency</th><th>Assign Runner</th><th>Status</th>
+                <th>H.No / Address</th><th>Customer Name &amp; Phone</th><th>Area</th><th>Today's Qty / Extra Milk</th><th>Frequency</th><th>Assign Runner</th><th>Status</th>
               </tr>
             </thead>
             <tbody id="preDispatchRows"></tbody>
@@ -1046,8 +1101,9 @@
       <div>
         <label>Subscription Status</label>
         <select id="editCActive">
-          <option value="true">Active Subscriber</option>
-          <option value="false">Paused / Inactive</option>
+          <option value="active">✓ Active Subscriber</option>
+          <option value="paused">⏸️ Paused (Temporary)</option>
+          <option value="inactive">⛔ Inactive (&gt;1 Month)</option>
         </select>
       </div>
       <div class="sm:col-span-2 pt-3 flex gap-2 border-t mt-2">
@@ -1772,8 +1828,54 @@ function renderOverviewMetrics() {
 }
 
 // -------------------------------------------------------------
-// CUSTOMERS & EDITING (AUTOMATICALLY SYNCS AGENT ASSIGNMENT!)
+// CUSTOMERS, DUPLICATE CHECK, AUTO-INACTIVITY (>30 DAYS), & EDITING
 // -------------------------------------------------------------
+function getCustomerStatus(c) {
+  if (c.status === 'paused' || c.status === 'inactive' || c.status === 'active') {
+    return c.status;
+  }
+  return c.active === false ? 'paused' : 'active';
+}
+
+// Automatically move customers with > 30 days without any milk delivery to 'inactive'
+function autoCheckCustomerInactivity() {
+  if (!db.customers || db.customers.length === 0) return false;
+  const nowMs = Date.now();
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+  let changed = false;
+
+  db.customers.forEach(c => {
+    const st = getCustomerStatus(c);
+    if (st === 'inactive') return;
+
+    // Find latest delivered drop for this customer
+    const custDelivered = (db.deliveries || [])
+      .filter(d => String(d.customerId) === String(c.id) && d.status === 'delivered' && d.date);
+
+    let lastActivityMs = null;
+    if (custDelivered.length > 0) {
+      custDelivered.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      lastActivityMs = new Date(custDelivered[0].date + 'T00:00:00').getTime();
+    } else if (c.pausedAt) {
+      lastActivityMs = new Date(c.pausedAt).getTime();
+    } else if (c.createdAt) {
+      lastActivityMs = new Date(c.createdAt).getTime();
+    }
+
+    if (lastActivityMs && !isNaN(lastActivityMs) && (nowMs - lastActivityMs) > THIRTY_DAYS_MS) {
+      c.status = 'inactive';
+      c.active = false;
+      c.autoInactiveReason = 'Auto-marked inactive (no milk taken for >30 days)';
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+  }
+  return changed;
+}
+
 function autoFillRate() {
   $('cRate').value = $('cSizeRate').value.split('-')[1];
 }
@@ -1787,11 +1889,22 @@ function autoFillEditRate() {
 
 function addCustomer(e) {
   e.preventDefault();
+  const phone = $('cPhone').value.trim();
+
+  // Strictly prevent duplicate mobile numbers!
+  const duplicate = (db.customers || []).find(c => String(c.phone).trim() === phone);
+  if (duplicate) {
+    alert(`⚠️ Mobile number ${phone} ALREADY EXISTS!\n\nRegistered Customer: ${duplicate.name}\nH.No: ${duplicate.hno} (${duplicate.area})\nStatus: ${getCustomerStatus(duplicate).toUpperCase()}\n\nPlease search and edit the existing customer instead of creating a duplicate.`);
+    $('custSearch').value = phone;
+    renderCustomers();
+    return;
+  }
+
   const [size, defaultRate] = $('cSizeRate').value.split('-');
   const cust = {
     id: uid(),
     name: $('cName').value.trim(),
-    phone: $('cPhone').value.trim(),
+    phone: phone,
     area: $('cArea').value,
     hno: $('cHno').value.trim(),
     address: $('cAddress').value.trim(),
@@ -1800,13 +1913,15 @@ function addCustomer(e) {
     rate: Number($('cRate').value || defaultRate),
     frequency: $('cFrequency').value,
     agent: $('cAgent').value,
-    active: true
+    status: 'active',
+    active: true,
+    createdAt: new Date().toISOString()
   };
   db.customers.push(cust);
-  checklistSelectionMap[cust.id] = { selected: true, agent: cust.agent };
+  checklistSelectionMap[cust.id] = { selected: true, agent: cust.agent, size: cust.size, rate: cust.rate };
   save();
   e.target.reset();
-  alert('Customer registered!');
+  alert(`Customer "${cust.name}" registered successfully!`);
 }
 
 function openEditCustomerModal(id) {
@@ -1824,7 +1939,7 @@ function openEditCustomerModal(id) {
   $('editCRate').value = c.rate;
   $('editCFrequency').value = c.frequency;
   $('editCAgent').value = c.agent || 'Agent 1';
-  $('editCActive').value = String(c.active);
+  $('editCActive').value = getCustomerStatus(c);
   $('editCustModal').classList.remove('hidden');
 }
 
@@ -1838,8 +1953,17 @@ function saveCustomerEdits(e) {
   const c = db.customers.find(x => x.id === id);
   if (!c) return;
 
+  const newPhone = $('editCPhone').value.trim();
+  const dup = (db.customers || []).find(x => x.id !== id && String(x.phone).trim() === newPhone);
+  if (dup) {
+    alert(`⚠️ Mobile number ${newPhone} is already assigned to another customer (${dup.name}).`);
+    return;
+  }
+
+  const newStatus = $('editCActive').value; // 'active', 'paused', 'inactive'
+
   c.name = $('editCName').value.trim();
-  c.phone = $('editCPhone').value.trim();
+  c.phone = newPhone;
   c.area = $('editCArea').value;
   c.hno = $('editCHno').value.trim();
   c.address = $('editCAddress').value.trim();
@@ -1848,15 +1972,25 @@ function saveCustomerEdits(e) {
   c.rate = Number($('editCRate').value);
   c.frequency = $('editCFrequency').value;
   c.agent = $('editCAgent').value;
-  c.active = ($('editCActive').value === 'true');
+  c.status = newStatus;
+  c.active = (newStatus === 'active');
 
-  // 1. Update checklistSelectionMap immediately so Route Dispatch checklist shows new agent!
+  if (newStatus === 'paused') {
+    c.pausedAt = new Date().toISOString();
+  } else if (newStatus === 'active') {
+    delete c.pausedAt;
+    delete c.autoInactiveReason;
+  }
+
+  // Update checklistSelectionMap immediately
   checklistSelectionMap[c.id] = {
-    selected: checklistSelectionMap[c.id] ? checklistSelectionMap[c.id].selected : true,
-    agent: c.agent
+    selected: c.active,
+    agent: c.agent,
+    size: c.size,
+    rate: c.rate
   };
 
-  // 2. Also update any active planned deliveries for this customer!
+  // Update any active planned deliveries for this customer
   (db.deliveries || []).filter(d => d.customerId === c.id && d.status === 'planned').forEach(d => {
     d.customerName = c.name;
     d.customerPhone = c.phone;
@@ -1871,42 +2005,115 @@ function saveCustomerEdits(e) {
   save();
   closeEditModal();
   if (currentModalCustomerId === id) openCustomerModal(id);
-  alert(`Customer profile & assigned runner (${c.agent}) updated everywhere!`);
+  alert(`Customer profile & status (${newStatus.toUpperCase()}) updated!`);
+}
+
+function setCustomerLifecycleStatus(id, newStatus) {
+  const c = db.customers.find(x => x.id === id);
+  if (!c) return;
+  c.status = newStatus;
+  c.active = (newStatus === 'active');
+  if (newStatus === 'paused') {
+    c.pausedAt = new Date().toISOString();
+  } else if (newStatus === 'active') {
+    delete c.pausedAt;
+    delete c.autoInactiveReason;
+  }
+  save();
+  if (currentModalCustomerId === id) openCustomerModal(id);
 }
 
 function renderCustomers() {
-  const q = ($('custSearch').value || '').toLowerCase().trim();
-  const list = db.customers.filter(c => 
-    c.name.toLowerCase().includes(q) || c.phone.includes(q) || c.hno.toLowerCase().includes(q)
-  );
+  autoCheckCustomerInactivity();
 
-  $('customerRows').innerHTML = list.map(c => `
-    <tr class="hover:bg-gray-50">
-      <td class="font-semibold">${esc(c.hno)}</td>
-      <td><button class="text-left font-bold text-emerald-800 hover:underline" onclick="openCustomerModal('${c.id}')">${esc(c.name)}</button></td>
-      <td><span class="bg-emerald-50 text-emerald-800 font-semibold px-2 py-0.5 rounded text-xs">${esc(c.area || 'Mamidipally')}</span></td>
-      <td>${esc(c.phone)}</td>
-      <td>${esc(c.product)} (${c.size}ml)</td>
-      <td><span class="badge ${c.frequency === 'Daily' ? 'badge-delivered' : 'badge-planned'}">${c.frequency}</span></td>
-      <td>${money(c.rate)}</td>
-      <td><b>${esc(c.agent)}</b></td>
-      <td>
-        <div class="flex items-center gap-1.5">
-          <button class="btn-secondary text-xs py-1 px-2.5" onclick="openCustomerModal('${c.id}')">Details</button>
-          <button class="btn text-xs py-1 px-2.5 bg-emerald-700" onclick="openEditCustomerModal('${c.id}')">✏️ Edit</button>
-        </div>
-      </td>
-    </tr>
-  `).join('') || `<tr><td colspan="9" class="text-center py-4 text-gray-500">No customers found.</td></tr>`;
+  // Populate Agent Filter dropdown cleanly
+  if ($('custAgentFilter')) {
+    const curAg = $('custAgentFilter').value || 'ALL';
+    const agNames = (db.agents || []).map(a => a.name);
+    $('custAgentFilter').innerHTML = '<option value="ALL">All Runners</option>' +
+      agNames.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    $('custAgentFilter').value = curAg;
+  }
+
+  const q = ($('custSearch').value || '').toLowerCase().trim();
+  const stFilter = $('custStatusFilter') ? $('custStatusFilter').value : 'ALL';
+  const arFilter = $('custAreaFilter') ? $('custAreaFilter').value : 'ALL';
+  const agFilter = $('custAgentFilter') ? $('custAgentFilter').value : 'ALL';
+
+  const list = (db.customers || []).filter(c => {
+    const st = getCustomerStatus(c);
+    if (stFilter !== 'ALL' && st !== stFilter) return false;
+    if (arFilter !== 'ALL' && (c.area || 'Mamidipally') !== arFilter) return false;
+    if (agFilter !== 'ALL' && String(c.agent || '') !== agFilter) return false;
+
+    if (!q) return true;
+    return (
+      (c.name && c.name.toLowerCase().includes(q)) ||
+      (c.phone && c.phone.includes(q)) ||
+      (c.hno && c.hno.toLowerCase().includes(q)) ||
+      (c.area && c.area.toLowerCase().includes(q)) ||
+      (c.address && c.address.toLowerCase().includes(q))
+    );
+  });
+
+  if ($('custCountSummary')) {
+    $('custCountSummary').textContent = `Showing ${list.length} of ${(db.customers || []).length} customer(s)`;
+  }
+
+  $('customerRows').innerHTML = list.map(c => {
+    const st = getCustomerStatus(c);
+
+    // Distinct row colors for Active (white), Paused (amber), and Inactive (red)
+    let rowClass = 'hover:bg-gray-50';
+    let statusBadge = '<span class="badge badge-delivered">✓ Active</span>';
+    let quickToggleBtn = `<button class="text-xs px-2 py-1 rounded bg-amber-100 text-amber-900 hover:bg-amber-200 font-bold" onclick="setCustomerLifecycleStatus('${c.id}', 'paused')" title="Pause Subscription">⏸️ Pause</button>`;
+
+    if (st === 'paused') {
+      rowClass = 'bg-amber-50/90 border-l-4 border-amber-500 hover:bg-amber-100/70';
+      statusBadge = '<span class="badge badge-planned">⏸️ Paused</span>';
+      quickToggleBtn = `<button class="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-900 hover:bg-emerald-200 font-bold" onclick="setCustomerLifecycleStatus('${c.id}', 'active')" title="Resume Delivery">▶️ Resume</button>`;
+    } else if (st === 'inactive') {
+      rowClass = 'bg-red-50/90 border-l-4 border-red-600 text-gray-600 hover:bg-red-100/70';
+      statusBadge = `<span class="badge badge-skipped" title="${esc(c.autoInactiveReason || 'Inactive > 30 days')}">⛔ Inactive</span>`;
+      quickToggleBtn = `<button class="text-xs px-2 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 font-bold" onclick="setCustomerLifecycleStatus('${c.id}', 'active')" title="Reactivate Customer">🔄 Activate</button>`;
+    }
+
+    return `
+      <tr class="${rowClass}">
+        <td class="font-semibold">${esc(c.hno)}</td>
+        <td>
+          <button class="text-left font-bold ${st === 'inactive' ? 'text-red-900' : 'text-emerald-800'} hover:underline" onclick="openCustomerModal('${c.id}')">
+            ${esc(c.name)}
+          </button>
+          ${c.autoInactiveReason && st === 'inactive' ? `<div class="text-[10px] text-red-700 font-semibold">${esc(c.autoInactiveReason)}</div>` : ''}
+        </td>
+        <td><span class="bg-white/80 border text-emerald-900 font-semibold px-2 py-0.5 rounded text-xs">${esc(c.area || 'Mamidipally')}</span></td>
+        <td class="font-mono">${esc(c.phone)}</td>
+        <td>${esc(c.product)} (${c.size}ml)</td>
+        <td><span class="badge ${c.frequency === 'Daily' ? 'badge-delivered' : 'badge-planned'}">${c.frequency}</span></td>
+        <td class="font-bold">${money(c.rate)}</td>
+        <td><b>${esc(c.agent)}</b></td>
+        <td>${statusBadge}</td>
+        <td>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            ${quickToggleBtn}
+            <button class="btn text-xs py-1 px-2.5 bg-emerald-700" onclick="openEditCustomerModal('${c.id}')">✏️ Edit</button>
+            <button class="btn-secondary text-xs py-1 px-2" onclick="openCustomerModal('${c.id}')">Details</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('') || `<tr><td colspan="10" class="text-center py-6 text-gray-500">No customers match your search or filters.</td></tr>`;
 }
 
 function openCustomerModal(id) {
   currentModalCustomerId = id;
   const c = db.customers.find(x => x.id === id);
   if (!c) return;
+  const st = getCustomerStatus(c);
 
   $('mName').textContent = c.name;
-  $('mSub').textContent = `${c.hno} · ${c.area || ''} · ${c.phone}`;
+  $('mSub').textContent = `${c.hno} · ${c.area || ''} · ${c.phone} · [${st.toUpperCase()}]`;
   $('mBillMonth').value = todayStr().slice(0, 7);
 
   const history = db.deliveries.filter(d => d.customerId === c.id);
@@ -1920,6 +2127,7 @@ function openCustomerModal(id) {
       <div><b>Plan:</b> ${esc(c.product)} - ${c.size}ml</div>
       <div><b>Frequency:</b> ${c.frequency} (${money(c.rate)}/day)</div>
       <div><b>Bottle Savings:</b> <span class="text-emerald-700 font-bold">${money(totalRebateSaved)}</span></div>
+      <div class="col-span-2"><b>Status:</b> <span class="uppercase font-bold ${st === 'active' ? 'text-emerald-700' : st === 'paused' ? 'text-amber-700' : 'text-red-700'}">${st}</span> ${c.autoInactiveReason ? '(' + esc(c.autoInactiveReason) + ')' : ''}</div>
     </div>
     <div class="mt-3">
       <h4 class="font-bold text-xs uppercase text-gray-500 mb-1">Recent Deliveries</h4>
@@ -1934,6 +2142,10 @@ function openCustomerModal(id) {
     </div>
     <div class="pt-2 flex flex-wrap gap-2">
       <button class="btn text-xs py-1.5" onclick="openEditCustomerModal('${c.id}')">✏️ Edit Details</button>
+      ${st === 'active'
+        ? `<button class="btn-secondary text-xs py-1.5 bg-amber-100 text-amber-900" onclick="setCustomerLifecycleStatus('${c.id}', 'paused')">⏸️ Pause</button>`
+        : `<button class="btn-secondary text-xs py-1.5 bg-emerald-100 text-emerald-900" onclick="setCustomerLifecycleStatus('${c.id}', 'active')">▶️ Activate</button>`
+      }
       <button class="btn-secondary text-xs py-1.5" onclick="toggleModalInvoiceView()">🧾 Generate Invoice</button>
       <button class="btn-wa text-xs py-1.5" onclick="sendCustomDirectMessage('${c.phone}', 'Namaste ${c.name} ji, update from Panditji Dairy Farm.')">💬 WhatsApp</button>
     </div>
@@ -1998,21 +2210,66 @@ async function sendInvoiceDirect(phone, name, invNo, month, drops, litres, gross
 }
 
 // -------------------------------------------------------------
-// PRE-DISPATCH & ROUTE DISPATCH
+// PRE-DISPATCH & ROUTE DISPATCH (WITH TODAY'S EXTRA / REDUCED QTY OVERRIDE!)
 // -------------------------------------------------------------
+const VOLUME_OPTIONS = [
+  { size: 250,  rate: 40,  label: '250 ml (₹40)' },
+  { size: 500,  rate: 70,  label: '500 ml (₹70)' },
+  { size: 750,  rate: 110, label: '750 ml (₹110)' },
+  { size: 1000, rate: 130, label: '1000 ml / 1L (₹130)' },
+  { size: 1250, rate: 170, label: '1250 ml +250 Extra (₹170)' },
+  { size: 1500, rate: 200, label: '1500 ml / 1.5L +Extra (₹200)' },
+  { size: 2000, rate: 260, label: '2000 ml / 2L +Extra (₹260)' }
+];
+
+function getRateForVolume(sizeMl, fallbackRate) {
+  const found = VOLUME_OPTIONS.find(o => o.size === Number(sizeMl));
+  if (found) return found.rate;
+  return Math.round((Number(sizeMl) / 1000) * 130) || fallbackRate || 130;
+}
+
+function buildVolumeDropdownHtml(currentSize, defaultSize, onChangeCall, isDisabled = false) {
+  const cur = Number(currentSize);
+  const def = Number(defaultSize);
+  let opts = VOLUME_OPTIONS.map(o => `<option value="${o.size}" ${o.size === cur ? 'selected' : ''}>${o.label}</option>`).join('');
+  if (!VOLUME_OPTIONS.some(o => o.size === cur)) {
+    opts = `<option value="${cur}" selected>${cur} ml (₹${getRateForVolume(cur)})</option>` + opts;
+  }
+  const isModified = (cur !== def);
+  const diff = cur - def;
+  const tagHtml = isModified
+    ? `<span class="inline-block mt-0.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded ${diff > 0 ? 'bg-purple-100 text-purple-900' : 'bg-amber-100 text-amber-900'}">${diff > 0 ? '+' + diff + 'ml Extra Today' : diff + 'ml Reduced Today'}</span>`
+    : '';
+
+  return `
+    <div>
+      <select class="text-xs py-1 border rounded ${isModified ? 'border-purple-500 bg-purple-50 font-bold text-purple-950' : ''}" ${isDisabled ? 'disabled' : ''} onchange="${onChangeCall}">
+        ${opts}
+      </select>
+      ${tagHtml}
+    </div>
+  `;
+}
+
 function renderPreDispatchList() {
+  autoCheckCustomerInactivity();
   const date = $('dDate').value || todayStr();
   const batch = $('dBatch').value || 'Morning';
   const filterArea = $('chkAreaFilter') ? $('chkAreaFilter').value : 'ALL';
 
-  let eligible = db.customers.filter(c => c.active);
+  let eligible = (db.customers || []).filter(c => getCustomerStatus(c) === 'active');
   if (filterArea !== 'ALL') eligible = eligible.filter(c => (c.area || 'Mamidipally') === filterArea);
 
   let selectedCount = 0;
 
   $('preDispatchRows').innerHTML = eligible.map(c => {
     const isScheduled = db.deliveries.some(d => String(d.date) === String(date) && d.batch === batch && d.customerId === c.id);
-    const selData = checklistSelectionMap[c.id] || { selected: true, agent: c.agent || 'Agent 1' };
+    if (!checklistSelectionMap[c.id]) {
+      checklistSelectionMap[c.id] = { selected: true, agent: c.agent || 'Agent 1', size: Number(c.size) || 1000, rate: Number(c.rate) || 130 };
+    }
+    const selData = checklistSelectionMap[c.id];
+    const todaySize = selData.size !== undefined ? Number(selData.size) : Number(c.size);
+
     if (selData.selected && !isScheduled) selectedCount++;
 
     return `
@@ -2021,7 +2278,9 @@ function renderPreDispatchList() {
         <td><b>${esc(c.hno)}</b><br><span class="text-[11px] text-gray-500">${esc(c.address)}</span></td>
         <td><b>${esc(c.name)}</b><br><span class="text-xs text-gray-600">📞 ${esc(c.phone)}</span></td>
         <td>${esc(c.area || 'Local')}</td>
-        <td><b>${c.size} ml</b></td>
+        <td>
+          ${buildVolumeDropdownHtml(todaySize, c.size, `setChecklistVolume('${c.id}', this.value)`, isScheduled)}
+        </td>
         <td>${c.frequency}</td>
         <td>
           <select class="text-xs py-1 border rounded" ${isScheduled ? 'disabled' : ''} onchange="setChecklistAgent('${c.id}', this.value)">
@@ -2031,32 +2290,53 @@ function renderPreDispatchList() {
         <td>${isScheduled ? '<span class="badge badge-delivered">Scheduled</span>' : selData.selected ? '<span class="text-emerald-700 font-bold text-xs">✓ Ready</span>' : '<span class="text-red-500 font-bold text-xs">✕ Skipped</span>'}</td>
       </tr>
     `;
-  }).join('');
+  }).join('') || `<tr><td colspan="8" class="text-center py-4 text-gray-400">No active subscribers found.</td></tr>`;
 
   $('btnCommitCount').textContent = selectedCount;
 }
 
 function toggleCustomerChecklist(customerId, isChecked) {
+  const c = db.customers.find(x => x.id === customerId);
   if (!checklistSelectionMap[customerId]) {
-    const c = db.customers.find(x => x.id === customerId);
-    checklistSelectionMap[customerId] = { selected: isChecked, agent: c?.agent || 'Agent 1' };
+    checklistSelectionMap[customerId] = { selected: isChecked, agent: c?.agent || 'Agent 1', size: Number(c?.size) || 1000, rate: Number(c?.rate) || 130 };
   } else {
     checklistSelectionMap[customerId].selected = isChecked;
   }
   renderPreDispatchList();
 }
 
-function setChecklistAgent(customerId, agent) {
+function setChecklistVolume(customerId, newSizeStr) {
+  const c = db.customers.find(x => x.id === customerId);
+  const newSize = Number(newSizeStr);
+  const newRate = (c && newSize === Number(c.size)) ? Number(c.rate) : getRateForVolume(newSize, c?.rate);
+
   if (!checklistSelectionMap[customerId]) {
-    checklistSelectionMap[customerId] = { selected: true, agent: agent };
+    checklistSelectionMap[customerId] = { selected: true, agent: c?.agent || 'Agent 1', size: newSize, rate: newRate };
+  } else {
+    checklistSelectionMap[customerId].size = newSize;
+    checklistSelectionMap[customerId].rate = newRate;
+  }
+  renderPreDispatchList();
+}
+
+function setChecklistAgent(customerId, agent) {
+  const c = db.customers.find(x => x.id === customerId);
+  if (!checklistSelectionMap[customerId]) {
+    checklistSelectionMap[customerId] = { selected: true, agent: agent, size: Number(c?.size) || 1000, rate: Number(c?.rate) || 130 };
   } else {
     checklistSelectionMap[customerId].agent = agent;
   }
 }
 
 function selectAllDispatch(status) {
-  db.customers.filter(c => c.active).forEach(c => {
-    checklistSelectionMap[c.id] = { selected: status, agent: c.agent || 'Agent 1' };
+  db.customers.filter(c => getCustomerStatus(c) === 'active').forEach(c => {
+    const cur = checklistSelectionMap[c.id] || {};
+    checklistSelectionMap[c.id] = {
+      selected: status,
+      agent: cur.agent || c.agent || 'Agent 1',
+      size: cur.size !== undefined ? cur.size : Number(c.size),
+      rate: cur.rate !== undefined ? cur.rate : Number(c.rate)
+    };
   });
   renderPreDispatchList();
 }
@@ -2067,8 +2347,13 @@ function toggleMasterCheckbox(isChecked) {
 
 function applyDefaultAgentToAll(agent) {
   db.customers.forEach(c => {
-    if (checklistSelectionMap[c.id]) checklistSelectionMap[c.id].agent = agent;
-    else checklistSelectionMap[c.id] = { selected: true, agent: agent };
+    const cur = checklistSelectionMap[c.id] || {};
+    checklistSelectionMap[c.id] = {
+      selected: cur.selected !== undefined ? cur.selected : true,
+      agent: agent,
+      size: cur.size !== undefined ? cur.size : Number(c.size),
+      rate: cur.rate !== undefined ? cur.rate : Number(c.rate)
+    };
   });
   renderPreDispatchList();
 }
@@ -2080,10 +2365,13 @@ async function commitSelectedDispatch() {
 
   let addedStops = [];
 
-  db.customers.filter(c => c.active).forEach(c => {
+  db.customers.filter(c => getCustomerStatus(c) === 'active').forEach(c => {
     const selData = checklistSelectionMap[c.id];
     const isSelected = selData ? selData.selected : true;
     if (!isSelected) return;
+
+    const todaySize = (selData && selData.size !== undefined) ? Number(selData.size) : Number(c.size);
+    const todayRate = (selData && selData.rate !== undefined) ? Number(selData.rate) : Number(c.rate);
 
     const exists = db.deliveries.some(d => String(d.date) === String(date) && d.customerId === c.id && d.batch === batch);
     if (!exists) {
@@ -2097,8 +2385,9 @@ async function commitSelectedDispatch() {
         area: c.area || 'Mamidipally',
         hno: c.hno,
         product: c.product,
-        size: c.size,
-        rate: c.rate,
+        size: todaySize,
+        defaultSize: Number(c.size),
+        rate: todayRate,
         agent: selData?.agent || c.agent || defaultAgent,
         status: 'planned',
         bottlesReturned: 0,
@@ -2113,6 +2402,20 @@ async function commitSelectedDispatch() {
   alert(`Scheduled ${addedStops.length} stops!`);
 }
 
+// Change Today's Volume / Extra Milk directly on an already scheduled planned stop
+function updateScheduledDeliveryVolume(deliveryId, newSizeStr) {
+  const d = db.deliveries.find(x => x.id === deliveryId);
+  if (!d || d.status !== 'planned') return;
+  const newSize = Number(newSizeStr);
+  const cust = db.customers.find(c => c.id === d.customerId);
+  const baseSize = d.defaultSize || (cust ? Number(cust.size) : newSize);
+
+  d.size = newSize;
+  d.rate = (cust && newSize === Number(cust.size)) ? Number(cust.rate) : getRateForVolume(newSize, d.rate);
+  d.defaultSize = baseSize;
+  save();
+}
+
 // Reassigning a stop in Dispatch also unlocks it if it was previously skipped!
 async function reassignAgent(deliveryId, newAgent) {
   const d = db.deliveries.find(x => x.id === deliveryId);
@@ -2120,7 +2423,7 @@ async function reassignAgent(deliveryId, newAgent) {
   const wasSkipped = d.status === 'skipped';
   d.agent = newAgent;
   if (wasSkipped) {
-    d.status = 'planned'; // Unlocks the slot for the newly assigned agent!
+    d.status = 'planned';
     delete d.skippedAt;
   }
   save();
@@ -2151,7 +2454,7 @@ function bulkReassignByLocation() {
 async function sendAgentAssignedMsg(deliveryId) {
   const d = db.deliveries.find(x => x.id === deliveryId);
   if (!d) return;
-  const text = `Namaste ${d.customerName} ji 🙏\nYour milk delivery is scheduled with ${d.agent} for ${d.date}.`;
+  const text = `Namaste ${d.customerName} ji 🙏\nYour milk delivery (${d.size}ml) is scheduled with ${d.agent} for ${d.date}.`;
   await sendDirectWhatsAppMessage(d.customerPhone, text);
 }
 
@@ -2165,7 +2468,11 @@ function renderDispatchRows() {
 
   $('dispatchRows').innerHTML = list.map(d => {
     const isSkipped = d.status === 'skipped';
+    const isDelivered = d.status === 'delivered';
     const isChecked = selectedScheduledIds.has(d.id);
+    const cust = db.customers.find(c => c.id === d.customerId);
+    const baseSize = d.defaultSize || (cust ? Number(cust.size) : Number(d.size));
+
     return `
       <tr class="${isSkipped ? 'bg-red-50/70' : ''}">
         <td class="text-center">
@@ -2177,7 +2484,12 @@ function renderDispatchRows() {
         </td>
         <td>${esc(d.area || 'Local')}</td>
         <td>${esc(d.customerPhone)}</td>
-        <td>${d.size}ml (₹${d.rate})</td>
+        <td>
+          ${isDelivered
+            ? `<b>${d.size} ml (₹${d.rate})</b>`
+            : buildVolumeDropdownHtml(d.size, baseSize, `updateScheduledDeliveryVolume('${d.id}', this.value)`, false)
+          }
+        </td>
         <td><b>${esc(d.agent)}</b></td>
         <td>
           <select class="text-xs py-1 w-32 border rounded ${isSkipped ? 'border-red-400 bg-red-50 font-bold' : ''}" onchange="reassignAgent('${d.id}', this.value)">
@@ -2450,6 +2762,7 @@ async function pullFromCloud(silent = false) {
     const { data } = await sbClient.from('farm_workspace').select('data').eq('id', 'primary_farm').single();
     if (data && data.data) {
       db = data.data;
+      autoCheckCustomerInactivity();
       localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
       renderAll();
       if (!silent) alert('Cloud data pulled!');
@@ -2749,6 +3062,7 @@ $('salaryMonthInput').value = todayStr().slice(0, 7);
 $('salaryDateInput').value = todayStr();
 $('stkInputDateTime').value = nowFormatted();
 
+autoCheckCustomerInactivity();
 checkAdminGate();
 initSupabase();
 updateWaStatusBadge();
