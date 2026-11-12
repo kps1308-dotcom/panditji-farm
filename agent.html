@@ -195,7 +195,6 @@ function getTargetDateStr() {
   return getLocalDateString(selectedDateOffset);
 }
 
-// Helper to flexibly match stops assigned to this agent (by name or phone)
 function isStopForCurrentAgent(stop) {
   if (!currentAgent || !stop) return false;
   const stopAgent = String(stop.agent || '').trim().toLowerCase();
@@ -223,7 +222,6 @@ async function handleAgentLogin(e) {
   const pin = $('loginPin').value.trim();
   const errEl = $('loginError');
 
-  // Attempt quick cloud pull first so newly added agents in admin.html are recognized
   await syncPullCloud(true);
 
   const agentsList = db.agents || [
@@ -333,7 +331,7 @@ function updateDateHeader() {
 function setQuickBottles(delId, count) {
   if (selectedDateOffset !== 0) return;
   const d = (db.deliveries || []).find(x => String(x.id) === String(delId));
-  if (d) {
+  if (d && d.status === 'planned') {
     d.bottlesReturned = Number(count);
     localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
     renderStops();
@@ -343,7 +341,7 @@ function setQuickBottles(delId, count) {
 function setManualBottles(delId, val) {
   if (selectedDateOffset !== 0) return;
   const d = (db.deliveries || []).find(x => String(x.id) === String(delId));
-  if (d) {
+  if (d && d.status === 'planned') {
     d.bottlesReturned = Math.max(0, parseInt(val) || 0);
     localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
     renderStops();
@@ -362,6 +360,13 @@ async function markStopDelivered(delId) {
     alert('Stop record not found. Tap Sync and try again.');
     return;
   }
+
+  // Strictly block if stop was already skipped or locked!
+  if (d.status === 'skipped') {
+    alert('🚫 This stop was skipped and is LOCKED. Contact Admin to reassign or unlock it.');
+    return;
+  }
+  if (d.status === 'delivered') return;
 
   let ratePerBottle = 20;
   if (Number(d.size) === 500) ratePerBottle = 10;
@@ -404,31 +409,37 @@ async function markStopDelivered(delId) {
     area: d.area || 'Local',
     size: d.size,
     bottlesReturned: returnedCount,
+    isQuick: Boolean(d.isQuick),
+    amountCollected: d.isQuick ? (d.rate || 0) : 0,
     action: 'Delivered'
   });
 
-  // 1. Save Locally & Re-render immediately
   localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
   renderStops();
-
-  // 2. Push upstream to Supabase Cloud
   await syncPushCloud();
 
-  // 3. Optional WhatsApp confirmation
-  const msg = `Namaste ${d.customerName} ji 🙏\n\nYour milk has been delivered by ${currentAgent.name} at ${exactTime}!\n\nItem: ${d.product} (${d.size}ml)\nEmpty Bottles Received: ${returnedCount}\nBottle Rebate: ₹${totalRebate}\n\nThank you! Panditji Dairy Farm.`;
+  // WhatsApp Receipt
+  const quickNote = d.isQuick ? `\nExpress Order Total Paid (incl. Bottle): ₹${d.rate}` : `\nEmpty Bottles Received: ${returnedCount}\nBottle Rebate: ₹${totalRebate}`;
+  const msg = `Namaste ${d.customerName} ji 🙏\n\nYour fresh milk has been delivered by ${currentAgent.name} at ${exactTime}!\n\nItem: ${d.product} (${d.size}ml)${quickNote}\n\nThank you! Panditji Dairy Farm.`;
   try {
     window.open(`https://wa.me/91${d.customerPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   } catch(e) {}
 }
 
+// Mark Stop Skipped — PERMANENTLY LOCKS STOP FOR AGENT UNTIL ADMIN REASSIGNS
 async function markStopSkipped(delId) {
   if (selectedDateOffset !== 0) return;
   const d = (db.deliveries || []).find(x => String(x.id) === String(delId));
-  if (!d) return;
+  if (!d || d.status !== 'planned') return;
+
+  if (!confirm(`⚠️ Are you sure you want to SKIP "${d.customerName}"?\n\nOnce skipped, this stop will be LOCKED and you cannot mark it delivered unless Admin reassigns it.`)) {
+    return;
+  }
 
   const exactTime = getCurrentTimeStr();
   d.status = 'skipped';
-  d.deliveredAt = exactTime;
+  d.skippedAt = exactTime;
+  d.skippedBy = currentAgent.name;
 
   db.agentLogs = db.agentLogs || [];
   db.agentLogs.push({
@@ -480,19 +491,23 @@ function renderStops() {
     );
   }
 
-  stops.sort((a, b) => (a.status === 'delivered' ? 1 : 0) - (b.status === 'delivered' ? 1 : 0));
+  // Sort: Pending first, then Skipped (locked), then Delivered
+  const orderMap = { planned: 0, skipped: 1, delivered: 2 };
+  stops.sort((a, b) => (orderMap[a.status] ?? 9) - (orderMap[b.status] ?? 9));
 
   $('agentStopsContainer').innerHTML = stops.map(d => {
     const isDone = (d.status === 'delivered');
     const isSkipped = (d.status === 'skipped');
+    const isQuick = Boolean(d.isQuick);
 
     return `
-      <div class="card ${isDone ? 'border-l-4 border-emerald-600 bg-emerald-50/30' : isSkipped ? 'border-l-4 border-red-500 bg-red-50/30' : 'border-l-4 border-amber-500'}">
+      <div class="card ${isDone ? 'border-l-4 border-emerald-600 bg-emerald-50/30' : isSkipped ? 'border-l-4 border-red-600 bg-red-50/60 opacity-90' : isQuick ? 'border-l-4 border-purple-600 bg-purple-50/20' : 'border-l-4 border-amber-500'}">
         <div class="flex justify-between items-start gap-2">
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5 flex-wrap">
               <span class="bg-[#143525] text-white text-[10px] font-bold px-2 py-0.5 rounded truncate max-w-[140px]">H.No: ${esc(d.hno)}</span>
               <span class="bg-emerald-100 text-emerald-900 text-[10px] font-bold px-1.5 py-0.5 rounded truncate max-w-[120px]">📍 ${esc(d.area || 'Local')}</span>
+              ${isQuick ? '<span class="bg-purple-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded animate-pulse">⚡ 20-30 MIN EXPRESS</span>' : ''}
             </div>
             <h3 class="font-bold text-sm text-gray-900 mt-1 break-words">${esc(d.customerName)}</h3>
             <p class="text-xs text-gray-600 mt-0.5">
@@ -509,43 +524,68 @@ function renderStops() {
           <span class="text-gray-500 font-semibold shrink-0">${d.batch || 'Morning'}</span>
         </div>
 
+        ${isQuick ? `
+          <div class="mb-2 p-2 bg-purple-100/80 border border-purple-300 rounded-lg text-xs text-purple-950 flex justify-between items-center">
+            <span><b>New Express Order (Milk + Bottle):</b></span>
+            <span class="font-black text-sm">Collect ₹${d.rate}</span>
+          </div>
+        ` : ''}
+
         ${isToday ? (
-          !isDone ? `
-            <div class="mt-2 pt-2 border-t">
-              <div class="flex justify-between items-center mb-1 text-xs">
-                <span class="font-bold text-gray-700 text-[11px]">Empty Bottles Received:</span>
-                <span class="text-[11px] text-emerald-800 font-bold">
-                  Rebate: ₹${(Number(d.size) === 1000 ? 20 : (Number(d.size) === 500 ? 10 : 5)) * (Number(d.bottlesReturned) || 0)}
-                </span>
+          isSkipped ? `
+            <!-- LOCKED / BLOCKED STATE WHEN SKIPPED -->
+            <div class="mt-2 pt-2 border-t border-red-200 bg-red-100/80 p-2.5 rounded-lg text-xs text-red-900">
+              <div class="font-extrabold flex items-center gap-1">
+                <span>🚫 SKIPPED &amp; LOCKED</span>
+                <span class="text-[10px] font-mono ml-auto">${esc(d.skippedAt || '')}</span>
               </div>
-              <div class="grid grid-cols-6 gap-1 w-full">
-                ${[0, 1, 2, 3, 4].map(n => `
-                  <button type="button" class="bubble ${Number(d.bottlesReturned) === n ? 'active' : ''}" onclick="setQuickBottles('${d.id}', ${n})">${n}</button>
-                `).join('')}
-                <input type="number" min="0" value="${d.bottlesReturned || 0}" class="w-full text-center text-xs bg-white border border-gray-300 rounded-lg" placeholder="+" onchange="setManualBottles('${d.id}', this.value)">
-              </div>
+              <p class="text-[11px] text-red-800 mt-0.5">
+                Delivery controls are blocked. Only Admin can reassign or unlock this slot.
+              </p>
             </div>
+          ` : !isDone ? `
+            <!-- ACTIVE DELIVERY CONTROLS (ONLY PLANNED STOPS TODAY) -->
+            ${!isQuick ? `
+              <div class="mt-2 pt-2 border-t">
+                <div class="flex justify-between items-center mb-1 text-xs">
+                  <span class="font-bold text-gray-700 text-[11px]">Empty Bottles Received:</span>
+                  <span class="text-[11px] text-emerald-800 font-bold">
+                    Rebate: ₹${(Number(d.size) === 1000 ? 20 : (Number(d.size) === 500 ? 10 : 5)) * (Number(d.bottlesReturned) || 0)}
+                  </span>
+                </div>
+                <div class="grid grid-cols-6 gap-1 w-full">
+                  ${[0, 1, 2, 3, 4].map(n => `
+                    <button type="button" class="bubble ${Number(d.bottlesReturned) === n ? 'active' : ''}" onclick="setQuickBottles('${d.id}', ${n})">${n}</button>
+                  `).join('')}
+                  <input type="number" min="0" value="${d.bottlesReturned || 0}" class="w-full text-center text-xs bg-white border border-gray-300 rounded-lg" placeholder="+" onchange="setManualBottles('${d.id}', this.value)">
+                </div>
+              </div>
+            ` : ''}
 
             <div class="mt-3 flex gap-2 w-full">
               <button class="bg-[#165636] hover:bg-[#10432a] text-white font-bold py-2.5 px-3 rounded-lg text-xs flex-1 transition active:scale-95" onclick="markStopDelivered('${d.id}')">
                 ✓ Mark Delivered
               </button>
-              <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-2.5 rounded-lg text-xs shrink-0" onclick="markStopSkipped('${d.id}')">
+              <button class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 font-bold px-3 py-2.5 rounded-lg text-xs shrink-0" onclick="markStopSkipped('${d.id}')">
                 Skip
               </button>
             </div>
           ` : `
+            <!-- DELIVERED STATE -->
             <div class="mt-2 pt-2 border-t flex justify-between items-center text-xs">
               <div>
                 <span class="text-emerald-700 font-bold block">✓ Delivered at ${esc(d.deliveredAt || 'Today')}</span>
               </div>
-              <span class="text-gray-600 bg-gray-100 px-2 py-0.5 rounded font-semibold">${d.bottlesReturned || 0} bottle(s) recd</span>
+              <span class="text-gray-600 bg-gray-100 px-2 py-0.5 rounded font-semibold">
+                ${isQuick ? `Paid ₹${d.rate}` : `${d.bottlesReturned || 0} bottle(s) recd`}
+              </span>
             </div>
           `
         ) : `
+          <!-- NON-TODAY READ-ONLY PREVIEW / HISTORY -->
           <div class="mt-2 pt-2 border-t flex justify-between items-center text-xs bg-gray-50 p-1.5 rounded">
             <span class="font-bold ${isDone ? 'text-emerald-700' : isSkipped ? 'text-red-600' : 'text-gray-500'}">
-              ${isDone ? `✓ Delivered (${esc(d.deliveredAt || '')})` : isSkipped ? '⚠️ Skipped' : '⏳ Scheduled'}
+              ${isDone ? `✓ Delivered (${esc(d.deliveredAt || '')})` : isSkipped ? '🚫 Skipped (Locked)' : '⏳ Scheduled'}
             </span>
             <span class="text-gray-600 font-semibold text-[11px]">
               ${isDone ? `Bottles: ${d.bottlesReturned || 0}` : 'Locked view'}
@@ -562,19 +602,17 @@ function renderAgentLogs() {
   if (!currentAgent) return;
   const filterDate = $('logDateFilter').value;
 
-  // Combine explicit agentLogs and any deliveries with timestamps for this agent
   let logs = (db.agentLogs || []).filter(l => 
     String(l.agentName || '').trim().toLowerCase() === String(currentAgent.name).trim().toLowerCase() ||
     String(l.agentPhone || '').trim() === String(currentAgent.phone).trim()
   );
 
-  // Backfill from deliveries if agentLogs is empty
   if (logs.length === 0) {
     logs = (db.deliveries || [])
       .filter(d => isStopForCurrentAgent(d) && (d.status === 'delivered' || d.status === 'skipped'))
       .map(d => ({
         date: d.date,
-        time: d.deliveredAt || 'Recorded',
+        time: d.deliveredAt || d.skippedAt || 'Recorded',
         customerName: d.customerName,
         hno: d.hno,
         area: d.area || 'Local',
@@ -610,7 +648,6 @@ function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
 }
 
-// Push to Supabase Cloud
 async function syncPushCloud() {
   if (!sb) initSupabase();
   if (!sb) return;
@@ -620,12 +657,10 @@ async function syncPushCloud() {
     $('syncBtnText').textContent = 'Saved ✓';
     setTimeout(() => { if ($('syncBtnText')) $('syncBtnText').textContent = 'Sync'; }, 2000);
   } catch(e) {
-    console.warn('Push error:', e);
     $('syncBtnText').textContent = 'Sync';
   }
 }
 
-// Pull from Supabase Cloud without erasing local deliveries if cloud is empty
 async function syncPullCloud(silent = false) {
   if (!sb) initSupabase();
   if (!sb) return;
@@ -633,7 +668,6 @@ async function syncPullCloud(silent = false) {
     $('syncBtnText').textContent = '...';
     const { data } = await sb.from('farm_workspace').select('data').eq('id', 'primary_farm').single();
     if (data && data.data) {
-      // Only overwrite if cloud actually has records
       if ((data.data.deliveries && data.data.deliveries.length > 0) || (data.data.agents && data.data.agents.length > 0)) {
         db = data.data;
         localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
@@ -644,7 +678,6 @@ async function syncPullCloud(silent = false) {
     }
     $('syncBtnText').textContent = 'Sync';
   } catch(e) {
-    console.warn('Pull error:', e);
     $('syncBtnText').textContent = 'Sync';
   }
 }
