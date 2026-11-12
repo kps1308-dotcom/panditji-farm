@@ -81,10 +81,49 @@
       box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.4), 0 10px 25px rgba(0, 0, 0, 0.35);
     }
 
-    ::-webkit-scrollbar { width: 6px; }
+
+    .bottle-stage{position:relative;min-height:190px;overflow:hidden;border-radius:22px;background:linear-gradient(145deg,#f4ece0,#fffaf2 55%,#e7efe8);border:1px solid #e4d4bd;padding:18px 12px 35px}
+    .bottle-holder{display:flex;align-items:flex-end;justify-content:center;gap:8px;min-height:132px;flex-wrap:wrap;padding:0 8px}
+    .milk-bottle{position:relative;flex:none;transform-origin:bottom;animation:bottlePop .48s cubic-bezier(.2,.8,.2,1) both;filter:drop-shadow(0 7px 5px #183b2b22)}
+    .milk-bottle .glass{position:absolute;bottom:0;width:100%;height:78%;border:2px solid #ffffffbd;border-radius:7px 7px 13px 13px;background:linear-gradient(90deg,#ffffffa8,#e9f7ed88 35%,#ffffffb8 70%,#c9e0d2aa);box-shadow:inset 0 0 0 2px #b9d3c4}
+    .milk-bottle .milk{position:absolute;bottom:4px;left:4px;right:4px;height:55%;border-radius:3px 3px 9px 9px;background:linear-gradient(90deg,#fff9e9,#fffdf7 45%,#e8dcc4)}
+    .milk-bottle .neck{position:absolute;left:30%;width:40%;height:19%;bottom:74%;border:2px solid #ffffffb8;background:#f8fff8a8;border-radius:4px 4px 0 0}
+    .milk-bottle .cap{position:absolute;left:25%;width:50%;height:10%;bottom:91%;border-radius:4px;background:linear-gradient(#d9b17c,#946338)}
+    .milk-bottle .brand{position:absolute;bottom:22%;left:5%;width:90%;min-height:25%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.05;padding:2px 0;color:#173d2b;background:linear-gradient(145deg,#fffef8,#f4e8cf);border:1px solid #b8894f;border-radius:4px;box-shadow:0 1px 2px #5d3b1b35;overflow:hidden}
+    .milk-bottle .brand-logo{font-size:6px;font-weight:1000;letter-spacing:.35px;text-transform:uppercase;white-space:nowrap}
+    .milk-bottle .brand-caption{font-size:3.5px;font-weight:800;letter-spacing:.2px;text-transform:uppercase;white-space:nowrap;margin-top:1px}
+    .milk-bottle.medium .brand-logo{font-size:4.8px}.milk-bottle.medium .brand-caption{font-size:2.8px}
+    .milk-bottle.small .brand-logo{font-size:3.6px;letter-spacing:0}.milk-bottle.small .brand-caption{font-size:2.1px;letter-spacing:0}
+    .milk-bottle.large{width:46px;height:112px}.milk-bottle.medium{width:36px;height:88px}.milk-bottle.small{width:29px;height:67px}
+    .holder-front{position:absolute;bottom:21px;left:8%;right:8%;height:17px;border:2px solid #b88252;border-top:3px solid #d4a373;border-radius:4px 4px 9px 9px;background:linear-gradient(#d4a373,#946338)}
+    .holder-front span{display:block;text-align:center;font-size:7px;letter-spacing:1.5px;color:#fff8e9;font-weight:800;line-height:12px}
+    .stage-caption{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:10px;font-weight:700;color:#6b5137}
+    .mix-row{display:flex;align-items:center;justify-content:space-between;border:1px solid #eee4d7;border-radius:13px;padding:9px 10px;background:#fff}
+    .mix-label{display:flex;align-items:center;gap:10px}.mix-label b{display:block;color:#1b3b2b;font-size:12px}.mix-label small{display:block;color:#8b8175;font-size:10px;margin-top:2px}
+    .bottle-dot{display:block;border:2px solid #a9c7b2;background:linear-gradient(90deg,#ffffff,#dceee1);border-radius:5px 5px 8px 8px}.bottle-dot.large{width:17px;height:29px}.bottle-dot.medium{width:14px;height:23px}.bottle-dot.small{width:11px;height:18px}
+    .mix-controls{display:flex;align-items:center;gap:10px}.mix-controls button{width:28px;height:28px;border-radius:9px;background:#e7efea;color:#1b3b2b;font-weight:900;font-size:18px;transition:transform .15s}.mix-controls button:active{transform:scale(.88)}.mix-controls strong{min-width:14px;text-align:center;font-family:'Space Mono',monospace;color:#1b3b2b;font-size:13px}
+    @keyframes bottlePop{0%{opacity:0;transform:translateY(24px) scale(.72)}70%{transform:translateY(-4px) scale(1.04)}100%{opacity:1;transform:translateY(0) scale(1)}}
+    @media(prefers-reduced-motion:reduce){.milk-bottle{animation:none}}
+\n    ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #FBF8F2; }
     ::-webkit-scrollbar-thumb { background: #D4A373; border-radius: 9999px; }
-  </style>
+  
+    .cq-size-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 9px;border:1px solid #d7e9dc;border-radius:12px;background:#ffffffd9}
+    .cq-size-row span{display:flex;flex-direction:column;min-width:76px;color:#254d3c;font-size:11px}
+    .cq-size-row small{font-size:9px;color:#82766a;margin-top:2px}
+    .cq-size-row>b{font-size:11px;color:#8a6828;min-width:34px;text-align:right}
+    .cq-stepper{display:flex;align-items:center;border:1px solid #ead9c7;border-radius:999px;background:#fff;padding:2px 5px;gap:8px}
+    .cq-stepper button{width:23px;height:23px;border-radius:50%;color:#8a5b3d;font-size:16px;transition:transform .18s,background .18s}
+    .cq-stepper button:hover{background:#f4e6d8;transform:scale(1.12)}
+    .cq-stepper strong{min-width:12px;text-align:center;font-size:11px;color:#254d3c}
+    .cq-mini-bottle{position:relative;width:25px;height:62px;transform-origin:bottom;animation:cqBottlePop .48s cubic-bezier(.2,1.5,.5,1) both;filter:drop-shadow(0 3px 2px #0002)}
+    .cq-mini-bottle:before{content:'';position:absolute;left:8px;top:0;width:9px;height:9px;background:linear-gradient(90deg,#b58b30,#f7d66d,#94701e);border-radius:3px 3px 1px 1px}
+    .cq-mini-bottle:after{content:'प';position:absolute;left:2px;right:2px;top:24px;height:22px;border:1px solid #d9bd72;border-radius:5px;background:#fffaf0;color:#9b7626;text-align:center;font-family:serif;font-weight:bold;font-size:13px;line-height:21px}
+    .cq-mini-bottle .glass{position:absolute;left:4px;right:4px;top:7px;bottom:0;border:1px solid #d9e4dc;border-radius:7px 7px 9px 9px;background:linear-gradient(90deg,#ffffffd9,#eef8f1,#ffffffed);overflow:hidden}
+    .cq-mini-bottle .milk{position:absolute;left:1px;right:1px;bottom:1px;height:68%;background:linear-gradient(90deg,#f8f0d9,#fffdf2,#eee4c6);border-radius:0 0 7px 7px}
+    @keyframes cqBottlePop{0%{opacity:0;transform:translateY(18px) scale(.55)}70%{transform:translateY(-4px) scale(1.08)}100%{opacity:1;transform:translateY(0) scale(1)}}
+    @media(max-width:380px){.cq-size-row{gap:4px;padding:7px}.cq-stepper{gap:4px}.cq-mini-bottle{width:21px}}
+</style>
 </head>
 <body class="selection:bg-heritage-800 selection:text-cream-100 flex flex-col min-h-screen w-full overflow-x-hidden">
 
@@ -390,7 +429,7 @@
           Configure Your Panditji Milk Routine
         </h2>
         <p class="text-stone-600 text-xs sm:text-sm mt-1">
-          Pick your bottle size and schedule. Watch the exact monthly deduction you earn by returning empty glass bottles every morning.
+          Build your bottle mix and schedule. See each bottle branded with the Panditji Dairy Farm logo and fresh-milk caption, plus your monthly return-bottle savings.
         </p>
       </div>
 
@@ -400,45 +439,21 @@
           <!-- Controls (Left 7 Cols) -->
           <div class="lg:col-span-7 p-5 sm:p-8 space-y-7 border-b lg:border-b-0 lg:border-r border-cream-200">
             
-            <!-- Step 1: Select Bottle Size -->
+            <!-- Step 1: Animated bottle mix selector -->
             <div>
-              <div class="flex items-center justify-between mb-3">
-                <label class="text-xs font-bold uppercase tracking-wider text-heritage-800">
-                  Step 1: Choose Glass Bottle Size
-                </label>
-                <span class="text-[11px] font-semibold text-emerald-700" id="bottleSavingsTag">
-                  ₹20 return rebate applied
-                </span>
+              <label class="text-xs font-bold uppercase tracking-wider text-heritage-800 block mb-3">Step 1: Build Your Bottle Mix</label>
+              <div class="bottle-stage mb-4">
+                <div class="bottle-holder" id="bottlePreview" aria-live="polite"></div>
+                <div class="holder-front"><span>✦ PANDITJI DAIRY FARM • FRESH &amp; PURE ✦</span></div>
+                <div class="stage-caption" id="bottleMixCaption">1 large bottle · 1 Litre</div>
               </div>
-
-              <div class="grid grid-cols-3 gap-2 sm:gap-3">
-                <button type="button" onclick="setVolume('250')" id="volBtn250" class="vol-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-2.5 sm:p-3 text-center transition flex flex-col justify-between active:scale-95">
-                  <span class="text-[9px] sm:text-[10px] font-bold text-stone-400 uppercase">Single Cup</span>
-                  <span class="font-serif font-black text-base sm:text-xl text-heritage-900 my-1">250 ml</span>
-                  <span class="text-[11px] sm:text-xs font-bold text-stone-600">₹40 / bottle</span>
-                  <span class="mt-2 text-[9px] sm:text-[10px] font-bold text-emerald-800 bg-emerald-50 py-1 rounded-lg border border-emerald-200">
-                    -₹5 Rebate
-                  </span>
-                </button>
-
-                <button type="button" onclick="setVolume('500')" id="volBtn500" class="vol-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-2.5 sm:p-3 text-center transition flex flex-col justify-between active:scale-95">
-                  <span class="text-[9px] sm:text-[10px] font-bold text-stone-400 uppercase">Couple Daily</span>
-                  <span class="font-serif font-black text-base sm:text-xl text-heritage-900 my-1">500 ml</span>
-                  <span class="text-[11px] sm:text-xs font-bold text-stone-600">₹70 / bottle</span>
-                  <span class="mt-2 text-[9px] sm:text-[10px] font-bold text-emerald-800 bg-emerald-50 py-1 rounded-lg border border-emerald-200">
-                    -₹10 Rebate
-                  </span>
-                </button>
-
-                <button type="button" onclick="setVolume('1000')" id="volBtn1000" class="vol-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-2.5 sm:p-3 text-center transition flex flex-col justify-between shadow-xs active:scale-95">
-                  <span class="text-[9px] sm:text-[10px] font-bold text-gilded-600 uppercase">Family Litre</span>
-                  <span class="font-serif font-black text-base sm:text-xl text-heritage-900 my-1">1000 ml</span>
-                  <span class="text-[11px] sm:text-xs font-bold text-stone-600">₹130 / bottle</span>
-                  <span class="mt-2 text-[9px] sm:text-[10px] font-bold text-emerald-800 bg-emerald-100 py-1 rounded-lg border border-emerald-300">
-                    -₹20 Rebate
-                  </span>
-                </button>
+              <div class="space-y-2">
+                <div class="mix-row"><div class="mix-label"><span class="bottle-dot large"></span><div><b>1000 ml</b><small>Large · ₹130/bottle</small></div></div><div class="mix-controls"><button onclick="changeBottleQty('1000',-1)">−</button><strong id="qty1000">1</strong><button onclick="changeBottleQty('1000',1)">+</button></div></div>
+                <div class="mix-row"><div class="mix-label"><span class="bottle-dot medium"></span><div><b>500 ml</b><small>Medium · ₹70/bottle</small></div></div><div class="mix-controls"><button onclick="changeBottleQty('500',-1)">−</button><strong id="qty500">0</strong><button onclick="changeBottleQty('500',1)">+</button></div></div>
+                <div class="mix-row"><div class="mix-label"><span class="bottle-dot small"></span><div><b>250 ml</b><small>Small · ₹40/bottle</small></div></div><div class="mix-controls"><button onclick="changeBottleQty('250',-1)">−</button><strong id="qty250">0</strong><button onclick="changeBottleQty('250',1)">+</button></div></div>
               </div>
+              <div class="mt-3 flex justify-between bg-heritage-50 rounded-xl p-3 border border-heritage-100 text-xs"><b class="text-heritage-800">Total per delivery</b><strong id="mixTotal">1 bottle · 1 L</strong></div>
+              <span class="text-[11px] text-emerald-700 block mt-2" id="bottleSavingsTag">Rebates calculated by bottle size</span>
             </div>
 
             <!-- Step 2: Select Delivery Schedule -->
@@ -466,28 +481,7 @@
               </div>
             </div>
 
-            <!-- Step 3: Quantity of Bottles -->
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <label class="text-xs font-bold uppercase tracking-wider text-heritage-800">
-                  Step 3: Daily Bottles Needed
-                </label>
-                <span class="text-xs text-stone-500">Need more than 4? Call hotline</span>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <button type="button" onclick="changeQty(-1)" class="w-12 h-12 rounded-xl bg-stone-100 hover:bg-stone-200 text-heritage-900 font-bold text-xl flex items-center justify-center transition active:scale-90">
-                  -
-                </button>
-                <div class="flex-1 bg-cream-50 border border-stone-200 rounded-xl h-12 flex items-center justify-center font-serif font-black text-xl text-heritage-900">
-                  <span id="qtyDisplay">1</span>&nbsp;<span class="text-xs font-sans text-stone-500 font-normal">Bottle(s) per delivery</span>
-                </div>
-                <button type="button" onclick="changeQty(1)" class="w-12 h-12 rounded-xl bg-stone-100 hover:bg-stone-200 text-heritage-900 font-bold text-xl flex items-center justify-center transition active:scale-90">
-                  +
-                </button>
-              </div>
-            </div>
-
+            <div class="rounded-xl bg-cream-50 border border-cream-200 p-3 text-xs text-stone-600"><b class="text-heritage-800">Step 3: Quantity</b><br>Adjust each bottle size with + / − above. Your holder and monthly estimate update automatically.</div>
           </div>
 
           <!-- Invoice & Net Savings Summary (Right 5 Cols) -->
@@ -665,6 +659,28 @@
         </div>
       </div>
 
+      <!-- Panditji branded bottle visual inside Quick Delivery -->
+      <div class="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-green-50 p-3 mb-4 flex items-center gap-3">
+        <div class="relative w-[58px] h-[92px] shrink-0">
+          <div class="absolute left-[20px] top-0 w-[18px] h-[13px] rounded-t-sm bg-amber-700 border border-amber-800"></div>
+          <div class="absolute left-[16px] top-[11px] w-[26px] h-[17px] rounded-t-md border-2 border-white bg-white/70"></div>
+          <div class="absolute bottom-0 left-1 w-[50px] h-[68px] rounded-[10px_10px_15px_15px] border-2 border-white bg-gradient-to-r from-white/80 via-green-50/80 to-white/90 shadow-md overflow-hidden">
+            <div class="absolute bottom-1 left-1 right-1 h-[54%] rounded-b-lg bg-gradient-to-r from-amber-50 via-white to-amber-100"></div>
+            <div class="absolute top-[22px] left-[3px] right-[3px] rounded-md border border-amber-700 bg-[#fffaf0] px-0.5 py-1 text-center leading-tight shadow-sm">
+              <div class="text-[7px] font-black tracking-tight text-green-900">✦ PANDITJI ✦</div>
+              <div class="text-[5px] font-extrabold tracking-wide text-amber-800">DAIRY FARM</div>
+              <div class="mt-0.5 text-[4px] font-bold text-stone-600">PURE BUFFALO MILK</div>
+            </div>
+          </div>
+        </div>
+        <div class="min-w-0">
+          <div class="text-[11px] font-black uppercase tracking-wider text-green-900">Panditji Dairy Farm</div>
+          <div class="text-sm font-bold text-stone-800">Fresh • Pure • Farm Delivered</div>
+          <p class="text-[10px] text-stone-600 mt-1">Sealed glass bottle · Fresh buffalo milk</p>
+          <div class="inline-flex mt-1 rounded-full bg-green-100 text-green-800 px-2 py-0.5 text-[9px] font-bold">BRANDED BOTTLE</div>
+        </div>
+      </div>
+
       <!-- Live Tank Stock Indicator -->
       <div id="custStockStatusBox" class="p-3 rounded-2xl border mb-4 text-xs flex items-center justify-between">
         <div>
@@ -685,6 +701,22 @@
           <input type="tel" id="cqPhone" required pattern="[0-9]{10}" placeholder="10-digit WhatsApp mobile" class="w-full rounded-xl border border-stone-300 p-2.5 font-mono text-stone-900">
         </div>
 
+        <!-- Animated mixed-size bottle selector -->
+        <div class="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-3">
+          <div class="flex items-center justify-between mb-2">
+            <label class="font-bold text-stone-800">Choose bottle sizes & quantities</label>
+            <span class="text-[10px] text-emerald-800 bg-emerald-100 rounded-full px-2 py-1">MIX & MATCH</span>
+          </div>
+          <p class="text-[10px] text-stone-500 mb-3">Add any combination. Bottles pop into the tray as you increase quantity.</p>
+          <div id="cqBottleTray" class="flex items-end justify-center gap-2 min-h-[108px] rounded-xl bg-white/70 border border-white shadow-inner p-2 mb-3" aria-live="polite"></div>
+          <div class="space-y-2">
+            <div class="cq-size-row"><span><b>1 Litre</b><small>₹130 milk + ₹80 bottle</small></span><div class="cq-stepper"><button type="button" onclick="changeQuickQty(1000,-1)">−</button><strong id="cqQty1000">0</strong><button type="button" onclick="changeQuickQty(1000,1)">+</button></div><b id="cqLine1000">₹0</b></div>
+            <div class="cq-size-row"><span><b>500 ml</b><small>₹70 milk + ₹60 bottle</small></span><div class="cq-stepper"><button type="button" onclick="changeQuickQty(500,-1)">−</button><strong id="cqQty500">0</strong><button type="button" onclick="changeQuickQty(500,1)">+</button></div><b id="cqLine500">₹0</b></div>
+            <div class="cq-size-row"><span><b>250 ml</b><small>₹40 milk + ₹30 bottle</small></span><div class="cq-stepper"><button type="button" onclick="changeQuickQty(250,-1)">−</button><strong id="cqQty250">0</strong><button type="button" onclick="changeQuickQty(250,1)">+</button></div><b id="cqLine250">₹0</b></div>
+          </div>
+          <div class="flex justify-between items-center mt-3 pt-2 border-t border-emerald-100 text-xs"><span class="font-bold text-stone-600" id="cqSelectedSummary">0 bottles · 0 ml</span><span class="font-black text-emerald-900 text-base" id="cqGrandTotal">₹0</span></div>
+        </div>
+
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block font-bold text-stone-700 mb-1">Area (Sangareddy)</label>
@@ -697,14 +729,7 @@
               <option value="Isnapur">Isnapur</option>
             </select>
           </div>
-          <div>
-            <label class="block font-bold text-stone-700 mb-1">Bottle Size</label>
-            <select id="cqSize" onchange="recalcCustomerQuickPrice()" class="w-full rounded-xl border border-stone-300 p-2.5 text-stone-900 bg-white font-bold">
-              <option value="1000" selected>1000 ml (1 Litre)</option>
-              <option value="500">500 ml</option>
-              <option value="250">250 ml</option>
-            </select>
-          </div>
+
         </div>
 
         <div>
@@ -712,21 +737,12 @@
           <input type="text" id="cqHno" required placeholder="H.No, Colony / Apartment Name" class="w-full rounded-xl border border-stone-300 p-2.5 text-stone-900">
         </div>
 
-        <!-- Full Price Breakdown (Milk + Glass Bottle Included) -->
+        <!-- Live total breakdown -->
         <div class="bg-cream-100 rounded-2xl p-3.5 border border-cream-300 space-y-1">
-          <div class="flex justify-between text-stone-600">
-            <span>Fresh Buffalo Milk:</span>
-            <b id="cqMilkPrice">₹130</b>
-          </div>
-          <div class="flex justify-between text-stone-600">
-            <span>New Sterilized Glass Bottle:</span>
-            <b id="cqBottlePrice">₹80</b>
-          </div>
-          <div class="flex justify-between text-sm font-black text-heritage-900 border-t border-cream-300 pt-1.5 mt-1">
-            <span>Total Payable (Cash / UPI on Delivery):</span>
-            <span id="cqTotalPrice">₹210</span>
-          </div>
-          <p class="text-[10px] text-stone-500 pt-0.5">Includes glass bottle cost. Keep the bottle for future subscriptions to get ₹20/₹10/₹5 return rebates!</p>
+          <div class="flex justify-between text-stone-600"><span>Milk subtotal:</span><b id="cqMilkPrice">₹0</b></div>
+          <div class="flex justify-between text-stone-600"><span>New glass bottle subtotal:</span><b id="cqBottlePrice">₹0</b></div>
+          <div class="flex justify-between text-sm font-black text-heritage-900 border-t border-cream-300 pt-1.5 mt-1"><span>Total payable on delivery:</span><span id="cqTotalPrice">₹0</span></div>
+          <p class="text-[10px] text-stone-500 pt-0.5">Bottle charges are included in the total. Retain bottles for future return rebates.</p>
         </div>
 
         <button type="submit" id="cqSubmitBtn" class="w-full bg-purple-700 hover:bg-purple-800 disabled:bg-gray-400 text-white font-bold py-3.5 rounded-xl uppercase tracking-wider text-xs shadow-md transition active:scale-95">
@@ -925,30 +941,51 @@
       document.getElementById('quickOrderModal').classList.add('hidden');
     }
 
+    const quickBottleQty = {1000:0, 500:0, 250:0};
+    const quickRates = {1000:{milk:130,bottle:80},500:{milk:70,bottle:60},250:{milk:40,bottle:30}};
+    function changeQuickQty(size, delta) {
+      const total = Object.values(quickBottleQty).reduce((a,b)=>a+b,0);
+      quickBottleQty[size] = Math.max(0, Math.min(8, quickBottleQty[size] + delta));
+      if (delta > 0 && total >= 8) { quickBottleQty[size] = Math.max(0,quickBottleQty[size]-1); return alert('Maximum 8 bottles per express order.'); }
+      recalcCustomerQuickPrice();
+    }
     function recalcCustomerQuickPrice() {
-      const size = document.getElementById('cqSize').value;
-      const rates = {
-        '1000': { milk: 130, bottle: 80, total: 210 },
-        '500':  { milk: 70,  bottle: 60, total: 130 },
-        '250':  { milk: 40,  bottle: 30, total: 70 }
-      };
-      const r = rates[size] || rates['1000'];
-      document.getElementById('cqMilkPrice').textContent = `₹${r.milk}`;
-      document.getElementById('cqBottlePrice').textContent = `₹${r.bottle}`;
-      document.getElementById('cqTotalPrice').textContent = `₹${r.total}`;
+      let milk=0, bottle=0, count=0, volume=0;
+      const tray=document.getElementById('cqBottleTray'); if(!tray) return;
+      tray.innerHTML='';
+      [1000,500,250].forEach(size=>{
+        const q=quickBottleQty[size], r=quickRates[size], line=q*(r.milk+r.bottle);
+        milk+=q*r.milk; bottle+=q*r.bottle; count+=q; volume+=q*size;
+        document.getElementById('cqQty'+size).textContent=q;
+        document.getElementById('cqLine'+size).textContent=q?`₹${line}`:'₹0';
+        for(let i=0;i<q;i++){
+          const bottleEl=document.createElement('div'); bottleEl.className='cq-mini-bottle'; bottleEl.style.animationDelay=(i*45)+'ms';
+          bottleEl.style.height=size===1000?'78px':size===500?'62px':'48px';
+          bottleEl.innerHTML='<div class="glass"><div class="milk"></div></div>';
+          bottleEl.title=size+' ml • Panditji Dairy Farm'; tray.appendChild(bottleEl);
+        }
+      });
+      if(!count) tray.innerHTML='<span class="text-[10px] text-stone-400 self-center">Your bottles will appear here ✨</span>';
+      document.getElementById('cqMilkPrice').textContent=`₹${milk}`;
+      document.getElementById('cqBottlePrice').textContent=`₹${bottle}`;
+      document.getElementById('cqTotalPrice').textContent=`₹${milk+bottle}`;
+      document.getElementById('cqGrandTotal').textContent=`₹${milk+bottle}`;
+      document.getElementById('cqSelectedSummary').textContent=`${count} bottle${count===1?'':'s'} · ${volume.toLocaleString()} ml`;
+      document.getElementById('cqSubmitBtn').disabled=count===0;
     }
 
     async function submitCustomerQuickOrder(e) {
       e.preventDefault();
       const db = await checkLiveTankStock();
-      const size = Number(document.getElementById('cqSize').value);
-
-      if (liveTankLitres < 1.0 || liveTankLitres < (size / 1000)) {
-        return alert('Sorry! Fresh milk stock for today is currently sold out (< 1L remaining).');
-      }
-
-      const rates = { 1000: 210, 500: 130, 250: 70 };
-      const totalAmount = rates[size] || 210;
+      const quantities = {...quickBottleQty};
+      const bottleCount = Object.values(quantities).reduce((a,b)=>a+b,0);
+      const volumeMl = Object.entries(quantities).reduce((sum,[size,q])=>sum+Number(size)*q,0);
+      if (!bottleCount) return alert('Please choose at least one bottle quantity.');
+      if (liveTankLitres < volumeMl/1000) return alert(`Sorry! Only ${liveTankLitres.toFixed(2)}L fresh milk is available.`);
+      const milkAmount = Object.entries(quantities).reduce((sum,[size,q])=>sum+quickRates[size].milk*q,0);
+      const bottleAmount = Object.entries(quantities).reduce((sum,[size,q])=>sum+quickRates[size].bottle*q,0);
+      const totalAmount = milkAmount + bottleAmount;
+      const size = volumeMl;
       const name = document.getElementById('cqName').value.trim();
       const phone = document.getElementById('cqPhone').value.trim();
       const area = document.getElementById('cqArea').value;
@@ -983,9 +1020,12 @@
 
       closeQuickOrderModal();
       e.target.reset();
+      Object.keys(quickBottleQty).forEach(k=>quickBottleQty[k]=0);
+      recalcCustomerQuickPrice();
 
       document.getElementById('successModalTitle').textContent = '⚡ Express Order Dispatched!';
-      document.getElementById('successModalDesc').innerHTML = `Our runner (<strong>${assignedAgent}</strong>) will deliver your <strong>${size}ml</strong> sealed glass bottle to <strong>${hno}, ${area}</strong> within <strong>20–30 minutes</strong>.<br><br>Total Payable on Delivery: <strong>₹${totalAmount}</strong> (Includes New Glass Bottle).`;
+      const orderItems = Object.entries(quantities).filter(([sz,q])=>q>0).map(([sz,q])=>`${q} × ${sz}ml`).join(', ');
+      document.getElementById('successModalDesc').innerHTML = `Our runner (<strong>${assignedAgent}</strong>) will deliver <strong>${orderItems}</strong> (${volumeMl.toLocaleString()}ml total) to <strong>${hno}, ${area}</strong> within <strong>20–30 minutes</strong>.<br><br>Total Payable on Delivery: <strong>₹${totalAmount}</strong> (milk ₹${milkAmount} + bottles ₹${bottleAmount}).`;
       document.getElementById('successModal').classList.remove('hidden');
     }
 
@@ -1028,19 +1068,24 @@
       }
     }
 
-    function setVolume(vol) {
-      dairyState.volume = vol;
-      ['250', '500', '1000'].forEach(v => {
-        const btn = document.getElementById(`volBtn${v}`);
-        if (v === vol) {
-          btn.className = "vol-btn border-2 border-heritage-800 bg-heritage-50/60 rounded-2xl p-2.5 sm:p-3 text-center transition flex flex-col justify-between shadow-xs active:scale-95";
-        } else {
-          btn.className = "vol-btn border-2 border-stone-200 hover:border-gilded-500 rounded-2xl p-2.5 sm:p-3 text-center transition flex flex-col justify-between active:scale-95";
-        }
-      });
-      const rule = dairyState.pricingRules[vol];
-      document.getElementById('bottleSavingsTag').innerText = `₹${rule.returnRebate} return rebate applied`;
-      recalculateEstimate();
+    function setVolume(vol) { dairyState.volume=vol; recalculateEstimate(); }
+    function changeBottleQty(size,delta) {
+      const next=dairyState.quantities[size]+delta;
+      const count=Object.values(dairyState.quantities).reduce((a,b)=>a+b,0)+delta;
+      if(next<0||count>8)return;
+      dairyState.quantities[size]=next; dairyState.quantity=Math.max(1,count);
+      ['1000','500','250'].forEach(v=>document.getElementById('qty'+v).textContent=dairyState.quantities[v]);
+      renderBottlePreview();recalculateEstimate();
+    }
+    function renderBottlePreview(){
+      const holder=document.getElementById('bottlePreview');holder.innerHTML='';
+      ['1000','500','250'].forEach(size=>{for(let i=0;i<dairyState.quantities[size];i++){
+        const b=document.createElement('div');b.className='milk-bottle '+({'1000':'large','500':'medium','250':'small'}[size]);
+        b.innerHTML='<div class="glass"></div><div class="milk"></div><div class="neck"></div><div class="cap"></div><div class="brand"><span class="brand-logo">✦ PANDITJI ✦</span><span class="brand-caption">DAIRY FARM</span><span class="brand-caption">PURE BUFFALO MILK</span></div>';holder.appendChild(b);
+      }});
+      const n=Object.values(dairyState.quantities).reduce((a,b)=>a+b,0),ml=['1000','500','250'].reduce((a,v)=>a+Number(v)*dairyState.quantities[v],0);
+      const text=n?`${n} bottle${n===1?'':'s'} · ${ml>=1000?ml/1000+' L':ml+' ml'}`:'Add bottles to holder';
+      document.getElementById('bottleMixCaption').textContent=text;document.getElementById('mixTotal').textContent=text;
     }
 
     function setFrequency(days) {
@@ -1061,35 +1106,27 @@
       recalculateEstimate();
     }
 
-    function changeQty(delta) {
-      const newQty = dairyState.quantity + delta;
-      if (newQty >= 1 && newQty <= 6) {
-        dairyState.quantity = newQty;
-        document.getElementById('qtyDisplay').innerText = newQty;
-        recalculateEstimate();
-      }
-    }
-
-    function recalculateEstimate() {
-      const rule = dairyState.pricingRules[dairyState.volume];
-      const totalBottlesInMonth = dairyState.frequencyDays * dairyState.quantity;
-      const totalBaseCost = totalBottlesInMonth * rule.basePrice;
-      const totalRebateSavings = totalBottlesInMonth * rule.returnRebate;
-      const netEffectiveTotal = totalBaseCost - totalRebateSavings;
-      const netEffectivePerBottle = rule.basePrice - rule.returnRebate;
-
-      document.getElementById('sumBottleLine').innerText = `Milk Cost (${totalBottlesInMonth} bottles × ₹${rule.basePrice})`;
-      document.getElementById('sumBaseCost').innerText = `₹${totalBaseCost.toLocaleString('en-IN')}`;
-      document.getElementById('sumRebateRate').innerText = `₹${rule.returnRebate}`;
-      document.getElementById('sumRebateSavings').innerText = `-₹${totalRebateSavings.toLocaleString('en-IN')}`;
-      document.getElementById('sumDeposit').innerText = `₹${(rule.deposit * dairyState.quantity).toLocaleString('en-IN')}`;
-      document.getElementById('sumEffectiveTotal').innerText = `₹${netEffectiveTotal.toLocaleString('en-IN')}`;
-      document.getElementById('sumEffectivePerBottle').innerText = `Effective net: ₹${netEffectivePerBottle} per ${rule.label} bottle`;
-
-      const freqLabel = dairyState.frequencyDays === 30 ? 'Daily (30 days)' : 'Day-by-Day (15 days)';
-      document.getElementById('modalPlanDesc').innerText = `${dairyState.quantity} Bottle (${rule.label}) • ${freqLabel}`;
-      document.getElementById('modalNetRate').innerText = `₹${netEffectiveTotal.toLocaleString('en-IN')}/mo`;
-      document.getElementById('modalSavingsHighlight').innerText = `Includes ₹${totalRebateSavings.toLocaleString('en-IN')} monthly rebate on empty bottle returns!`;
+    function changeQty(delta){changeBottleQty(dairyState.volume,delta);}
+    function recalculateEstimate(){
+      const q=dairyState.quantities,r=dairyState.pricingRules;
+      const dailyCost=Object.keys(q).reduce((a,v)=>a+q[v]*r[v].basePrice,0);
+      const dailyRebate=Object.keys(q).reduce((a,v)=>a+q[v]*r[v].returnRebate,0);
+      const dailyDeposit=Object.keys(q).reduce((a,v)=>a+q[v]*r[v].deposit,0);
+      const count=Object.values(q).reduce((a,b)=>a+b,0),monthlyCount=count*dairyState.frequencyDays;
+      const base=dailyCost*dairyState.frequencyDays,rebate=dailyRebate*dairyState.frequencyDays,net=base-rebate;
+      const ml=Object.keys(q).reduce((a,v)=>a+Number(v)*q[v],0);
+      document.getElementById('sumBottleLine').innerText=`Milk Cost (${monthlyCount} bottles · ${dairyState.frequencyDays} deliveries)`;
+      document.getElementById('sumBaseCost').innerText=`₹${base.toLocaleString('en-IN')}`;
+      document.getElementById('sumRebateRate').innerText='size-wise';
+      document.getElementById('sumRebateSavings').innerText=`-₹${rebate.toLocaleString('en-IN')}`;
+      document.getElementById('sumDeposit').innerText=`₹${dailyDeposit.toLocaleString('en-IN')}`;
+      document.getElementById('sumEffectiveTotal').innerText=`₹${net.toLocaleString('en-IN')}`;
+      document.getElementById('sumEffectivePerBottle').innerText=`${ml>=1000?ml/1000+' L':ml+' ml'} per delivery · ₹${dailyCost-dailyRebate} net/day`;
+      const freq=dairyState.frequencyDays===30?'Daily (30 days)':'Day-by-Day (15 days)';
+      const mix=Object.keys(q).filter(v=>q[v]).map(v=>`${q[v]}×${v}ml`).join(' + ')||'No bottles';
+      document.getElementById('modalPlanDesc').innerText=`${mix} • ${freq}`;
+      document.getElementById('modalNetRate').innerText=`₹${net.toLocaleString('en-IN')}/mo`;
+      document.getElementById('modalSavingsHighlight').innerText=`Includes ₹${rebate.toLocaleString('en-IN')} monthly bottle-return rebate!`;
     }
 
     function setCapShift(shift) {
@@ -1171,3 +1208,4 @@
   </script>
 </body>
 </html>
+\n<script>document.addEventListener("DOMContentLoaded",()=>{if(document.getElementById("cqBottleTray"))recalcCustomerQuickPrice();});</script>\n
