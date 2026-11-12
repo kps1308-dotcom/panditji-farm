@@ -10,53 +10,24 @@
   <title>Panditji Dairy | Agent Delivery Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
     html, body {
-      width: 100%;
-      height: 100%;
-      overflow-x: hidden;
-      touch-action: pan-y;
+      width: 100%; height: 100%; overflow-x: hidden; touch-action: pan-y;
       -webkit-tap-highlight-color: transparent;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f0f4f1;
-      color: #143525;
+      background: #f0f4f1; color: #143525;
     }
-    .bubble {
-      border: 1.5px solid #a3c4b0;
-      border-radius: 8px;
-      min-width: 38px;
-      height: 38px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      background: #ffffff;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.1s, transform 0.1s;
-    }
-    .bubble:active { transform: scale(0.94); }
-    .bubble.active {
-      background: #165636;
-      color: #ffffff;
-      border-color: #165636;
-    }
-    .card {
-      background: #ffffff;
-      border-radius: 14px;
-      padding: 14px;
-      box-shadow: 0 2px 10px rgba(20,53,37,0.06);
-      border: 1px solid #dce8e0;
-      width: 100%;
-      box-sizing: border-box;
-    }
+    .card { background: #ffffff; border-radius: 14px; padding: 14px; box-shadow: 0 2px 10px rgba(20,53,37,0.06); border: 1px solid #dce8e0; width: 100%; box-sizing: border-box; }
+    .bubble { border: 1.5px solid #a3c4b0; border-radius: 8px; min-width: 38px; height: 38px; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 14px; background: #ffffff; cursor: pointer; user-select: none; }
+    .bubble.active { background: #165636; color: #ffffff; border-color: #165636; }
+    .tab-btn { flex: 1; padding: 8px; font-size: 12px; font-weight: 700; border-radius: 8px; text-align: center; transition: 0.15s; }
+    .tab-btn.active { background: #165636; color: #ffffff; }
+    .tab-btn.inactive { background: #e2ebe5; color: #165636; }
   </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
-<!-- AGENT AUTHENTICATION SCREEN (PIN: 1234) -->
+<!-- LOGIN SCREEN -->
 <div id="loginScreen" class="fixed inset-0 bg-[#123826] z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
     <div class="w-14 h-14 mx-auto rounded-xl bg-emerald-100 flex items-center justify-center font-black text-2xl text-emerald-800 border-2 border-emerald-300">
@@ -71,7 +42,7 @@
       <div>
         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Mobile Number</label>
         <input type="tel" id="loginPhone" required placeholder="Enter registered mobile" value="9876543210" pattern="[0-9]{10}" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:border-emerald-600 focus:outline-none">
-        <p class="text-[10px] text-gray-400 mt-1">Default test: 9876543210 / 9876543211 / 9876543212</p>
+        <p class="text-[10px] text-gray-400 mt-1">Default: 9876543210 / 9876543211 / 9876543212</p>
       </div>
       <div>
         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Passcode / PIN</label>
@@ -89,8 +60,6 @@
 
 <!-- AGENT APP CONTAINER -->
 <div id="appContainer" class="hidden flex-1 flex flex-col w-full max-w-md mx-auto">
-  
-  <!-- APP HEADER (STICKY) -->
   <header class="bg-[#123826] text-white px-3.5 py-3 sticky top-0 z-40 shadow-md shrink-0">
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-2 min-w-0">
@@ -104,9 +73,9 @@
       </div>
       
       <div class="flex items-center gap-1.5 shrink-0">
-        <button onclick="pullFromCloud(false)" class="h-8 px-2 rounded-lg bg-[#1b4e36] hover:bg-[#236345] text-xs font-semibold flex items-center gap-1" title="Sync Cloud">
+        <button onclick="syncPullCloud(false)" class="h-8 px-2.5 rounded-lg bg-[#1b4e36] hover:bg-[#236345] text-xs font-semibold flex items-center gap-1">
           <span>🔄</span>
-          <span class="text-[10px]">Sync</span>
+          <span class="text-[10px]" id="syncBtnText">Sync</span>
         </button>
         <button onclick="handleLogout()" class="h-8 px-2.5 rounded-lg bg-red-900/70 hover:bg-red-800 text-red-200 text-xs font-bold">
           Exit
@@ -114,8 +83,14 @@
       </div>
     </div>
 
-    <!-- Date Navigation Strip -->
-    <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-emerald-900/60 text-xs gap-1">
+    <!-- Navigation Switcher: Route Stops vs Activity Log -->
+    <div class="flex gap-1.5 mt-2.5">
+      <button id="navTabStops" class="tab-btn active" onclick="switchView('stops')">🚚 My Route Stops</button>
+      <button id="navTabLogs" class="tab-btn inactive" onclick="switchView('logs')">📋 Delivery Time Log</button>
+    </div>
+
+    <!-- Date Strip (Shown on Stops View) -->
+    <div id="dateNavStrip" class="flex items-center justify-between mt-2.5 pt-2 border-t border-emerald-900/60 text-xs gap-1">
       <button class="bg-[#1b4e36] text-white px-2.5 py-1.5 rounded-lg text-xs font-bold active:scale-95" onclick="changeDateOffset(-1)">
         ◀ Prev
       </button>
@@ -128,21 +103,20 @@
     </div>
   </header>
 
-  <!-- Notice Banner for Previous / Future Days -->
   <div id="readOnlyNotice" class="hidden px-3 py-1.5 text-xs font-bold text-center border-b shrink-0"></div>
 
-  <!-- MAIN SCROLLABLE CONTENT AREA -->
-  <main class="flex-1 p-3 space-y-3 w-full max-w-md mx-auto overflow-y-auto">
+  <!-- VIEW 1: ROUTE STOPS -->
+  <main id="stopsView" class="flex-1 p-3 space-y-3 w-full max-w-md mx-auto overflow-y-auto">
     <div class="flex gap-2 w-full">
       <input type="text" id="runnerSearch" placeholder="🔍 Search H.No, Name..." class="flex-1 min-w-0 bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-600" oninput="renderStops()">
       <select id="shiftFilter" class="bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs font-bold shrink-0" onchange="renderStops()">
-        <option value="ALL">All</option>
-        <option value="Morning" selected>Morning</option>
+        <option value="ALL" selected>All Shifts</option>
+        <option value="Morning">Morning</option>
         <option value="Evening">Evening</option>
       </select>
     </div>
 
-    <!-- Quick Metric Strip -->
+    <!-- Quick Stats -->
     <div class="grid grid-cols-3 gap-2 w-full">
       <div class="bg-white p-2 rounded-xl border border-gray-200 text-center">
         <div class="text-[9px] uppercase font-bold text-gray-500">Stops</div>
@@ -161,12 +135,24 @@
     <!-- Customer Stops List -->
     <div id="agentStopsContainer" class="space-y-3 w-full pb-8"></div>
   </main>
+
+  <!-- VIEW 2: AGENT ACTIVITY & TIMESTAMP LOG -->
+  <main id="logsView" class="hidden flex-1 p-3 space-y-3 w-full max-w-md mx-auto overflow-y-auto pb-8">
+    <div class="bg-white p-3 rounded-xl border border-gray-200 flex items-center justify-between gap-2">
+      <div>
+        <h2 class="text-xs font-bold uppercase text-gray-700">Agent Delivery Audit Log</h2>
+        <p class="text-[11px] text-gray-500">Exact date, customer stop &amp; timestamp</p>
+      </div>
+      <input type="date" id="logDateFilter" class="text-xs border border-gray-300 rounded-lg px-2 py-1.5 w-auto" onchange="renderAgentLogs()">
+    </div>
+
+    <div id="agentLogsContainer" class="space-y-2.5"></div>
+  </main>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
 
-// Local Date formatter (fixes UTC 5:30 AM dawn bug)
 const getLocalDateString = (offsetDays = 0) => {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
@@ -176,7 +162,9 @@ const getLocalDateString = (offsetDays = 0) => {
   return `${year}-${month}-${day}`;
 };
 
-const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
+const getCurrentTimeStr = () => {
+  return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+};
 
 const DEFAULT_SB_URL = 'https://nvqszaywblhdxhlhiuxp.supabase.co';
 const DEFAULT_SB_KEY = 'sb_publishable_Pkn8vXc6unUaY2ZPTFf9Rg_LZwu3GDm';
@@ -188,11 +176,33 @@ let db = JSON.parse(localStorage.getItem('pjf_admin_ops') || JSON.stringify({
     { id: 'a3', name: 'Agent 3', phone: '9876543212', pin: '1234' }
   ],
   deliveries: [],
-  bottles: []
+  bottles: [],
+  agentLogs: []
 }));
 
 let currentAgent = null;
-let selectedDateOffset = 0; // -1 = prev, 0 = today, 1 = next
+let selectedDateOffset = 0;
+let currentTab = 'stops';
+let sb = null;
+
+function initSupabase() {
+  if (window.supabase) {
+    sb = window.supabase.createClient(DEFAULT_SB_URL, DEFAULT_SB_KEY);
+  }
+}
+
+function getTargetDateStr() {
+  return getLocalDateString(selectedDateOffset);
+}
+
+// Helper to flexibly match stops assigned to this agent (by name or phone)
+function isStopForCurrentAgent(stop) {
+  if (!currentAgent || !stop) return false;
+  const stopAgent = String(stop.agent || '').trim().toLowerCase();
+  const agName = String(currentAgent.name || '').trim().toLowerCase();
+  const agPhone = String(currentAgent.phone || '').trim();
+  return stopAgent === agName || stopAgent === agPhone;
+}
 
 function checkExistingSession() {
   const saved = localStorage.getItem('pjf_agent_session');
@@ -207,11 +217,14 @@ function checkExistingSession() {
   $('appContainer').classList.add('hidden');
 }
 
-function handleAgentLogin(e) {
+async function handleAgentLogin(e) {
   e.preventDefault();
   const phone = $('loginPhone').value.trim();
   const pin = $('loginPin').value.trim();
   const errEl = $('loginError');
+
+  // Attempt quick cloud pull first so newly added agents in admin.html are recognized
+  await syncPullCloud(true);
 
   const agentsList = db.agents || [
     { id: 'a1', name: 'Agent 1', phone: '9876543210', pin: '1234' },
@@ -228,14 +241,14 @@ function handleAgentLogin(e) {
   }
 
   if (!match) {
-    errEl.textContent = 'Mobile number not found in register.';
+    errEl.textContent = 'Mobile number not found. Ask Admin to register your number.';
     errEl.classList.remove('hidden');
     return;
   }
 
-  const expectedPin = match.pin || '1234';
+  const expectedPin = String(match.pin || '1234').trim();
   if (pin !== expectedPin && pin !== '1234') {
-    errEl.textContent = 'Incorrect PIN! Passcode is 1234.';
+    errEl.textContent = 'Incorrect PIN! Default is 1234.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -259,10 +272,32 @@ async function launchAgentApp() {
   $('appContainer').classList.remove('hidden');
   $('headerAgentName').textContent = currentAgent.name;
   $('headerAgentPhone').textContent = `📞 ${currentAgent.phone}`;
+  $('logDateFilter').value = getLocalDateString(0);
   selectedDateOffset = 0;
   updateDateHeader();
   renderStops();
-  await pullFromCloud(true);
+  await syncPullCloud(true);
+}
+
+function switchView(tab) {
+  currentTab = tab;
+  if (tab === 'stops') {
+    $('stopsView').classList.remove('hidden');
+    $('logsView').classList.add('hidden');
+    $('dateNavStrip').classList.remove('hidden');
+    $('navTabStops').className = 'tab-btn active';
+    $('navTabLogs').className = 'tab-btn inactive';
+    updateDateHeader();
+    renderStops();
+  } else {
+    $('stopsView').classList.add('hidden');
+    $('logsView').classList.remove('hidden');
+    $('dateNavStrip').classList.add('hidden');
+    $('readOnlyNotice').classList.add('hidden');
+    $('navTabStops').className = 'tab-btn inactive';
+    $('navTabLogs').className = 'tab-btn active';
+    renderAgentLogs();
+  }
 }
 
 function changeDateOffset(delta) {
@@ -272,7 +307,7 @@ function changeDateOffset(delta) {
 }
 
 function updateDateHeader() {
-  const targetDate = getLocalDateString(selectedDateOffset);
+  const targetDate = getTargetDateStr();
   const d = new Date(targetDate + 'T00:00:00');
   const dateFormatted = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
   const notice = $('readOnlyNotice');
@@ -297,40 +332,53 @@ function updateDateHeader() {
 
 function setQuickBottles(delId, count) {
   if (selectedDateOffset !== 0) return;
-  const d = (db.deliveries || []).find(x => x.id === delId);
+  const d = (db.deliveries || []).find(x => String(x.id) === String(delId));
   if (d) {
     d.bottlesReturned = Number(count);
+    localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
     renderStops();
   }
 }
 
 function setManualBottles(delId, val) {
   if (selectedDateOffset !== 0) return;
-  const d = (db.deliveries || []).find(x => x.id === delId);
+  const d = (db.deliveries || []).find(x => String(x.id) === String(delId));
   if (d) {
     d.bottlesReturned = Math.max(0, parseInt(val) || 0);
+    localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
     renderStops();
   }
 }
 
-// Fixed Delivery Action: Updates locally and pushes to Supabase immediately
+// Mark Stop Delivered + Record Exact Timestamp & Audit Log
 async function markStopDelivered(delId) {
   if (selectedDateOffset !== 0) {
-    return alert('Deliveries can only be completed on Today’s route.');
+    alert('Deliveries can only be completed on Today\'s route.');
+    return;
   }
 
-  const d = (db.deliveries || []).find(x => x.id === delId);
-  if (!d) return;
+  const d = (db.deliveries || []).find(x => String(x.id) === String(delId));
+  if (!d) {
+    alert('Stop record not found. Tap Sync and try again.');
+    return;
+  }
 
   let ratePerBottle = 20;
-  if (d.size === 500) ratePerBottle = 10;
-  if (d.size === 250) ratePerBottle = 5;
+  if (Number(d.size) === 500) ratePerBottle = 10;
+  if (Number(d.size) === 250) ratePerBottle = 5;
 
-  const totalRebate = (d.bottlesReturned || 0) * ratePerBottle;
+  const returnedCount = Number(d.bottlesReturned) || 0;
+  const totalRebate = returnedCount * ratePerBottle;
+  const exactTime = getCurrentTimeStr();
+
   d.status = 'delivered';
+  d.bottlesReturned = returnedCount;
   d.bottlesRebate = totalRebate;
+  d.deliveredAt = exactTime;
+  d.deliveredBy = currentAgent.name;
 
-  if (d.bottlesReturned > 0) {
+  // Record in Bottle Ledger
+  if (returnedCount > 0) {
     db.bottles = db.bottles || [];
     db.bottles.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -338,41 +386,78 @@ async function markStopDelivered(delId) {
       customerId: d.customerId,
       customerName: d.customerName,
       size: d.size,
-      count: d.bottlesReturned,
+      count: returnedCount,
       rebate: totalRebate
     });
   }
 
-  // 1. Save Locally & Render
+  // Record in Agent Activity Audit Log (Day, Stop, Exact Time)
+  db.agentLogs = db.agentLogs || [];
+  db.agentLogs.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    date: d.date,
+    time: exactTime,
+    agentName: currentAgent.name,
+    agentPhone: currentAgent.phone,
+    customerName: d.customerName,
+    hno: d.hno,
+    area: d.area || 'Local',
+    size: d.size,
+    bottlesReturned: returnedCount,
+    action: 'Delivered'
+  });
+
+  // 1. Save Locally & Re-render immediately
   localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
   renderStops();
 
-  // 2. Push to Supabase Cloud
-  await pushToCloud(true);
+  // 2. Push upstream to Supabase Cloud
+  await syncPushCloud();
 
-  // 3. Send WhatsApp receipt
-  const msg = `Namaste ${d.customerName} ji 🙏\n\nYour milk has been delivered by ${d.agent}!\n\nItem: ${d.product} (${d.size}ml)\nEmpty Bottles Received: ${d.bottlesReturned || 0}\nBottle Rebate: ₹${totalRebate}\n\nPure fresh glass bottle milk. Thank you!\nPanditji Dairy Farm Mamidipally.`;
-  window.open(`https://wa.me/91${d.customerPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  // 3. Optional WhatsApp confirmation
+  const msg = `Namaste ${d.customerName} ji 🙏\n\nYour milk has been delivered by ${currentAgent.name} at ${exactTime}!\n\nItem: ${d.product} (${d.size}ml)\nEmpty Bottles Received: ${returnedCount}\nBottle Rebate: ₹${totalRebate}\n\nThank you! Panditji Dairy Farm.`;
+  try {
+    window.open(`https://wa.me/91${d.customerPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  } catch(e) {}
 }
 
 async function markStopSkipped(delId) {
   if (selectedDateOffset !== 0) return;
-  const d = (db.deliveries || []).find(x => x.id === delId);
+  const d = (db.deliveries || []).find(x => String(x.id) === String(delId));
   if (!d) return;
+
+  const exactTime = getCurrentTimeStr();
   d.status = 'skipped';
+  d.deliveredAt = exactTime;
+
+  db.agentLogs = db.agentLogs || [];
+  db.agentLogs.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    date: d.date,
+    time: exactTime,
+    agentName: currentAgent.name,
+    agentPhone: currentAgent.phone,
+    customerName: d.customerName,
+    hno: d.hno,
+    area: d.area || 'Local',
+    size: d.size,
+    bottlesReturned: 0,
+    action: 'Skipped'
+  });
+
   localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
   renderStops();
-  await pushToCloud(true);
+  await syncPushCloud();
 }
 
 function renderStops() {
   if (!currentAgent) return;
   const q = ($('runnerSearch').value || '').toLowerCase().trim();
   const shift = $('shiftFilter').value;
-  const targetDate = getLocalDateString(selectedDateOffset);
-  const isToday = selectedDateOffset === 0;
+  const targetDate = getTargetDateStr();
+  const isToday = (selectedDateOffset === 0);
 
-  let stops = (db.deliveries || []).filter(d => d.date === targetDate && d.agent === currentAgent.name);
+  let stops = (db.deliveries || []).filter(d => String(d.date) === String(targetDate) && isStopForCurrentAgent(d));
 
   if (shift !== 'ALL') {
     stops = stops.filter(d => (d.batch || 'Morning') === shift);
@@ -380,7 +465,7 @@ function renderStops() {
 
   const totalCount = stops.length;
   const doneCount = stops.filter(d => d.status === 'delivered').length;
-  const bottleCount = stops.reduce((sum, d) => sum + (d.bottlesReturned || 0), 0);
+  const bottleCount = stops.reduce((sum, d) => sum + (Number(d.bottlesReturned) || 0), 0);
 
   $('statTotal').textContent = totalCount;
   $('statDone').textContent = doneCount;
@@ -398,8 +483,8 @@ function renderStops() {
   stops.sort((a, b) => (a.status === 'delivered' ? 1 : 0) - (b.status === 'delivered' ? 1 : 0));
 
   $('agentStopsContainer').innerHTML = stops.map(d => {
-    const isDone = d.status === 'delivered';
-    const isSkipped = d.status === 'skipped';
+    const isDone = (d.status === 'delivered');
+    const isSkipped = (d.status === 'skipped');
 
     return `
       <div class="card ${isDone ? 'border-l-4 border-emerald-600 bg-emerald-50/30' : isSkipped ? 'border-l-4 border-red-500 bg-red-50/30' : 'border-l-4 border-amber-500'}">
@@ -430,12 +515,12 @@ function renderStops() {
               <div class="flex justify-between items-center mb-1 text-xs">
                 <span class="font-bold text-gray-700 text-[11px]">Empty Bottles Received:</span>
                 <span class="text-[11px] text-emerald-800 font-bold">
-                  Rebate: ₹${(d.size === 1000 ? 20 : (d.size === 500 ? 10 : 5)) * (d.bottlesReturned || 0)}
+                  Rebate: ₹${(Number(d.size) === 1000 ? 20 : (Number(d.size) === 500 ? 10 : 5)) * (Number(d.bottlesReturned) || 0)}
                 </span>
               </div>
               <div class="grid grid-cols-6 gap-1 w-full">
                 ${[0, 1, 2, 3, 4].map(n => `
-                  <button type="button" class="bubble ${d.bottlesReturned === n ? 'active' : ''}" onclick="setQuickBottles('${d.id}', ${n})">${n}</button>
+                  <button type="button" class="bubble ${Number(d.bottlesReturned) === n ? 'active' : ''}" onclick="setQuickBottles('${d.id}', ${n})">${n}</button>
                 `).join('')}
                 <input type="number" min="0" value="${d.bottlesReturned || 0}" class="w-full text-center text-xs bg-white border border-gray-300 rounded-lg" placeholder="+" onchange="setManualBottles('${d.id}', this.value)">
               </div>
@@ -443,7 +528,7 @@ function renderStops() {
 
             <div class="mt-3 flex gap-2 w-full">
               <button class="bg-[#165636] hover:bg-[#10432a] text-white font-bold py-2.5 px-3 rounded-lg text-xs flex-1 transition active:scale-95" onclick="markStopDelivered('${d.id}')">
-                ✓ Delivered (Auto WhatsApp)
+                ✓ Mark Delivered
               </button>
               <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-2.5 rounded-lg text-xs shrink-0" onclick="markStopSkipped('${d.id}')">
                 Skip
@@ -451,14 +536,16 @@ function renderStops() {
             </div>
           ` : `
             <div class="mt-2 pt-2 border-t flex justify-between items-center text-xs">
-              <span class="text-emerald-700 font-bold">✓ Delivered Today</span>
-              <span class="text-gray-600 bg-gray-100 px-2 py-0.5 rounded font-semibold">${d.bottlesReturned || 0} bottle(s) collected</span>
+              <div>
+                <span class="text-emerald-700 font-bold block">✓ Delivered at ${esc(d.deliveredAt || 'Today')}</span>
+              </div>
+              <span class="text-gray-600 bg-gray-100 px-2 py-0.5 rounded font-semibold">${d.bottlesReturned || 0} bottle(s) recd</span>
             </div>
           `
         ) : `
           <div class="mt-2 pt-2 border-t flex justify-between items-center text-xs bg-gray-50 p-1.5 rounded">
             <span class="font-bold ${isDone ? 'text-emerald-700' : isSkipped ? 'text-red-600' : 'text-gray-500'}">
-              ${isDone ? '✓ Delivered' : isSkipped ? '⚠️ Skipped' : '⏳ Scheduled'}
+              ${isDone ? `✓ Delivered (${esc(d.deliveredAt || '')})` : isSkipped ? '⚠️ Skipped' : '⏳ Scheduled'}
             </span>
             <span class="text-gray-600 font-semibold text-[11px]">
               ${isDone ? `Bottles: ${d.bottlesReturned || 0}` : 'Locked view'}
@@ -467,53 +554,98 @@ function renderStops() {
         `}
       </div>
     `;
-  }).join('') || `<div class="card text-center py-8 text-gray-400 text-xs">No scheduled drops for ${currentAgent.name} on this date.</div>`;
+  }).join('') || `<div class="card text-center py-8 text-gray-400 text-xs">No scheduled drops for ${currentAgent.name} on ${targetDate}.<br><button onclick="syncPullCloud(false)" class="mt-2 text-emerald-700 font-bold underline">Tap to Refresh Cloud</button></div>`;
+}
+
+// Render Agent Activity & Timestamp Log
+function renderAgentLogs() {
+  if (!currentAgent) return;
+  const filterDate = $('logDateFilter').value;
+
+  // Combine explicit agentLogs and any deliveries with timestamps for this agent
+  let logs = (db.agentLogs || []).filter(l => 
+    String(l.agentName || '').trim().toLowerCase() === String(currentAgent.name).trim().toLowerCase() ||
+    String(l.agentPhone || '').trim() === String(currentAgent.phone).trim()
+  );
+
+  // Backfill from deliveries if agentLogs is empty
+  if (logs.length === 0) {
+    logs = (db.deliveries || [])
+      .filter(d => isStopForCurrentAgent(d) && (d.status === 'delivered' || d.status === 'skipped'))
+      .map(d => ({
+        date: d.date,
+        time: d.deliveredAt || 'Recorded',
+        customerName: d.customerName,
+        hno: d.hno,
+        area: d.area || 'Local',
+        size: d.size,
+        bottlesReturned: d.bottlesReturned || 0,
+        action: d.status === 'delivered' ? 'Delivered' : 'Skipped'
+      }));
+  }
+
+  if (filterDate) {
+    logs = logs.filter(l => String(l.date) === String(filterDate));
+  }
+
+  $('agentLogsContainer').innerHTML = logs.slice().reverse().map(l => `
+    <div class="card border-l-4 ${l.action === 'Delivered' ? 'border-emerald-600' : 'border-red-500'} text-xs space-y-1">
+      <div class="flex justify-between items-center">
+        <span class="font-bold text-gray-900">${esc(l.hno)} · ${esc(l.customerName)}</span>
+        <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-800">
+          🕒 ${esc(l.time)}
+        </span>
+      </div>
+      <div class="flex justify-between items-center text-gray-600 text-[11px]">
+        <span>📅 ${esc(l.date)} · 📍 ${esc(l.area)} (${l.size}ml)</span>
+        <span class="font-bold ${l.action === 'Delivered' ? 'text-emerald-700' : 'text-red-600'}">
+          ${l.action} (${l.bottlesReturned} empty)
+        </span>
+      </div>
+    </div>
+  `).join('') || `<div class="card text-center py-8 text-gray-400 text-xs">No delivery activity logged for this date.</div>`;
 }
 
 function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
 }
 
-// -------------------------------------------------------------
-// SUPABASE PUSH & PULL PROTOCOL
-// -------------------------------------------------------------
-let sb = null;
-function initSupabase() {
-  if (window.supabase) {
-    sb = window.supabase.createClient(DEFAULT_SB_URL, DEFAULT_SB_KEY);
-  }
-}
-
-// Push to Cloud
-async function pushToCloud(silent = true) {
+// Push to Supabase Cloud
+async function syncPushCloud() {
   if (!sb) initSupabase();
   if (!sb) return;
   try {
-    const { error } = await sb.from('farm_workspace').upsert({
-      id: 'primary_farm',
-      data: db,
-      updated_at: new Date().toISOString()
-    });
-    if (error && !silent) alert('Sync error: ' + error.message);
+    $('syncBtnText').textContent = 'Saving...';
+    await sb.from('farm_workspace').upsert({ id: 'primary_farm', data: db, updated_at: new Date() });
+    $('syncBtnText').textContent = 'Saved ✓';
+    setTimeout(() => { if ($('syncBtnText')) $('syncBtnText').textContent = 'Sync'; }, 2000);
   } catch(e) {
     console.warn('Push error:', e);
+    $('syncBtnText').textContent = 'Sync';
   }
 }
 
-// Pull from Cloud (Loads latest stops created by Admin)
-async function pullFromCloud(silent = false) {
+// Pull from Supabase Cloud without erasing local deliveries if cloud is empty
+async function syncPullCloud(silent = false) {
   if (!sb) initSupabase();
   if (!sb) return;
   try {
-    const { data, error } = await sb.from('farm_workspace').select('data').eq('id', 'primary_farm').single();
+    $('syncBtnText').textContent = '...';
+    const { data } = await sb.from('farm_workspace').select('data').eq('id', 'primary_farm').single();
     if (data && data.data) {
-      db = data.data;
-      localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
-      renderStops();
+      // Only overwrite if cloud actually has records
+      if ((data.data.deliveries && data.data.deliveries.length > 0) || (data.data.agents && data.data.agents.length > 0)) {
+        db = data.data;
+        localStorage.setItem('pjf_admin_ops', JSON.stringify(db));
+        if (currentTab === 'stops') renderStops();
+        else renderAgentLogs();
+      }
       if (!silent) alert('Synced with live dairy records!');
     }
+    $('syncBtnText').textContent = 'Sync';
   } catch(e) {
-    console.warn('Sync issue:', e);
+    console.warn('Pull error:', e);
+    $('syncBtnText').textContent = 'Sync';
   }
 }
 
