@@ -47,6 +47,10 @@
     </div>
   </div>
   <div class="flex items-center gap-2.5 text-xs flex-wrap">
+    <button class="bg-amber-500 hover:bg-amber-400 text-stone-950 px-3 py-1.5 rounded-lg font-extrabold flex items-center gap-1.5 shadow" onclick="show('notifications', document.getElementById('navNotifBtn'))">
+      <span>🔔 Enquiries</span>
+      <span id="headerNotifBadge" class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black">0</span>
+    </button>
     <button class="bg-purple-700 hover:bg-purple-600 px-3 py-1.5 rounded-lg border border-purple-400/40 font-bold flex items-center gap-1.5 shadow" onclick="openQuickDeliveryModal()">
       <span>⚡ Quick 20-30m Express</span>
     </button>
@@ -69,6 +73,10 @@
   <!-- Sidebar -->
   <aside class="bg-[#16432e] p-3 md:w-56 flex md:flex-col flex-wrap gap-1 border-r border-[#1f543a] shrink-0">
     <button class="nav-btn active" onclick="show('overview', this)">▦ Operations &amp; Balance</button>
+    <button id="navNotifBtn" class="nav-btn flex items-center justify-between" onclick="show('notifications', this)">
+      <span>🔔 Enquiries &amp; Signups</span>
+      <span id="sideNotifBadge" class="bg-amber-400 text-stone-950 text-[10px] px-2 py-0.5 rounded-full font-black">0</span>
+    </button>
     <button class="nav-btn" onclick="show('vendors', this)">🐄 Vendors &amp; Intake</button>
     <button class="nav-btn" onclick="show('customers', this)">👥 Customers &amp; Search</button>
     <button class="nav-btn" onclick="show('dispatch', this)">🚚 Route Dispatch</button>
@@ -592,6 +600,102 @@
         </table>
       </div>
     </section>
+
+    <!-- VIEW: ENQUIRIES & SUBSCRIPTION NOTIFICATIONS -->
+    <section id="notifications" class="view hidden space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold">🔔 Customer Enquiries &amp; Subscription Requests</h2>
+          <p class="text-xs text-gray-500">Review incoming requests from website. Accept to assign Area &amp; Runner into Customers List, or place On Hold.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="tab-toggle">
+            <button id="notifFilterPending" class="active" onclick="setNotifFilter('pending')">⏳ Pending</button>
+            <button id="notifFilterHold" onclick="setNotifFilter('hold')">⏸️ On Hold</button>
+            <button id="notifFilterAccepted" onclick="setNotifFilter('accepted')">✓ Accepted</button>
+            <button id="notifFilterAll" onclick="setNotifFilter('ALL')">All</button>
+          </div>
+          <button class="btn-secondary text-xs py-1.5" onclick="pullFromCloud(false)">🔄 Sync</button>
+        </div>
+      </div>
+
+      <div id="notificationsList" class="grid md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- MODAL: ACCEPT & ONBOARD CUSTOMER FROM NOTIFICATION -->
+    <div id="acceptNotifModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl relative max-h-[92vh] overflow-y-auto border-2 border-emerald-700/30">
+        <div class="flex justify-between items-center border-b pb-3 mb-3">
+          <div>
+            <span class="bg-emerald-100 text-emerald-900 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded">✓ Approve &amp; Onboard</span>
+            <h3 class="font-bold text-base text-[#143525] mt-1">Assign Customer Area &amp; Route Runner</h3>
+          </div>
+          <button class="text-gray-400 hover:text-gray-700 text-lg font-bold" onclick="closeAcceptNotifModal()">✕</button>
+        </div>
+
+        <form class="grid sm:grid-cols-2 gap-3 text-xs" onsubmit="confirmAcceptNotification(event)">
+          <input type="hidden" id="accNotifId">
+          <div class="sm:col-span-2">
+            <label>Customer Full Name</label>
+            <input id="accName" required>
+          </div>
+          <div>
+            <label>Mobile Number (10 digits)</label>
+            <input id="accPhone" pattern="[0-9]{10}" required>
+          </div>
+          <div>
+            <label>Assign Area / Cluster</label>
+            <select id="accArea">
+              <option value="IIT Kandi">IIT Kandi</option>
+              <option value="Sangareddy">Sangareddy</option>
+              <option value="Mamidipally">Mamidipally</option>
+              <option value="Rudraram">Rudraram</option>
+              <option value="Patancheru">Patancheru</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label>House / Flat No (H.No)</label>
+            <input id="accHno" required placeholder="H.No / Flat">
+          </div>
+          <div>
+            <label>Detailed Address / Landmark</label>
+            <input id="accAddress" required placeholder="Colony / Landmark">
+          </div>
+          <div>
+            <label>Milk Product</label>
+            <select id="accProduct">
+              <option value="Buffalo Milk (Pure Natural)">Buffalo Milk (Pure Natural)</option>
+              <option value="Cow Milk (Pure Desi)">Cow Milk (Pure Desi)</option>
+            </select>
+          </div>
+          <div>
+            <label>Daily Volume (ml)</label>
+            <input id="accSize" type="number" step="250" min="250" value="1000" required>
+          </div>
+          <div>
+            <label>Daily Rate (₹)</label>
+            <input id="accRate" type="number" value="130" required>
+          </div>
+          <div>
+            <label>Subscription Frequency</label>
+            <select id="accFrequency">
+              <option value="Daily">Daily</option>
+              <option value="Alternate days">Alternate days</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label>Assign Route Runner</label>
+            <select id="accAgent"></select>
+          </div>
+
+          <div class="sm:col-span-2 pt-3 flex gap-2 border-t mt-2">
+            <button type="button" class="btn-secondary flex-1" onclick="closeAcceptNotifModal()">Cancel</button>
+            <button type="submit" class="btn flex-1 bg-emerald-800 hover:bg-emerald-900">✓ Accept &amp; Add to Customers</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
   </main>
 </div>
@@ -1493,6 +1597,7 @@ function updateRunnerDropdowns() {
   const runnerOptions = agents.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
 
   if ($('cAgent')) $('cAgent').innerHTML = runnerOptions;
+  if ($('accAgent')) $('accAgent').innerHTML = runnerOptions;
   if ($('editCAgent')) $('editCAgent').innerHTML = runnerOptions;
   if ($('dDefaultAgent')) $('dDefaultAgent').innerHTML = runnerOptions;
   if ($('bulkTargetAgent')) $('bulkTargetAgent').innerHTML = runnerOptions;
@@ -2302,6 +2407,193 @@ function exportBills() {
   a.click();
 }
 
+// -------------------------------------------------------------
+// NOTIFICATIONS (ENQUIRIES & SUBSCRIPTIONS: ACCEPT / HOLD)
+// -------------------------------------------------------------
+let currentNotifFilter = 'pending';
+
+function updateNotificationBadges() {
+  const notifs = db.notifications || [];
+  const activeCount = notifs.filter(n => n.status === 'pending' || n.status === 'hold').length;
+  if ($('headerNotifBadge')) $('headerNotifBadge').textContent = activeCount;
+  if ($('sideNotifBadge')) $('sideNotifBadge').textContent = activeCount;
+}
+
+function setNotifFilter(status) {
+  currentNotifFilter = status;
+  ['Pending', 'Hold', 'Accepted', 'All'].forEach(k => {
+    const btn = $('notifFilter' + k);
+    if (btn) btn.classList.toggle('active', k.toLowerCase() === status.toLowerCase());
+  });
+  renderNotifications();
+}
+
+function renderNotifications() {
+  updateNotificationBadges();
+  const container = $('notificationsList');
+  if (!container) return;
+
+  let list = (db.notifications || []).slice().reverse();
+  if (currentNotifFilter !== 'ALL') {
+    list = list.filter(n => (n.status || 'pending') === currentNotifFilter);
+  }
+
+  container.innerHTML = list.map(n => {
+    const st = n.status || 'pending';
+    const isSub = n.type === 'Subscription';
+    const badgeClass = st === 'accepted' ? 'badge-delivered' : st === 'hold' ? 'badge-skipped' : 'badge-planned';
+
+    return `
+      <div class="panel border-2 ${st === 'hold' ? 'border-amber-400 bg-amber-50/20' : st === 'accepted' ? 'border-emerald-300 bg-emerald-50/20' : 'border-emerald-900/15'} space-y-3">
+        <div class="flex justify-between items-start gap-2">
+          <div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${isSub ? 'bg-purple-100 text-purple-900' : 'bg-blue-100 text-blue-900'}">
+                ${isSub ? '🆕 Subscription' : '💬 Enquiry'}
+              </span>
+              <span class="badge ${badgeClass}">${st.toUpperCase()}</span>
+              <span class="text-[11px] text-gray-400 font-mono">${esc(n.createdAt || '')}</span>
+            </div>
+            <h3 class="font-bold text-base text-gray-900 mt-1">${esc(n.name)}</h3>
+            <p class="text-xs text-gray-600 font-mono">📞 ${esc(n.phone)} · 📍 <b>${esc(n.area || 'Unknown Area')}</b> ${n.hno ? '(' + esc(n.hno) + ')' : ''}</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 p-2.5 rounded-lg border text-xs text-gray-700 space-y-1">
+          <div><b>Details:</b> ${esc(n.message || 'New milk request')}</div>
+          ${n.holdReason ? `<div class="text-amber-800 font-semibold"><b>Hold Note:</b> ${esc(n.holdReason)}</div>` : ''}
+        </div>
+
+        <div class="pt-1 flex flex-wrap gap-2">
+          ${st !== 'accepted' ? `
+            <button class="btn text-xs py-1.5 flex-1 bg-emerald-800 hover:bg-emerald-900" onclick="openAcceptNotifModal('${n.id}')">
+              ✓ Accept &amp; Assign Customer
+            </button>
+          ` : `
+            <span class="text-xs font-bold text-emerald-700 flex-1 py-1.5">✓ Added to Customers List</span>
+          `}
+          ${st !== 'hold' && st !== 'accepted' ? `
+            <button class="btn-secondary text-xs py-1.5 bg-amber-100 text-amber-900 hover:bg-amber-200" onclick="holdNotification('${n.id}')">
+              ⏸️ Hold
+            </button>
+          ` : ''}
+          <button class="btn-secondary text-xs py-1.5 text-red-700 hover:bg-red-50" onclick="deleteNotification('${n.id}')">
+            🗑️
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('') || `<div class="panel col-span-full text-center py-10 text-gray-400 text-sm">No ${currentNotifFilter === 'ALL' ? '' : currentNotifFilter} enquiries or subscription requests right now.</div>`;
+}
+
+function holdNotification(notifId) {
+  const n = (db.notifications || []).find(x => x.id === notifId);
+  if (!n) return;
+  const reason = prompt(`Put "${n.name}" on HOLD. Enter optional note shown to customer (or leave blank):`, n.holdReason || 'Route slot verification in progress');
+  if (reason === null) return; // Cancelled prompt
+  n.status = 'hold';
+  n.holdReason = reason.trim();
+  save();
+  alert(`Request for "${n.name}" placed ON HOLD. If they check on the website, they will see their Hold status.`);
+}
+
+function deleteNotification(notifId) {
+  if (!confirm('Delete this notification record?')) return;
+  db.notifications = (db.notifications || []).filter(x => x.id !== notifId);
+  save();
+}
+
+function openAcceptNotifModal(notifId) {
+  updateRunnerDropdowns();
+  const n = (db.notifications || []).find(x => x.id === notifId);
+  if (!n) return;
+
+  $('accNotifId').value = n.id;
+  $('accName').value = n.name || '';
+  $('accPhone').value = n.phone || '';
+  $('accArea').value = n.area || 'Sangareddy';
+  $('accHno').value = n.hno || '';
+  $('accAddress').value = n.address || `${n.hno || ''}, ${n.area || ''}`.replace(/^,\s*/, '');
+  $('accProduct').value = 'Buffalo Milk (Pure Natural)';
+  $('accSize').value = n.size || 1000;
+  $('accRate').value = n.rate || 130;
+  $('accFrequency').value = n.frequency || 'Daily';
+  if ($('accAgent') && $('accAgent').options.length > 0) {
+    $('accAgent').selectedIndex = 0;
+  }
+
+  $('acceptNotifModal').classList.remove('hidden');
+}
+
+function closeAcceptNotifModal() {
+  $('acceptNotifModal').classList.add('hidden');
+}
+
+async function confirmAcceptNotification(e) {
+  e.preventDefault();
+  const notifId = $('accNotifId').value;
+  const n = (db.notifications || []).find(x => x.id === notifId);
+
+  const name = $('accName').value.trim();
+  const phone = $('accPhone').value.trim();
+  const area = $('accArea').value;
+  const hno = $('accHno').value.trim();
+  const address = $('accAddress').value.trim();
+  const product = $('accProduct').value;
+  const size = Number($('accSize').value) || 1000;
+  const rate = Number($('accRate').value) || 130;
+  const frequency = $('accFrequency').value;
+  const agent = $('accAgent').value;
+
+  db.customers = db.customers || [];
+  let existing = db.customers.find(c => String(c.phone).trim() === phone);
+
+  if (existing) {
+    existing.name = name;
+    existing.area = area;
+    existing.hno = hno;
+    existing.address = address;
+    existing.product = product;
+    existing.size = size;
+    existing.rate = rate;
+    existing.frequency = frequency;
+    existing.agent = agent;
+    existing.active = true;
+    checklistSelectionMap[existing.id] = { selected: true, agent: agent };
+  } else {
+    const newCust = {
+      id: uid(),
+      name,
+      phone,
+      area,
+      hno,
+      address,
+      product,
+      size,
+      rate,
+      frequency,
+      agent,
+      active: true
+    };
+    db.customers.push(newCust);
+    checklistSelectionMap[newCust.id] = { selected: true, agent: agent };
+  }
+
+  if (n) {
+    n.status = 'accepted';
+    n.area = area;
+    n.hno = hno;
+    n.agent = agent;
+  }
+
+  save();
+  closeAcceptNotifModal();
+  alert(`✓ "${name}" has been accepted, assigned to ${area} (${agent}), and added to Customers List!`);
+
+  const msg = `Namaste ${name} ji 🙏\n\nYour Panditji Dairy Farm milk subscription is now APPROVED!\n\nArea: ${area}\nH.No: ${hno}\nPlan: ${size}ml ${product} (${frequency})\nAssigned Runner: ${agent}\n\nThank you for choosing pure glass-bottle milk!`;
+  await sendDirectWhatsAppMessage(phone, msg);
+}
+
 function renderActiveView(activeId) {
   const today = $('dDate').value || todayStr();
 
@@ -2320,6 +2612,9 @@ function renderActiveView(activeId) {
         <td><button class="btn-wa text-xs" onclick="sendAgentAssignedMsg('${d.id}')">📲 Notify</button></td>
       </tr>
     `).join('') || `<tr><td colspan="8" class="text-center py-4 text-gray-400">No stops today.</td></tr>`;
+  }
+  else if (activeId === 'notifications') {
+    renderNotifications();
   }
   else if (activeId === 'vendors') {
     $('pVendorSelect').innerHTML = (db.vendors || []).map(v => `<option value="${v.id}">${esc(v.name)} (${esc(v.location)})</option>`).join('');
@@ -2363,6 +2658,7 @@ function renderActiveView(activeId) {
 }
 
 function renderAll() {
+  updateNotificationBadges();
   const visibleSection = document.querySelector('.view:not(.hidden)');
   const activeId = visibleSection ? visibleSection.id : 'overview';
   renderActiveView(activeId);
